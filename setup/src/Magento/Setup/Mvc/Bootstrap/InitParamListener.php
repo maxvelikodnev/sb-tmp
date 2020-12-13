@@ -5,29 +5,30 @@
  */
 namespace Magento\Setup\Mvc\Bootstrap;
 
+use Interop\Container\ContainerInterface;
+use Interop\Container\Exception\ContainerException;
 use Magento\Framework\App\Bootstrap as AppBootstrap;
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\State;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Shell\ComplexParameter;
-use Laminas\Console\Request;
-use Laminas\EventManager\EventManagerInterface;
-use Laminas\EventManager\ListenerAggregateInterface;
-use Laminas\Mvc\Application;
-use Laminas\Mvc\MvcEvent;
-use Laminas\Router\Http\RouteMatch;
-use Laminas\ServiceManager\FactoryInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
-use Laminas\Stdlib\RequestInterface;
-use Laminas\Uri\UriInterface;
+use Zend\Console\Request;
+use Zend\EventManager\EventManagerInterface;
+use Zend\EventManager\ListenerAggregateInterface;
+use Zend\Mvc\Application;
+use Zend\Mvc\MvcEvent;
+use Zend\Router\Http\RouteMatch;
+use Zend\ServiceManager\Exception\ServiceNotCreatedException;
+use Zend\ServiceManager\Exception\ServiceNotFoundException;
+use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
+use Zend\Stdlib\RequestInterface;
 
 /**
  * A listener that injects relevant Magento initialization parameters and initializes filesystem
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @codingStandardsIgnoreStart
  */
 class InitParamListener implements ListenerAggregateInterface, FactoryInterface
 {
@@ -52,40 +53,32 @@ class InitParamListener implements ListenerAggregateInterface, FactoryInterface
     ];
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      *
      * The $priority argument is added to support latest versions of Zend Event Manager.
      * Starting from Zend Event Manager 3.0.0 release the ListenerAggregateInterface::attach()
      * supports the `priority` argument.
-     *
-     * @param EventManagerInterface $events
-     * @param int                   $priority
-     * @return void
      */
     public function attach(EventManagerInterface $events, $priority = 1)
     {
         $sharedEvents = $events->getSharedManager();
-        $sharedEvents->attach(
+        $this->listeners[] = $sharedEvents->attach(
             Application::class,
             MvcEvent::EVENT_BOOTSTRAP,
             [$this, 'onBootstrap'],
             $priority
         );
-
-        $this->listeners = $sharedEvents->getListeners([Application::class], MvcEvent::EVENT_BOOTSTRAP);
     }
 
     /**
-     * @inheritdoc
-     *
-     * @param EventManagerInterface $events
-     * @return void
+     * {@inheritdoc}
      */
     public function detach(EventManagerInterface $events)
     {
         foreach ($this->listeners as $index => $listener) {
-            $events->detach($listener);
-            unset($this->listeners[$index]);
+            if ($events->detach($listener)) {
+                unset($this->listeners[$index]);
+            }
         }
     }
 
@@ -116,9 +109,7 @@ class InitParamListener implements ListenerAggregateInterface, FactoryInterface
      *
      * @param \Zend\Mvc\MvcEvent $event
      * @return false|\Zend\Http\Response
-     *
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Setup\Exception
      */
     public function authPreDispatch($event)
     {
@@ -197,10 +188,7 @@ class InitParamListener implements ListenerAggregateInterface, FactoryInterface
     }
 
     /**
-     * @inheritdoc
-     *
-     * @param ServiceLocatorInterface $serviceLocator
-     * @return mixed
+     * {@inheritdoc}
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
