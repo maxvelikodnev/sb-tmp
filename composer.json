@@ -1,0 +1,111 @@
+{
+    "name": "magento/project-community-edition",
+    "description": "eCommerce Platform for Growth (Community Edition)",
+    "type": "project",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "require": {
+        "amasty/base": "^1.7",
+        "amasty/feed": "^2.3",
+        "elgentos/regenerate-catalog-urls": "^0.2.0",
+        "fooman/pdfcustomiser-m2": "^8.2",
+        "justbetter/magento2-image-optimizer": "^1.2",
+        "magento/data-migration-tool": "2.3.1",
+        "magento/product-community-edition": "2.3.2",
+        "magepal/magento2-cataloglazyload": "^1.6",
+        "mageplaza/magento-2-google-analytics": "^1.0",
+        "mageplaza/magento-2-product-slider": "^2.0",
+        "mageplaza/magento-2-seo-extension": "^2.1",
+        "mageplaza/module-core": "^1.4",
+        "mageplaza/module-google-recaptcha": "^1.0",
+        "mageplaza/module-multi-flat-rates": "^1.0",
+        "mageplaza/module-sitemap": "^1.0",
+        "magezon/module-lazyload": "^1.0",
+        "meetanshi/magento-2-defer-parsing-javascript": "^1.0",
+        "olegkoval/magento2-regenerate-url-rewrites": "^1.4",
+        "onestepcheckout/iosc": "^1.2",
+        "pelago/emogrifier": "2.0.0 as 1.2.0",
+        "reviewscouk/reviews": "0.0.22",
+        "shopigo/magento2-extension-ajax-layered-navigation": "^1.0",
+        "shopigo/magento2-extension-ajax-pagination-sorting": "^1.0",
+        "yireo/magento2-webp2": "^0.4.5"
+    },
+    "require-dev": {
+        "allure-framework/allure-phpunit": "~1.2.0",
+        "friendsofphp/php-cs-fixer": "~2.10.1",
+        "lusitanian/oauth": "~0.8.10",
+        "magento/magento2-functional-testing-framework": "~2.3.13",
+        "pdepend/pdepend": "2.5.2",
+        "phpmd/phpmd": "@stable",
+        "phpunit/phpunit": "~6.2.0",
+        "sebastian/phpcpd": "~3.0.0",
+        "squizlabs/php_codesniffer": "3.2.2"
+    },
+    "conflict": {
+        "gene/bluefoot": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Magento\\Framework\\": "lib/internal/Magento/Framework/",
+            "Magento\\Setup\\": "setup/src/Magento/Setup/",
+            "Magento\\": "app/code/Magento/",
+            "Zend\\Mvc\\Controller\\": "setup/src/Zend/Mvc/Controller/"
+        },
+        "psr-0": {
+            "": [
+                "app/code/",
+                "generated/code/"
+            ]
+        },
+        "files": [
+            "app/etc/NonComposerComponentRegistration.php"
+        ],
+        "exclude-from-classmap": [
+            "**/dev/**",
+            "**/update/**",
+            "**/Test/**"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Magento\\Sniffs\\": "dev/tests/static/framework/Magento/Sniffs/",
+            "Magento\\Tools\\": "dev/tools/Magento/Tools/",
+            "Magento\\Tools\\Sanity\\": "dev/build/publication/sanity/Magento/Tools/Sanity/",
+            "Magento\\TestFramework\\Inspection\\": "dev/tests/static/framework/Magento/TestFramework/Inspection/",
+            "Magento\\TestFramework\\Utility\\": "dev/tests/static/framework/Magento/TestFramework/Utility/"
+        }
+    },
+    "version": "2.3.1",
+    "minimum-stability": "stable",
+    "repositories": {
+        "0": {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        },
+        "osc": {
+            "type": "composer",
+            "url": "https://repo.onestepcheckout.com/KAZTE26AVTAPXG2TMZM7/"
+        },
+        "amasty": {
+            "type": "composer",
+            "url": "https://composer.amasty.com/community/"
+        },
+        "magento2-fast-product-images": {
+            "type": "git",
+            "url": "git@github.com:xumulus/magento2-fast-product-images.git"
+        },
+        "fooman": {
+            "type": "composer",
+            "url": "https://customer-repos.fooman.co.nz/silverbubble.co.uk-bc1eda78cb0c35f1129ea60b457a5f5be30a469e"
+        }
+    },
+    "extra": {
+        "magento-force": "override"
+    }
+}

@@ -1,0 +1,15 @@
+deploy_staging:
+  variables:
+    GIT_CLONE_PATH: /home/silverbubble/domains/dev.silverbubble.co.uk/public_html/magento2
+    GIT_CLEAN_FLAGS: -ffd
+    TERM: xterm-256color
+  type: deploy
+  environment:
+    name: staging
+    url: wolverine.istrusted.co.uk
+  script:
+    - ../fix_perms.sh
+    - scl enable php72 bash
+    - ../clear_cache.sh
+  only:
+    - dev
