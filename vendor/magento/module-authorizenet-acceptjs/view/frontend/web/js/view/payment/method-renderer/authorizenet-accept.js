@@ -91,10 +91,8 @@ define([
                 return;
             }
 
-            authData.clientKey = window.checkoutConfig.payment[this.getCode()].clientKey !== null ?
-                window.checkoutConfig.payment[this.getCode()].clientKey : '';
-            authData.apiLoginID = window.checkoutConfig.payment[this.getCode()].apiLoginID !== null ?
-                window.checkoutConfig.payment[this.getCode()].apiLoginID : '';
+            authData.clientKey = window.checkoutConfig.payment[this.getCode()].clientKey;
+            authData.apiLoginID = window.checkoutConfig.payment[this.getCode()].apiLoginID;
 
             cardData.cardNumber = this.creditCardNumber();
             cardData.month = this.creditCardExpMonth();

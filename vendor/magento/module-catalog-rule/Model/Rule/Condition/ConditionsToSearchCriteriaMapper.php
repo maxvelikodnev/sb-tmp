@@ -7,16 +7,13 @@ declare(strict_types=1);
 
 namespace Magento\CatalogRule\Model\Rule\Condition;
 
+use Magento\Framework\Exception\InputException;
+use Magento\Rule\Model\Condition\ConditionInterface;
 use Magento\CatalogRule\Model\Rule\Condition\Combine as CombinedCondition;
 use Magento\CatalogRule\Model\Rule\Condition\Product as SimpleCondition;
 use Magento\Framework\Api\CombinedFilterGroup as FilterGroup;
-use Magento\Framework\Api\CombinedFilterGroupFactory;
 use Magento\Framework\Api\Filter;
-use Magento\Framework\Api\FilterFactory;
 use Magento\Framework\Api\SearchCriteria;
-use Magento\Framework\Api\SearchCriteriaBuilderFactory;
-use Magento\Framework\Exception\InputException;
-use Magento\Rule\Model\Condition\ConditionInterface;
 
 /**
  * Maps catalog price rule conditions to search criteria
@@ -24,29 +21,29 @@ use Magento\Rule\Model\Condition\ConditionInterface;
 class ConditionsToSearchCriteriaMapper
 {
     /**
-     * @var SearchCriteriaBuilderFactory
+     * @var \Magento\Framework\Api\SearchCriteriaBuilderFactory
      */
     private $searchCriteriaBuilderFactory;
 
     /**
-     * @var CombinedFilterGroupFactory
+     * @var \Magento\Framework\Api\CombinedFilterGroupFactory
      */
     private $combinedFilterGroupFactory;
 
     /**
-     * @var FilterFactory
+     * @var \Magento\Framework\Api\FilterFactory
      */
     private $filterFactory;
 
     /**
-     * @param SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory
-     * @param CombinedFilterGroupFactory $combinedFilterGroupFactory
-     * @param FilterFactory $filterFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory
+     * @param \Magento\Framework\Api\CombinedFilterGroupFactory $combinedFilterGroupFactory
+     * @param \Magento\Framework\Api\FilterFactory $filterFactory
      */
     public function __construct(
-        SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
-        CombinedFilterGroupFactory $combinedFilterGroupFactory,
-        FilterFactory $filterFactory
+        \Magento\Framework\Api\SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
+        \Magento\Framework\Api\CombinedFilterGroupFactory $combinedFilterGroupFactory,
+        \Magento\Framework\Api\FilterFactory $filterFactory
     ) {
         $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
         $this->combinedFilterGroupFactory = $combinedFilterGroupFactory;
@@ -77,7 +74,7 @@ class ConditionsToSearchCriteriaMapper
      * Convert condition to filter group
      *
      * @param ConditionInterface $condition
-     * @return null|FilterGroup|Filter
+     * @return null|\Magento\Framework\Api\CombinedFilterGroup|\Magento\Framework\Api\Filter
      * @throws InputException
      */
     private function mapConditionToFilterGroup(ConditionInterface $condition)
@@ -97,7 +94,7 @@ class ConditionsToSearchCriteriaMapper
      * Convert combined condition to filter group
      *
      * @param Combine $combinedCondition
-     * @return null|FilterGroup
+     * @return null|\Magento\Framework\Api\CombinedFilterGroup
      * @throws InputException
      */
     private function mapCombinedConditionToFilterGroup(CombinedCondition $combinedCondition)
@@ -114,7 +111,7 @@ class ConditionsToSearchCriteriaMapper
             // This required to solve cases when condition is configured like:
             // "If ALL/ANY of these conditions are FALSE" - we need to reverse SQL operator for this "FALSE"
             if ((bool)$combinedCondition->getValue() === false) {
-                $this->reverseSqlOperatorInFilterRecursively($filter);
+                $this->reverseSqlOperatorInFilter($filter);
             }
 
             $filters[] = $filter;
@@ -184,24 +181,6 @@ class ConditionsToSearchCriteriaMapper
         }
 
         return 'any';
-    }
-
-    /**
-     * Recursively reverse sql conditions to their corresponding negative analog for the entire FilterGroup
-     *
-     * @param Filter|FilterGroup $filter
-     * @return void
-     * @throws InputException
-     */
-    private function reverseSqlOperatorInFilterRecursively($filter): void
-    {
-        if ($filter instanceof FilterGroup) {
-            foreach ($filter->getFilters() as &$currentFilter) {
-                $this->reverseSqlOperatorInFilterRecursively($currentFilter);
-            }
-        } else {
-            $this->reverseSqlOperatorInFilter($filter);
-        }
     }
 
     /**

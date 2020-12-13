@@ -6,13 +6,11 @@
 
 namespace Magento\Directory\Helper;
 
-use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Currency;
 use Magento\Directory\Model\CurrencyFactory;
 use Magento\Directory\Model\ResourceModel\Country\Collection;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory;
 use Magento\Framework\App\Cache\Type\Config;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Json\Helper\Data as JsonData;
 use Magento\Store\Model\ScopeInterface;
@@ -23,7 +21,6 @@ use Magento\Store\Model\StoreManagerInterface;
  *
  * @api
  * @since 100.0.2
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
@@ -159,7 +156,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         if (!$this->_regionCollection) {
             $this->_regionCollection = $this->_regCollectionFactory->create();
-            // phpstan:ignore
             $this->_regionCollection->addCountryFilter($this->getAddress()->getCountryId())->load();
         }
         return $this->_regionCollection;
@@ -189,9 +185,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         \Magento\Framework\Profiler::start('TEST: ' . __METHOD__, ['group' => 'TEST', 'method' => __METHOD__]);
         if (!$this->_regionJson) {
-            $scope = $this->getCurrentScope();
-            $scopeKey = $scope['value'] ? '_' . implode('_', $scope) : null;
-            $cacheKey = 'DIRECTORY_REGIONS_JSON_STORE' . $scopeKey;
+            $cacheKey = 'DIRECTORY_REGIONS_JSON_STORE' . $this->_storeManager->getStore()->getId();
             $json = $this->_configCacheType->load($cacheKey);
             if (empty($json)) {
                 $regions = $this->getRegionData();
@@ -350,13 +344,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getRegionData()
     {
-        $scope = $this->getCurrentScope();
-        $allowedCountries = $this->scopeConfig->getValue(
-            AllowedCountries::ALLOWED_COUNTRIES_PATH,
-            $scope['type'],
-            $scope['value']
-        );
-        $countryIds = explode(',', $allowedCountries);
+        $countryIds = [];
+        foreach ($this->getCountryCollection() as $country) {
+            $countryIds[] = $country->getCountryId();
+        }
         $collection = $this->_regCollectionFactory->create();
         $collection->addCountryFilter($countryIds)->load();
         $regions = [
@@ -400,32 +391,5 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getWeightUnit()
     {
         return $this->scopeConfig->getValue(self::XML_PATH_WEIGHT_UNIT, ScopeInterface::SCOPE_STORE);
-    }
-
-    /**
-     * Get current scope from request
-     *
-     * @return array
-     */
-    private function getCurrentScope(): array
-    {
-        $scope = [
-            'type' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-            'value' => null,
-        ];
-        $request = $this->_getRequest();
-        if ($request->getParam(ScopeInterface::SCOPE_WEBSITE)) {
-            $scope = [
-                'type' => ScopeInterface::SCOPE_WEBSITE,
-                'value' => $request->getParam(ScopeInterface::SCOPE_WEBSITE),
-            ];
-        } elseif ($request->getParam(ScopeInterface::SCOPE_STORE)) {
-            $scope = [
-                'type' => ScopeInterface::SCOPE_STORE,
-                'value' => $request->getParam(ScopeInterface::SCOPE_STORE),
-            ];
-        }
-
-        return $scope;
     }
 }

@@ -10,7 +10,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Catalog\Model\Product\Configuration\Item\ItemResolverInterface;
 
 /**
- * Default cart item
+ * Default item
  */
 class DefaultItem extends AbstractItem
 {
@@ -78,7 +78,7 @@ class DefaultItem extends AbstractItem
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function doGetItemData()
     {
@@ -106,7 +106,6 @@ class DefaultItem extends AbstractItem
             ],
             'canApplyMsrp' => $this->msrpHelper->isShowBeforeOrderConfirm($this->item->getProduct())
                 && $this->msrpHelper->isMinimalPriceLessMsrp($this->item->getProduct()),
-            'message' => $this->item->getMessage(),
         ];
     }
 
@@ -122,8 +121,6 @@ class DefaultItem extends AbstractItem
     }
 
     /**
-     * Returns product for thumbnail.
-     *
      * @return \Magento\Catalog\Model\Product
      * @codeCoverageIgnore
      */
@@ -133,8 +130,6 @@ class DefaultItem extends AbstractItem
     }
 
     /**
-     * Returns product.
-     *
      * @return \Magento\Catalog\Model\Product
      * @codeCoverageIgnore
      */

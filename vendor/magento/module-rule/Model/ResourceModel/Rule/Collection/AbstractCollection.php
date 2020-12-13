@@ -9,7 +9,6 @@ namespace Magento\Rule\Model\ResourceModel\Rule\Collection;
 /**
  * Abstract Rule entity resource collection model
  *
- * phpcs:disable Magento2.Classes.AbstractApi
  * @api
  * @since 100.0.2
  */
@@ -84,21 +83,11 @@ abstract class AbstractCollection extends \Magento\Framework\Model\ResourceModel
                 if ($website instanceof \Magento\Store\Model\Website) {
                     $websiteIds[$index] = $website->getId();
                 }
-                $websiteIds[$index] = (int) $websiteIds[$index];
             }
-
-            $websiteSelect = $this->getConnection()->select();
-            $websiteSelect->from(
-                $this->getTable($entityInfo['associations_table']),
-                [$entityInfo['rule_id_field']]
-            )->distinct(
-                true
-            )->where(
-                $this->getConnection()->quoteInto($entityInfo['entity_id_field'] . ' IN (?)', $websiteIds)
-            );
             $this->getSelect()->join(
-                ['website' => $websiteSelect],
-                'main_table.' . $entityInfo['rule_id_field'] . ' = website.' . $entityInfo['rule_id_field'],
+                ['website' => $this->getTable($entityInfo['associations_table'])],
+                $this->getConnection()->quoteInto('website.' . $entityInfo['entity_id_field'] . ' IN (?)', $websiteIds)
+                . ' AND main_table.' . $entityInfo['rule_id_field'] . ' = website.' . $entityInfo['rule_id_field'],
                 []
             );
         }
@@ -138,11 +127,11 @@ abstract class AbstractCollection extends \Magento\Framework\Model\ResourceModel
     }
 
     /**
-     * Retrieve correspondent entity information of rule's associated entity by specified entity type
-     *
-     * (associations table name, columns names)
+     * Retrieve correspondent entity information (associations table name, columns names)
+     * of rule's associated entity by specified entity type
      *
      * @param string $entityType
+     *
      * @throws \Magento\Framework\Exception\LocalizedException
      * @return array
      */

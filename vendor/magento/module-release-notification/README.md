@@ -1,4 +1,4 @@
-# Magento_ReleaseNotification module
+ # Magento_ReleaseNotification Module
 
 The **Release Notification Module** serves to provide a notification delivery platform for displaying new features of a Magento installation or upgrade as well as any other required release notifications.
 

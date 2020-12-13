@@ -18,9 +18,7 @@ use Magento\Framework\View\Element\Template\Context;
  * Represents the payment block for the admin checkout form
  *
  * @api
- * @since 100.2.1
- * @deprecated 100.3.3 Starting from Magento 2.3.4 Authorize.net payment method core integration is deprecated in favor of
- * official payment integration available on the marketplace
+ * @since 100.3.0
  */
 class Payment extends Template
 {
@@ -55,7 +53,7 @@ class Payment extends Template
      * Retrieves the config that should be used by the block
      *
      * @return string
-     * @since 100.2.1
+     * @since 100.3.0
      */
     public function getPaymentConfig(): string
     {
@@ -70,7 +68,7 @@ class Payment extends Template
      * Returns the method code for this payment method
      *
      * @return string
-     * @since 100.2.1
+     * @since 100.3.0
      */
     public function getMethodCode(): string
     {

@@ -9,12 +9,12 @@ namespace Magento\ConfigurableProductGraphQl\Model\Variant;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\ProductFactory;
 use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable\Product\Collection as ChildCollection;
 use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable\Product\CollectionFactory;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\CatalogGraphQl\Model\Resolver\Products\DataProvider\Product\CollectionProcessorInterface;
-use Magento\CatalogGraphQl\Model\Resolver\Products\DataProvider\Product\CollectionPostProcessor;
+use Magento\CatalogGraphQl\Model\Resolver\Products\DataProvider\Product as DataProvider;
 
 /**
  * Collection for fetching configurable child product data.
@@ -27,9 +27,19 @@ class Collection
     private $childCollectionFactory;
 
     /**
+     * @var ProductFactory
+     */
+    private $productFactory;
+
+    /**
      * @var SearchCriteriaBuilder
      */
     private $searchCriteriaBuilder;
+
+    /**
+     * @var DataProvider
+     */
+    private $productDataProvider;
 
     /**
      * @var MetadataPool
@@ -52,34 +62,24 @@ class Collection
     private $attributeCodes = [];
 
     /**
-     * @var CollectionProcessorInterface
-     */
-    private $collectionProcessor;
-
-    /**
-     * @var CollectionPostProcessor
-     */
-    private $collectionPostProcessor;
-
-    /**
      * @param CollectionFactory $childCollectionFactory
+     * @param ProductFactory $productFactory
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param DataProvider $productDataProvider
      * @param MetadataPool $metadataPool
-     * @param CollectionProcessorInterface $collectionProcessor
-     * @param CollectionPostProcessor $collectionPostProcessor
      */
     public function __construct(
         CollectionFactory $childCollectionFactory,
+        ProductFactory $productFactory,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        MetadataPool $metadataPool,
-        CollectionProcessorInterface $collectionProcessor,
-        CollectionPostProcessor $collectionPostProcessor
+        DataProvider $productDataProvider,
+        MetadataPool $metadataPool
     ) {
         $this->childCollectionFactory = $childCollectionFactory;
+        $this->productFactory = $productFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->productDataProvider = $productDataProvider;
         $this->metadataPool = $metadataPool;
-        $this->collectionProcessor = $collectionProcessor;
-        $this->collectionPostProcessor = $collectionPostProcessor;
     }
 
     /**
@@ -135,6 +135,7 @@ class Collection
      * Fetch all children products from parent id's.
      *
      * @return array
+     * @throws \Exception
      */
     private function fetch() : array
     {
@@ -147,16 +148,10 @@ class Collection
             /** @var ChildCollection $childCollection */
             $childCollection = $this->childCollectionFactory->create();
             $childCollection->setProductFilter($product);
-            $this->collectionProcessor->process(
-                $childCollection,
-                $this->searchCriteriaBuilder->create(),
-                $attributeData
-            );
-            $childCollection->load();
-            $this->collectionPostProcessor->process($childCollection, $attributeData);
+            $childCollection->addAttributeToSelect($attributeData);
 
             /** @var Product $childProduct */
-            foreach ($childCollection as $childProduct) {
+            foreach ($childCollection->getItems() as $childProduct) {
                 $formattedChild = ['model' => $childProduct, 'sku' => $childProduct->getSku()];
                 $parentId = (int)$childProduct->getParentId();
                 if (!isset($this->childrenMap[$parentId])) {
@@ -178,7 +173,7 @@ class Collection
      */
     private function getAttributesCodes(Product $currentProduct): array
     {
-        $attributeCodes = $this->attributeCodes;
+        $attributeCodes = [];
         $allowAttributes = $currentProduct->getTypeInstance()->getConfigurableAttributes($currentProduct);
         foreach ($allowAttributes as $attribute) {
             $productAttribute = $attribute->getProductAttribute();

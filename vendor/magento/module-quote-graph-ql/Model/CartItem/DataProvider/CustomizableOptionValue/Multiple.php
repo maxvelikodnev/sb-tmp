@@ -54,7 +54,6 @@ class Multiple implements CustomizableOptionValueInterface
             $selectedOptionValueData[] = [
                 'id' => $selectedOption->getId(),
                 'label' => $optionValue->getTitle(),
-                'value' => $optionId,
                 'price' => [
                     'type' => strtoupper($optionValue->getPriceType()),
                     'units' => $priceValueUnits,

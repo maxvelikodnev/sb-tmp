@@ -8,14 +8,12 @@
 namespace Magento\DownloadableImportExport\Model\Import\Product\Type;
 
 use Magento\CatalogImportExport\Model\Import\Product as ImportProduct;
-use Magento\Downloadable\Model\Url\DomainValidator;
 use Magento\Framework\EntityManager\MetadataPool;
 use \Magento\Store\Model\Store;
 
 /**
  * Class Downloadable
  *
- * phpcs:disable Magento2.Commenting.ConstantsPHPDocFormatting
  * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Type\AbstractType
@@ -103,10 +101,6 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
 
     const ERROR_COLS_IS_EMPTY = 'emptyOptions';
 
-    private const ERROR_LINK_URL_NOT_IN_DOMAIN_WHITELIST = 'linkUrlNotInDomainWhitelist';
-
-    private const ERROR_SAMPLE_URL_NOT_IN_DOMAIN_WHITELIST = 'sampleUrlNotInDomainWhitelist';
-
     /**
      * Validation failure message template definitions
      *
@@ -117,11 +111,7 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
         self::ERROR_GROUP_TITLE_NOT_FOUND => 'Group titles not found for downloadable products',
         self::ERROR_OPTION_NO_TITLE => 'Option no title',
         self::ERROR_MOVE_FILE => 'Error move file',
-        self::ERROR_COLS_IS_EMPTY => 'Missing sample and links data for the downloadable product',
-        self::ERROR_LINK_URL_NOT_IN_DOMAIN_WHITELIST =>
-            'Link URL\'s domain is not in list of downloadable_domains in env.php.',
-        self::ERROR_SAMPLE_URL_NOT_IN_DOMAIN_WHITELIST =>
-            'Sample URL\'s domain is not in list of downloadable_domains in env.php.'
+        self::ERROR_COLS_IS_EMPTY => 'Missing sample and links data for the downloadable product'
     ];
 
     /**
@@ -255,11 +245,6 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
     protected $downloadableHelper;
 
     /**
-     * @var DomainValidator
-     */
-    private $domainValidator;
-
-    /**
      * Downloadable constructor
      *
      * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $attrSetColFac
@@ -268,7 +253,6 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
      * @param array $params
      * @param \Magento\DownloadableImportExport\Helper\Uploader $uploaderHelper
      * @param \Magento\DownloadableImportExport\Helper\Data $downloadableHelper
-     * @param DomainValidator $domainValidator
      * @param MetadataPool $metadataPool
      */
     public function __construct(
@@ -278,14 +262,12 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
         array $params,
         \Magento\DownloadableImportExport\Helper\Uploader $uploaderHelper,
         \Magento\DownloadableImportExport\Helper\Data $downloadableHelper,
-        DomainValidator $domainValidator,
         MetadataPool $metadataPool = null
     ) {
         parent::__construct($attrSetColFac, $prodAttrColFac, $resource, $params, $metadataPool);
         $this->parameters = $this->_entityModel->getParameters();
         $this->_resource = $resource;
         $this->uploaderHelper = $uploaderHelper;
-        $this->domainValidator = $domainValidator;
         $this->downloadableHelper = $downloadableHelper;
     }
 
@@ -332,7 +314,7 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
     {
         $this->rowNum = $rowNum;
         $error = false;
-        if (!$this->downloadableHelper->isRowDownloadableNoValid($rowData) && $isNewProduct) {
+        if (!$this->downloadableHelper->isRowDownloadableNoValid($rowData)) {
             $this->_entityModel->addRowError(self::ERROR_OPTIONS_NOT_FOUND, $this->rowNum);
             $error = true;
         }
@@ -354,31 +336,17 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
      */
     protected function isRowValidSample(array $rowData)
     {
-        $hasSampleLinkData = (
-            isset($rowData[self::COL_DOWNLOADABLE_SAMPLES]) &&
-            $rowData[self::COL_DOWNLOADABLE_SAMPLES] != ''
-        );
-
-        if (!$hasSampleLinkData) {
-            return false;
+        $result = false;
+        if (isset($rowData[self::COL_DOWNLOADABLE_SAMPLES])
+            && $rowData[self::COL_DOWNLOADABLE_SAMPLES] != ''
+            && $this->sampleGroupTitle($rowData) == '') {
+            $this->_entityModel->addRowError(self::ERROR_GROUP_TITLE_NOT_FOUND, $this->rowNum);
+            $result = true;
         }
-
-        $sampleData = $this->prepareSampleData($rowData[static::COL_DOWNLOADABLE_SAMPLES]);
-
-        $result = $result ?? $this->isTitle($sampleData);
-
-        foreach ($sampleData as $link) {
-            if ($this->hasDomainNotInWhitelist($link, 'link_type', 'link_url')) {
-                $this->_entityModel->addRowError(static::ERROR_LINK_URL_NOT_IN_DOMAIN_WHITELIST, $this->rowNum);
-                $result = true;
-            }
-
-            if ($this->hasDomainNotInWhitelist($link, 'sample_type', 'sample_url')) {
-                $this->_entityModel->addRowError(static::ERROR_SAMPLE_URL_NOT_IN_DOMAIN_WHITELIST, $this->rowNum);
-                $result = true;
-            }
+        if (isset($rowData[self::COL_DOWNLOADABLE_SAMPLES])
+            && $rowData[self::COL_DOWNLOADABLE_SAMPLES] != '') {
+            $result = $this->isTitle($this->prepareSampleData($rowData[self::COL_DOWNLOADABLE_SAMPLES]));
         }
-
         return $result;
     }
 
@@ -390,31 +358,19 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
      */
     protected function isRowValidLink(array $rowData)
     {
-        $hasLinkData = (
-            isset($rowData[self::COL_DOWNLOADABLE_LINKS]) &&
+        $result = false;
+        if (isset($rowData[self::COL_DOWNLOADABLE_LINKS]) &&
+            $rowData[self::COL_DOWNLOADABLE_LINKS] != '' &&
+            $this->linksAdditionalAttributes($rowData, 'group_title', self::DEFAULT_GROUP_TITLE) == ''
+        ) {
+            $this->_entityModel->addRowError(self::ERROR_GROUP_TITLE_NOT_FOUND, $this->rowNum);
+            $result = true;
+        }
+        if (isset($rowData[self::COL_DOWNLOADABLE_LINKS]) &&
             $rowData[self::COL_DOWNLOADABLE_LINKS] != ''
-        );
-
-        if (!$hasLinkData) {
-            return false;
+        ) {
+            $result = $this->isTitle($this->prepareLinkData($rowData[self::COL_DOWNLOADABLE_LINKS]));
         }
-
-        $linkData = $this->prepareLinkData($rowData[self::COL_DOWNLOADABLE_LINKS]);
-
-        $result = $result ?? $this->isTitle($linkData);
-
-        foreach ($linkData as $link) {
-            if ($this->hasDomainNotInWhitelist($link, 'link_type', 'link_url')) {
-                $this->_entityModel->addRowError(static::ERROR_LINK_URL_NOT_IN_DOMAIN_WHITELIST, $this->rowNum);
-                $result = true;
-            }
-
-            if ($this->hasDomainNotInWhitelist($link, 'sample_type', 'sample_url')) {
-                $this->_entityModel->addRowError(static::ERROR_SAMPLE_URL_NOT_IN_DOMAIN_WHITELIST, $this->rowNum);
-                $result = true;
-            }
-        }
-
         return $result;
     }
 
@@ -777,7 +733,6 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
             $rowCol
         );
         foreach ($options as $option) {
-            // phpcs:ignore Magento2.Performance.ForeachArrayMerge
             $result[] = array_merge(
                 $this->dataSample,
                 ['product_id' => $entityId],
@@ -802,7 +757,6 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
             $rowCol
         );
         foreach ($options as $option) {
-            // phpcs:ignore Magento2.Performance.ForeachArrayMerge
             $result[] = array_merge(
                 $this->dataLink,
                 ['product_id' => $entityId],
@@ -875,7 +829,6 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
 
     /**
      * Uploading files into the "downloadable/files" media folder.
-     *
      * Return a new file name if the same file is already exists.
      *
      * @param string $fileName
@@ -886,16 +839,12 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
     protected function uploadDownloadableFiles($fileName, $type = 'links', $renameFileOff = false)
     {
         try {
-            $uploader = $this->uploaderHelper->getUploader($type, $this->parameters);
-            if (!$this->uploaderHelper->isFileExist($fileName)) {
-                $res = $uploader->move($fileName, $renameFileOff);
-                $fileName = $res['file'];
-            }
+            $res = $this->uploaderHelper->getUploader($type, $this->parameters)->move($fileName, $renameFileOff);
+            return $res['file'];
         } catch (\Exception $e) {
             $this->_entityModel->addRowError(self::ERROR_MOVE_FILE, $this->rowNum);
-            $fileName = '';
+            return '';
         }
-        return $fileName;
     }
 
     /**
@@ -911,24 +860,5 @@ class Downloadable extends \Magento\CatalogImportExport\Model\Import\Product\Typ
         ];
         $this->productIds = [];
         return $this;
-    }
-
-    /**
-     * Does link contain url not in whitelist?
-     *
-     * @param array $link
-     * @param string $linkTypeKey
-     * @param string $linkUrlKey
-     * @return bool
-     */
-    private function hasDomainNotInWhitelist(array $link, string $linkTypeKey, string $linkUrlKey): bool
-    {
-        return (
-            isset($link[$linkTypeKey]) &&
-            $link[$linkTypeKey] === 'url' &&
-            isset($link[$linkUrlKey]) &&
-            strlen($link[$linkUrlKey]) &&
-            !$this->domainValidator->isValid($link[$linkUrlKey])
-        );
     }
 }

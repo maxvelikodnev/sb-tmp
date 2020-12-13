@@ -17,7 +17,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\Stdlib\ArrayManager;
 
 /**
- * Test for class Magento\Downloadable\Ui\DataProvider\Product\Form\Modifier\Links
+ * Class LinksTest
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class LinksTest extends \PHPUnit\Framework\TestCase
@@ -169,7 +169,7 @@ class LinksTest extends \PHPUnit\Framework\TestCase
             ->method('toOptionArray');
         $this->shareableMock->expects($this->once())
             ->method('toOptionArray');
-        $this->urlBuilderMock->expects($this->never())
+        $this->urlBuilderMock->expects($this->exactly(2))
             ->method('addSessionParam')
             ->willReturnSelf();
         $this->urlBuilderMock->expects($this->exactly(2))

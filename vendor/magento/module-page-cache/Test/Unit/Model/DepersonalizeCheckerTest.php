@@ -7,9 +7,6 @@ namespace Magento\PageCache\Test\Unit\Model;
 
 use Magento\PageCache\Model\DepersonalizeChecker;
 
-/**
- * Depersonalize checker test
- */
 class DepersonalizeCheckerTest extends \PHPUnit\Framework\TestCase
 {
     /**

@@ -12,8 +12,6 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Newsletter\Model\Config;
-use Magento\Framework\App\ObjectManager;
 
 /**
  * Class PredispatchNewsletterObserver
@@ -21,15 +19,9 @@ use Magento\Framework\App\ObjectManager;
 class PredispatchNewsletterObserver implements ObserverInterface
 {
     /**
-     * @deprecated
-     * @see \Magento\Newsletter\Model\Config::isActive()
+     * Configuration path to newsletter active setting
      */
     const XML_PATH_NEWSLETTER_ACTIVE = 'newsletter/general/active';
-
-    /**
-     * @var Config
-     */
-    private $newsletterConfig;
 
     /**
      * @var ScopeConfigInterface
@@ -46,16 +38,11 @@ class PredispatchNewsletterObserver implements ObserverInterface
      *
      * @param ScopeConfigInterface $scopeConfig
      * @param UrlInterface $url
-     * @param Config|null $newsletterConfig
      */
-    public function __construct(
-        ScopeConfigInterface $scopeConfig,
-        UrlInterface $url,
-        Config $newsletterConfig = null
-    ) {
+    public function __construct(ScopeConfigInterface $scopeConfig, UrlInterface $url)
+    {
         $this->scopeConfig = $scopeConfig;
         $this->url = $url;
-        $this->newsletterConfig = $newsletterConfig ?: ObjectManager::getInstance()->get(Config::class);
     }
 
     /**
@@ -65,7 +52,11 @@ class PredispatchNewsletterObserver implements ObserverInterface
      */
     public function execute(Observer $observer) : void
     {
-        if (!$this->newsletterConfig->isActive(ScopeInterface::SCOPE_STORE)) {
+        if (!$this->scopeConfig->getValue(
+            self::XML_PATH_NEWSLETTER_ACTIVE,
+            ScopeInterface::SCOPE_STORE
+        )
+        ) {
             $defaultNoRouteUrl = $this->scopeConfig->getValue(
                 'web/default/no_route',
                 ScopeInterface::SCOPE_STORE

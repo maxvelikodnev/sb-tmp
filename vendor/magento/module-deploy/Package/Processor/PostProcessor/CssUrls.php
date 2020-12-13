@@ -69,7 +69,6 @@ class CssUrls implements ProcessorInterface
         /** @var PackageFile $file */
         foreach (array_keys($package->getMap()) as $fileId) {
             $filePath = str_replace(\Magento\Framework\View\Asset\Repository::FILE_ID_SEPARATOR, '/', $fileId);
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction
             if (strtolower(pathinfo($fileId, PATHINFO_EXTENSION)) == 'css') {
                 $urlMap = $this->parseCss(
                     $urlMap,
@@ -101,7 +100,6 @@ class CssUrls implements ProcessorInterface
     {
         $cssFilePath = $this->minification->addMinifiedSign($cssFilePath);
 
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $cssFileBasePath = pathinfo($cssFilePath, PATHINFO_DIRNAME);
         $urls = $this->getCssUrls($cssContent);
         foreach ($urls as $url) {
@@ -126,21 +124,8 @@ class CssUrls implements ProcessorInterface
                         . str_repeat('../', count(explode('/', $cssFileBasePath)))
                         . $this->minification->addMinifiedSign($matchedFile->getDeployedFilePath())
                 ];
-            } else {
-                $filePathInBase = $package->getArea() .
-                    '/' . Package::BASE_THEME .
-                    '/' . $package->getLocale() .
-                    '/' . $lookupFileId;
-                if ($this->staticDir->isReadable($this->minification->addMinifiedSign($filePathInBase))) {
-                    $urlMap[$url][] = [
-                        'filePath' => $this->minification->addMinifiedSign($packagePath . '/' . $cssFilePath),
-                        'replace' => str_repeat('../', count(explode('/', $cssFileBasePath)) + 4)
-                            . $this->minification->addMinifiedSign($filePathInBase),
-                    ];
-                }
             }
         }
-
         return $urlMap;
     }
 

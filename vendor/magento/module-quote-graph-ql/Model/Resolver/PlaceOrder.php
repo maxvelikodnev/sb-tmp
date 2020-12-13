@@ -17,7 +17,6 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\QuoteGraphQl\Model\Cart\CheckCartCheckoutAllowance;
 
 /**
  * @inheritdoc
@@ -40,26 +39,18 @@ class PlaceOrder implements ResolverInterface
     private $orderRepository;
 
     /**
-     * @var CheckCartCheckoutAllowance
-     */
-    private $checkCartCheckoutAllowance;
-
-    /**
      * @param GetCartForUser $getCartForUser
      * @param CartManagementInterface $cartManagement
      * @param OrderRepositoryInterface $orderRepository
-     * @param CheckCartCheckoutAllowance $checkCartCheckoutAllowance
      */
     public function __construct(
         GetCartForUser $getCartForUser,
         CartManagementInterface $cartManagement,
-        OrderRepositoryInterface $orderRepository,
-        CheckCartCheckoutAllowance $checkCartCheckoutAllowance
+        OrderRepositoryInterface $orderRepository
     ) {
         $this->getCartForUser = $getCartForUser;
         $this->cartManagement = $cartManagement;
         $this->orderRepository = $orderRepository;
-        $this->checkCartCheckoutAllowance = $checkCartCheckoutAllowance;
     }
 
     /**
@@ -67,18 +58,16 @@ class PlaceOrder implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        if (empty($args['input']['cart_id'])) {
+        if (!isset($args['input']['cart_id']) || empty($args['input']['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
         $maskedCartId = $args['input']['cart_id'];
 
-        $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
-        $cart = $this->getCartForUser->execute($maskedCartId, $context->getUserId(), $storeId);
-        $this->checkCartCheckoutAllowance->execute($cart);
+        $cart = $this->getCartForUser->execute($maskedCartId, $context->getUserId());
 
-        if ((int)$context->getUserId() === 0) {
+        if ($context->getUserId() === 0) {
             if (!$cart->getCustomerEmail()) {
-                throw new GraphQlInputException(__("Guest email for cart is missing."));
+                throw new GraphQlInputException(__("Guest email for cart is missing. Please enter"));
             }
             $cart->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
         }
@@ -89,8 +78,6 @@ class PlaceOrder implements ResolverInterface
 
             return [
                 'order' => [
-                    'order_number' => $order->getIncrementId(),
-                    // @deprecated The order_id field is deprecated, use order_number instead
                     'order_id' => $order->getIncrementId(),
                 ],
             ];

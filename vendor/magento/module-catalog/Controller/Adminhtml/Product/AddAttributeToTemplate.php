@@ -17,21 +17,19 @@ use Magento\Eav\Api\Data\AttributeGroupInterface;
 use Magento\Eav\Api\Data\AttributeGroupInterfaceFactory;
 use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Api\Data\AttributeSetInterface;
-use Magento\Eav\Model\Cache\Type as CacheType;
-use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\CacheInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\ObjectManager;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Api\ExtensionAttributesFactory;
 
 /**
- * Assign attribute to attribute set.
+ * Class AddAttributeToTemplate
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -83,61 +81,25 @@ class AddAttributeToTemplate extends Product implements HttpPostActionInterface
     protected $extensionAttributesFactory;
 
     /**
-     * @var CacheInterface
-     */
-    private $cache;
-
-    /**
      * Constructor
      *
      * @param Context $context
      * @param Builder $productBuilder
      * @param JsonFactory $resultJsonFactory
-     * @param AttributeGroupInterfaceFactory $attributeGroupFactory
-     * @param AttributeRepositoryInterface $attributeRepository
-     * @param AttributeSetRepositoryInterface $attributeSetRepository
-     * @param AttributeGroupRepositoryInterface $attributeGroupRepository
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param AttributeManagementInterface $attributeManagement
-     * @param LoggerInterface $logger
-     * @param ExtensionAttributesFactory $extensionAttributesFactory
-     * @param CacheInterface|null $cache
+     * @param AttributeGroupInterfaceFactory|null $attributeGroupFactory
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.LongVariable)
      */
     public function __construct(
         Context $context,
         Builder $productBuilder,
         JsonFactory $resultJsonFactory,
-        AttributeGroupInterfaceFactory $attributeGroupFactory = null,
-        AttributeRepositoryInterface $attributeRepository = null,
-        AttributeSetRepositoryInterface $attributeSetRepository = null,
-        AttributeGroupRepositoryInterface $attributeGroupRepository = null,
-        SearchCriteriaBuilder $searchCriteriaBuilder = null,
-        AttributeManagementInterface $attributeManagement = null,
-        LoggerInterface $logger = null,
-        ExtensionAttributesFactory $extensionAttributesFactory = null,
-        CacheInterface $cache = null
+        AttributeGroupInterfaceFactory $attributeGroupFactory = null
     ) {
         parent::__construct($context, $productBuilder);
         $this->resultJsonFactory = $resultJsonFactory;
         $this->attributeGroupFactory = $attributeGroupFactory ?: ObjectManager::getInstance()
             ->get(AttributeGroupInterfaceFactory::class);
-        $this->attributeRepository = $attributeRepository ?: ObjectManager::getInstance()
-            ->get(AttributeRepositoryInterface::class);
-        $this->attributeSetRepository = $attributeSetRepository ?: ObjectManager::getInstance()
-            ->get(AttributeSetRepositoryInterface::class);
-        $this->attributeGroupRepository = $attributeGroupRepository ?: ObjectManager::getInstance()
-            ->get(AttributeGroupRepositoryInterface::class);
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder ?: ObjectManager::getInstance()
-            ->get(SearchCriteriaBuilder::class);
-        $this->attributeManagement = $attributeManagement ?: ObjectManager::getInstance()
-            ->get(AttributeManagementInterface::class);
-        $this->logger = $logger ?: ObjectManager::getInstance()
-            ->get(LoggerInterface::class);
-        $this->extensionAttributesFactory = $extensionAttributesFactory ?: ObjectManager::getInstance()
-            ->get(ExtensionAttributesFactory::class);
-        $this->cache = $cache ?? ObjectManager::getInstance()->get(CacheInterface::class);
     }
 
     /**
@@ -153,13 +115,13 @@ class AddAttributeToTemplate extends Product implements HttpPostActionInterface
 
         try {
             /** @var AttributeSetInterface $attributeSet */
-            $attributeSet = $this->attributeSetRepository->get($request->getParam('templateId'));
+            $attributeSet = $this->getAttributeSetRepository()->get($request->getParam('templateId'));
             $groupCode = $request->getParam('groupCode');
             $groupName = $request->getParam('groupName');
             $groupSortOrder = $request->getParam('groupSortOrder');
 
             $attributeSearchCriteria = $this->getBasicAttributeSearchCriteriaBuilder()->create();
-            $attributeGroupSearchCriteria = $this->searchCriteriaBuilder
+            $attributeGroupSearchCriteria = $this->getSearchCriteriaBuilder()
                 ->addFilter('attribute_set_id', $attributeSet->getAttributeSetId())
                 ->addFilter('attribute_group_code', $groupCode)
                 ->setPageSize(1)
@@ -167,24 +129,22 @@ class AddAttributeToTemplate extends Product implements HttpPostActionInterface
 
             try {
                 /** @var AttributeGroupInterface[] $attributeGroupItems */
-                $attributeGroupItems = $this->attributeGroupRepository
-                    ->getList($attributeGroupSearchCriteria)
+                $attributeGroupItems = $this->getAttributeGroupRepository()->getList($attributeGroupSearchCriteria)
                     ->getItems();
 
-                if ($attributeGroupItems) {
-                    /** @var AttributeGroupInterface $attributeGroup */
-                    $attributeGroup = reset($attributeGroupItems);
-                } else {
-                    /** @var AttributeGroupInterface $attributeGroup */
-                    $attributeGroup = $this->attributeGroupFactory->create();
+                if (!$attributeGroupItems) {
+                    throw new NoSuchEntityException;
                 }
+
+                /** @var AttributeGroupInterface $attributeGroup */
+                $attributeGroup = reset($attributeGroupItems);
             } catch (NoSuchEntityException $e) {
                 /** @var AttributeGroupInterface $attributeGroup */
                 $attributeGroup = $this->attributeGroupFactory->create();
             }
 
             $extensionAttributes = $attributeGroup->getExtensionAttributes()
-                ?: $this->extensionAttributesFactory->create(AttributeGroupInterface::class);
+                ?: $this->getExtensionAttributesFactory()->create(AttributeGroupInterface::class);
 
             $extensionAttributes->setAttributeGroupCode($groupCode);
             $extensionAttributes->setSortOrder($groupSortOrder);
@@ -192,32 +152,28 @@ class AddAttributeToTemplate extends Product implements HttpPostActionInterface
             $attributeGroup->setAttributeSetId($attributeSet->getAttributeSetId());
             $attributeGroup->setExtensionAttributes($extensionAttributes);
 
-            $this->attributeGroupRepository->save($attributeGroup);
+            $this->getAttributeGroupRepository()->save($attributeGroup);
 
             /** @var AttributeInterface[] $attributesItems */
-            $attributesItems = $this->attributeRepository->getList(
+            $attributesItems = $this->getAttributeRepository()->getList(
                 ProductAttributeInterface::ENTITY_TYPE_CODE,
                 $attributeSearchCriteria
             )->getItems();
 
-            array_walk(
-                $attributesItems,
-                function (AttributeInterface $attribute) use ($attributeSet, $attributeGroup) {
-                    $this->attributeManagement->assign(
-                        ProductAttributeInterface::ENTITY_TYPE_CODE,
-                        $attributeSet->getAttributeSetId(),
-                        $attributeGroup->getAttributeGroupId(),
-                        $attribute->getAttributeCode(),
-                        '0'
-                    );
-                }
-            );
-            $this->cache->clean([CacheType::CACHE_TAG]);
+            array_walk($attributesItems, function (AttributeInterface $attribute) use ($attributeSet, $attributeGroup) {
+                $this->getAttributeManagement()->assign(
+                    ProductAttributeInterface::ENTITY_TYPE_CODE,
+                    $attributeSet->getAttributeSetId(),
+                    $attributeGroup->getAttributeGroupId(),
+                    $attribute->getAttributeCode(),
+                    '0'
+                );
+            });
         } catch (LocalizedException $e) {
             $response->setError(true);
             $response->setMessage($e->getMessage());
         } catch (\Exception $e) {
-            $this->logger->critical($e);
+            $this->getLogger()->critical($e);
             $response->setError(true);
             $response->setMessage(__('Unable to add attribute'));
         }
@@ -233,16 +189,111 @@ class AddAttributeToTemplate extends Product implements HttpPostActionInterface
      */
     private function getBasicAttributeSearchCriteriaBuilder()
     {
-        $attributeIds = (array)$this->getRequest()->getParam('attributeIds', []);
+        $attributeIds = (array) $this->getRequest()->getParam('attributeIds', []);
 
         if (empty($attributeIds['selected'])) {
             throw new LocalizedException(__('Attributes were missing and must be specified.'));
         }
 
-        return $this->searchCriteriaBuilder->addFilter(
-            'attribute_id',
-            [$attributeIds['selected']],
-            'in'
-        );
+        return $this->getSearchCriteriaBuilder()
+            ->addFilter('attribute_id', [$attributeIds['selected']], 'in');
+    }
+
+    /**
+     * Get AttributeRepositoryInterface
+     *
+     * @return AttributeRepositoryInterface
+     */
+    private function getAttributeRepository()
+    {
+        if (null === $this->attributeRepository) {
+            $this->attributeRepository = ObjectManager::getInstance()
+                ->get(AttributeRepositoryInterface::class);
+        }
+        return $this->attributeRepository;
+    }
+
+    /**
+     * Get AttributeSetRepositoryInterface
+     *
+     * @return AttributeSetRepositoryInterface
+     */
+    private function getAttributeSetRepository()
+    {
+        if (null === $this->attributeSetRepository) {
+            $this->attributeSetRepository = ObjectManager::getInstance()
+                ->get(AttributeSetRepositoryInterface::class);
+        }
+        return $this->attributeSetRepository;
+    }
+
+    /**
+     * Get AttributeGroupInterface
+     *
+     * @return AttributeGroupRepositoryInterface
+     */
+    private function getAttributeGroupRepository()
+    {
+        if (null === $this->attributeGroupRepository) {
+            $this->attributeGroupRepository = ObjectManager::getInstance()
+                ->get(AttributeGroupRepositoryInterface::class);
+        }
+        return $this->attributeGroupRepository;
+    }
+
+    /**
+     * Get SearchCriteriaBuilder
+     *
+     * @return SearchCriteriaBuilder
+     */
+    private function getSearchCriteriaBuilder()
+    {
+        if (null === $this->searchCriteriaBuilder) {
+            $this->searchCriteriaBuilder = ObjectManager::getInstance()
+                ->get(SearchCriteriaBuilder::class);
+        }
+        return $this->searchCriteriaBuilder;
+    }
+
+    /**
+     * Get AttributeManagementInterface
+     *
+     * @return AttributeManagementInterface
+     */
+    private function getAttributeManagement()
+    {
+        if (null === $this->attributeManagement) {
+            $this->attributeManagement = ObjectManager::getInstance()
+                ->get(AttributeManagementInterface::class);
+        }
+        return $this->attributeManagement;
+    }
+
+    /**
+     * Get LoggerInterface
+     *
+     * @return LoggerInterface
+     */
+    private function getLogger()
+    {
+        if (null === $this->logger) {
+            $this->logger = ObjectManager::getInstance()
+                ->get(LoggerInterface::class);
+        }
+        return $this->logger;
+    }
+
+    /**
+     * Get ExtensionAttributesFactory.
+     *
+     * @return ExtensionAttributesFactory
+     */
+    private function getExtensionAttributesFactory()
+    {
+        if (null === $this->extensionAttributesFactory) {
+            $this->extensionAttributesFactory = ObjectManager::getInstance()
+                ->get(ExtensionAttributesFactory::class);
+        }
+        return $this->extensionAttributesFactory;
     }
 }

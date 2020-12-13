@@ -54,7 +54,9 @@ class GroupedTest extends \PHPUnit\Framework\TestCase
         $productFactoryMock = $this->createMock(\Magento\Catalog\Model\ProductFactory::class);
         $this->catalogProductLink = $this->createMock(\Magento\GroupedProduct\Model\ResourceModel\Product\Link::class);
         $this->productStatusMock = $this->createMock(\Magento\Catalog\Model\Product\Attribute\Source\Status::class);
-        $this->serializer = $this->objectHelper->getObject(\Magento\Framework\Serialize\Serializer\Json::class);
+        $this->serializer = $this->getMockBuilder(\Magento\Framework\Serialize\Serializer\Json::class)
+            ->setMethods(['serialize'])
+            ->getMockForAbstractClass();
 
         $this->_model = $this->objectHelper->getObject(
             \Magento\GroupedProduct\Model\Product\Type\Grouped::class,
@@ -417,6 +419,9 @@ class GroupedTest extends \PHPUnit\Framework\TestCase
             ->expects($this->atLeastOnce())
             ->method('getData')
             ->will($this->returnValue($associatedProducts));
+        $this->serializer->expects($this->any())
+            ->method('serialize')
+            ->willReturn(json_encode($buyRequest->getData()));
 
         $this->assertEquals(
             [0 => $this->product],
@@ -516,6 +521,10 @@ class GroupedTest extends \PHPUnit\Framework\TestCase
         $buyRequest = new \Magento\Framework\DataObject();
         $buyRequest->setSuperGroup([$associatedId => 1]);
 
+        $this->serializer->expects($this->any())
+            ->method('serialize')
+            ->willReturn(json_encode($buyRequest->getData()));
+
         $cached = true;
         $this->product
             ->expects($this->atLeastOnce())
@@ -532,36 +541,49 @@ class GroupedTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    /**
-     * Test prepareForCartAdvanced() method in full mode
-     *
-     * @dataProvider prepareForCartAdvancedWithProductsStrictTrueDataProvider
-     * @param array $subProducts
-     * @param array $buyRequest
-     * @param mixed $expectedResult
-     */
-    public function testPrepareForCartAdvancedWithProductsStrictTrue(
-        array $subProducts,
-        array $buyRequest,
-        $expectedResult
-    ) {
-        $associatedProducts = $this->configureProduct($subProducts);
-        $buyRequestObject = new \Magento\Framework\DataObject();
-        $buyRequestObject->setSuperGroup($buyRequest);
-        $associatedProductsById = [];
-        foreach ($associatedProducts as $associatedProduct) {
-            $associatedProductsById[$associatedProduct->getId()] = $associatedProduct;
-        }
-        if (is_array($expectedResult)) {
-            $expectedResultArray = $expectedResult;
-            $expectedResult = [];
-            foreach ($expectedResultArray as $id) {
-                $expectedResult[] = $associatedProductsById[$id];
-            }
-        }
+    public function testPrepareForCartAdvancedWithProductsStrictTrue()
+    {
+        $associatedProduct = $this->createMock(\Magento\Catalog\Model\Product::class);
+        $associatedId = 9384;
+        $associatedProduct->expects($this->atLeastOnce())->method('getId')->will($this->returnValue($associatedId));
+
+        $typeMock = $this->createPartialMock(
+            \Magento\Catalog\Model\Product\Type\AbstractType::class,
+            ['_prepareProduct', 'deleteTypeSpecificData']
+        );
+        $associatedPrepareResult = $this->getMockBuilder(\Magento\Catalog\Model\Product::class)
+            ->setMockClassName('resultProduct')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $typeMock->expects($this->once())->method('_prepareProduct')->willReturn([$associatedPrepareResult]);
+
+        $associatedProduct->expects($this->once())->method('getTypeInstance')->willReturn($typeMock);
+
+        $buyRequest = new \Magento\Framework\DataObject();
+        $buyRequest->setSuperGroup([$associatedId => 1]);
+
+        $this->serializer->expects($this->any())
+            ->method('serialize')
+            ->willReturn(json_encode($buyRequest->getData()));
+
+        $cached = true;
+        $this->product
+            ->expects($this->atLeastOnce())
+            ->method('hasData')
+            ->will($this->returnValue($cached));
+        $this->product
+            ->expects($this->atLeastOnce())
+            ->method('getData')
+            ->will($this->returnValue([$associatedProduct]));
+
+        $associatedPrepareResult->expects($this->at(1))->method('addCustomOption')->with(
+            'product_type',
+            'grouped',
+            $this->product
+        );
         $this->assertEquals(
-            $expectedResult,
-            $this->_model->prepareForCartAdvanced($buyRequestObject, $this->product)
+            [$associatedPrepareResult],
+            $this->_model->prepareForCartAdvanced($buyRequest, $this->product)
         );
     }
 
@@ -595,121 +617,5 @@ class GroupedTest extends \PHPUnit\Framework\TestCase
             ->with('_cache_instance_associated_products')
             ->willReturnSelf();
         $this->assertEquals($productMock, $this->_model->flushAssociatedProductsCache($productMock));
-    }
-
-    /**
-     * @return array
-     */
-    public function prepareForCartAdvancedWithProductsStrictTrueDataProvider(): array
-    {
-        return [
-            [
-                [
-                    [
-                        'getId' => 1,
-                        'getQty' => 100,
-                        'isSalable' => true
-                    ],
-                    [
-                        'getId' => 2,
-                        'getQty' => 200,
-                        'isSalable' => true
-                    ]
-                ],
-                [
-                    1 => 2,
-                    2 => 1,
-                ],
-                [1, 2]
-            ],
-            [
-                [
-                    [
-                        'getId' => 1,
-                        'getQty' => 100,
-                        'isSalable' => true
-                    ],
-                    [
-                        'getId' => 2,
-                        'getQty' => 0,
-                        'isSalable' => false
-                    ]
-                ],
-                [
-                    1 => 2,
-                ],
-                [1]
-            ],
-            [
-                [
-                    [
-                        'getId' => 1,
-                        'getQty' => 0,
-                        'isSalable' => true
-                    ],
-                    [
-                        'getId' => 2,
-                        'getQty' => 0,
-                        'isSalable' => false
-                    ]
-                ],
-                [
-                ],
-                'Please specify the quantity of product(s).'
-            ],
-            [
-                [
-                    [
-                        'getId' => 1,
-                        'getQty' => 0,
-                        'isSalable' => false
-                    ],
-                    [
-                        'getId' => 2,
-                        'getQty' => 0,
-                        'isSalable' => false
-                    ]
-                ],
-                [
-                ],
-                'Please specify the quantity of product(s).'
-            ]
-        ];
-    }
-
-    /**
-     * Configure sub-products of grouped product
-     *
-     * @param array $subProducts
-     * @return array
-     */
-    private function configureProduct(array $subProducts): array
-    {
-        $associatedProducts = [];
-        foreach ($subProducts as $data) {
-            $associatedProduct = $this->createMock(\Magento\Catalog\Model\Product::class);
-            foreach ($data as $method => $value) {
-                $associatedProduct->method($method)->willReturn($value);
-            }
-            $associatedProducts[] = $associatedProduct;
-
-            $typeMock = $this->createPartialMock(
-                \Magento\Catalog\Model\Product\Type\AbstractType::class,
-                ['_prepareProduct', 'deleteTypeSpecificData']
-            );
-            $typeMock->method('_prepareProduct')->willReturn([$associatedProduct]);
-            $associatedProduct->method('getTypeInstance')->willReturn($typeMock);
-        }
-        $this->product
-            ->expects($this->atLeastOnce())
-            ->method('hasData')
-            ->with('_cache_instance_associated_products')
-            ->willReturn(true);
-        $this->product
-            ->expects($this->atLeastOnce())
-            ->method('getData')
-            ->with('_cache_instance_associated_products')
-            ->willReturn($associatedProducts);
-        return $associatedProducts;
     }
 }

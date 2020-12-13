@@ -71,7 +71,7 @@ class OptionsTest extends \PHPUnit\Framework\TestCase
         $expectedOptions = [
             [
                 'label' => __('All Store Views'),
-                'value' => '0',
+                'value' => '0'
             ],
             [
                 'label' => 'Main Website',
@@ -81,14 +81,11 @@ class OptionsTest extends \PHPUnit\Framework\TestCase
                         'value' => [
                             [
                                 'label' => '        Default Store View',
-                                'value' => '1',
-                                '__disableTmpl' => true,
+                                'value' => '1'
                             ]
-                        ],
-                        '__disableTmpl' => true,
+                        ]
                     ]
-                ],
-                '__disableTmpl' => true,
+                ]
             ]
         ];
 
@@ -106,6 +103,14 @@ class OptionsTest extends \PHPUnit\Framework\TestCase
         $this->storeMock->expects($this->atLeastOnce())->method('getGroupId')->willReturn('1');
         $this->storeMock->expects($this->atLeastOnce())->method('getName')->willReturn('Default Store View');
         $this->storeMock->expects($this->atLeastOnce())->method('getId')->willReturn('1');
+
+        $this->escaperMock->expects($this->atLeastOnce())->method('escapeHtml')->willReturnMap(
+            [
+                ['Default Store View', null, 'Default Store View'],
+                ['Main Website Store', null, 'Main Website Store'],
+                ['Main Website', null, 'Main Website']
+            ]
+        );
 
         $this->assertEquals($expectedOptions, $this->options->toOptionArray());
     }

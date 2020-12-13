@@ -83,8 +83,6 @@ class CreateCompensations extends Command
     }
 
     /**
-     * Get list of compensation arguments from command input
-     *
      * @param InputInterface $input
      * @return array
      * @throws InvalidArgumentException
@@ -105,7 +103,7 @@ class CreateCompensations extends Command
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      *
      * @param InputInterface $input
      * @param OutputInterface $output
@@ -127,7 +125,7 @@ class CreateCompensations extends Command
                         '  - Product <comment>%s</comment> was compensated by '
                         . '<comment>%+f</comment> for stock <comment>%s</comment>',
                         $compensation->getSku(),
-                        $compensation->getQuantity(),
+                        -$compensation->getQuantity(),
                         $compensation->getStockId()
                     )
                 );
@@ -136,21 +134,17 @@ class CreateCompensations extends Command
                 $output->writeln(sprintf(' - <error>%s</error>', $exception->getMessage()));
             } catch (InvalidArgumentException $exception) {
                 $hasErrors = true;
-                $output->writeln(
-                    sprintf(
-                        '  - <error>Error while parsing argument "%s". %s</error>',
-                        $compensationsArgument,
-                        $exception->getMessage()
-                    )
-                );
+                $output->writeln(sprintf(
+                    '  - <error>Error while parsing argument "%s". %s</error>',
+                    $compensationsArgument,
+                    $exception->getMessage()
+                ));
             } catch (\Exception $exception) {
-                $output->writeln(
-                    sprintf(
-                        '  - <error>Argument "%s" caused exception "%s"</error>',
-                        $compensationsArgument,
-                        $exception->getMessage()
-                    )
-                );
+                $output->writeln(sprintf(
+                    '  - <error>Argument "%s" caused exception "%s"</error>',
+                    $compensationsArgument,
+                    $exception->getMessage()
+                ));
             }
         }
 

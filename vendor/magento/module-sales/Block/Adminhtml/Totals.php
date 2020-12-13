@@ -5,7 +5,7 @@
  */
 namespace Magento\Sales\Block\Adminhtml;
 
-use Magento\Framework\DataObject;
+use Magento\Sales\Model\Order;
 
 /**
  * Adminhtml sales totals block
@@ -57,70 +57,84 @@ class Totals extends \Magento\Sales\Block\Order\Totals
     protected function _initTotals()
     {
         $this->_totals = [];
-        $order = $this->getSource();
-
-        $this->_totals['subtotal'] = new DataObject(
+        $this->_totals['subtotal'] = new \Magento\Framework\DataObject(
             [
                 'code' => 'subtotal',
-                'value' => $order->getSubtotal(),
-                'base_value' => $order->getBaseSubtotal(),
+                'value' => $this->getSource()->getSubtotal(),
+                'base_value' => $this->getSource()->getBaseSubtotal(),
                 'label' => __('Subtotal'),
             ]
         );
 
         /**
-         * Add discount
-         */
-        if ((double)$order->getDiscountAmount() != 0) {
-            if ($order->getDiscountDescription()) {
-                $discountLabel = __('Discount (%1)', $order->getDiscountDescription());
-            } else {
-                $discountLabel = __('Discount');
-            }
-            $this->_totals['discount'] = new DataObject(
-                [
-                    'code' => 'discount',
-                    'value' => $order->getDiscountAmount(),
-                    'base_value' => $order->getBaseDiscountAmount(),
-                    'label' => $discountLabel,
-                ]
-            );
-        }
-
-        /**
          * Add shipping
          */
-        if (!$order->getIsVirtual()
-            && ((double)$order->getShippingAmount()
-            || $order->getShippingDescription())
+        if (!$this->getSource()->getIsVirtual() && ((double)$this->getSource()->getShippingAmount() ||
+            $this->getSource()->getShippingDescription())
         ) {
             $shippingLabel = __('Shipping & Handling');
-
-            if ($order->getCouponCode() && !isset($this->_totals['discount'])) {
-                $shippingLabel .= " ({$order->getCouponCode()})";
+            if ($this->isFreeShipping($this->getOrder()) && $this->getSource()->getDiscountDescription()) {
+                $shippingLabel .= sprintf(' (%s)', $this->getSource()->getDiscountDescription());
             }
-
-            $this->_totals['shipping'] = new DataObject(
+            $this->_totals['shipping'] = new \Magento\Framework\DataObject(
                 [
                     'code' => 'shipping',
-                    'value' => $order->getShippingAmount(),
-                    'base_value' => $order->getBaseShippingAmount(),
+                    'value' => $this->getSource()->getShippingAmount(),
+                    'base_value' => $this->getSource()->getBaseShippingAmount(),
                     'label' => $shippingLabel,
                 ]
             );
         }
 
-        $this->_totals['grand_total'] = new DataObject(
+        /**
+         * Add discount
+         */
+        if ((double)$this->getSource()->getDiscountAmount() != 0) {
+            if ($this->getSource()->getDiscountDescription()) {
+                $discountLabel = __('Discount (%1)', $this->getSource()->getDiscountDescription());
+            } else {
+                $discountLabel = __('Discount');
+            }
+            $this->_totals['discount'] = new \Magento\Framework\DataObject(
+                [
+                    'code' => 'discount',
+                    'value' => $this->getSource()->getDiscountAmount(),
+                    'base_value' => $this->getSource()->getBaseDiscountAmount(),
+                    'label' => $discountLabel,
+                ]
+            );
+        }
+
+        $this->_totals['grand_total'] = new \Magento\Framework\DataObject(
             [
                 'code' => 'grand_total',
                 'strong' => true,
-                'value' => $order->getGrandTotal(),
-                'base_value' => $order->getBaseGrandTotal(),
+                'value' => $this->getSource()->getGrandTotal(),
+                'base_value' => $this->getSource()->getBaseGrandTotal(),
                 'label' => __('Grand Total'),
                 'area' => 'footer',
             ]
         );
 
         return $this;
+    }
+
+    /**
+     * Availability of free shipping in at least one order item
+     *
+     * @param Order $order
+     * @return bool
+     */
+    private function isFreeShipping(Order $order): bool
+    {
+        $isFreeShipping = false;
+        foreach ($order->getItems() as $orderItem) {
+            if ($orderItem->getFreeShipping() == '1') {
+                $isFreeShipping = true;
+                break;
+            }
+        }
+
+        return $isFreeShipping;
     }
 }

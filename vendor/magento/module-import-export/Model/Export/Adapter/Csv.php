@@ -5,16 +5,13 @@
  */
 namespace Magento\ImportExport\Model\Export\Adapter;
 
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Filesystem\File\Write;
-
 /**
  * Export adapter csv.
  *
  * @api
  * @since 100.0.2
  */
-class Csv extends AbstractAdapter
+class Csv extends \Magento\ImportExport\Model\Export\Adapter\AbstractAdapter
 {
     /**
      * Field delimiter.
@@ -33,21 +30,21 @@ class Csv extends AbstractAdapter
     /**
      * Source file handler.
      *
-     * @var Write
+     * @var \Magento\Framework\Filesystem\File\Write
      */
     protected $_fileHandler;
 
     /**
-     * Object destructor
-     * @since 100.3.5
+     * {@inheritdoc }
      */
-    public function __destruct()
+    public function __construct(\Magento\Framework\Filesystem $filesystem, $destination = null)
     {
-        $this->destruct();
+        register_shutdown_function([$this, 'destruct']);
+        parent::__construct($filesystem, $destination);
     }
 
     /**
-     * Clean cached values
+     * Object destructor.
      *
      * @return void
      */
@@ -55,7 +52,6 @@ class Csv extends AbstractAdapter
     {
         if (is_object($this->_fileHandler)) {
             $this->_fileHandler->close();
-            $this->_directoryHandle->delete($this->_destination);
         }
     }
 
@@ -100,7 +96,7 @@ class Csv extends AbstractAdapter
     public function setHeaderCols(array $headerColumns)
     {
         if (null !== $this->_headerCols) {
-            throw new LocalizedException(__('The header column names are already set.'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('The header column names are already set.'));
         }
         if ($headerColumns) {
             foreach ($headerColumns as $columnName) {

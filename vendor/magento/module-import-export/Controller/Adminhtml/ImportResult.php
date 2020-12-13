@@ -56,8 +56,6 @@ abstract class ImportResult extends Import
     }
 
     /**
-     * Add Error Messages for Import
-     *
      * @param \Magento\Framework\View\Element\AbstractBlock $resultBlock
      * @param ProcessingErrorAggregatorInterface $errorAggregator
      * @return $this
@@ -70,7 +68,7 @@ abstract class ImportResult extends Import
             $message = '';
             $counter = 0;
             foreach ($this->getErrorMessages($errorAggregator) as $error) {
-                $message .= (++$counter) . '. ' . $error . '<br>';
+                $message .= ++$counter . '. ' . $error . '<br>';
                 if ($counter >= self::LIMIT_ERRORS_MESSAGE) {
                     break;
                 }
@@ -90,7 +88,7 @@ abstract class ImportResult extends Import
                     . '<a href="'
                     . $this->createDownloadUrlImportHistoryFile($this->createErrorReport($errorAggregator))
                     . '">' . __('Download full report') . '</a><br>'
-                    . '<div class="import-error-list">' . $resultBlock->escapeHtml($message) . '</div></div>'
+                    . '<div class="import-error-list">' . $message . '</div></div>'
                 );
             } catch (\Exception $e) {
                 foreach ($this->getErrorMessages($errorAggregator) as $errorMessage) {
@@ -103,8 +101,6 @@ abstract class ImportResult extends Import
     }
 
     /**
-     * Get all Error Messages from Import Results
-     *
      * @param \Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface $errorAggregator
      * @return array
      */
@@ -119,8 +115,6 @@ abstract class ImportResult extends Import
     }
 
     /**
-     * Get System Generated Exception
-     *
      * @param ProcessingErrorAggregatorInterface $errorAggregator
      * @return \Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingError[]
      */
@@ -130,8 +124,6 @@ abstract class ImportResult extends Import
     }
 
     /**
-     * Generate Error Report File
-     *
      * @param ProcessingErrorAggregatorInterface $errorAggregator
      * @return string
      */
@@ -149,8 +141,6 @@ abstract class ImportResult extends Import
     }
 
     /**
-     * Get Import History Url
-     *
      * @param string $fileName
      * @return string
      */

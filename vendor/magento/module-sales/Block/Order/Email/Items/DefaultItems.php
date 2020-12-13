@@ -5,8 +5,6 @@
  */
 namespace Magento\Sales\Block\Order\Email\Items;
 
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\View\Element\Template;
 use Magento\Sales\Model\Order\Creditmemo\Item as CreditmemoItem;
 use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
 use Magento\Sales\Model\Order\Item as OrderItem;
@@ -18,7 +16,7 @@ use Magento\Sales\Model\Order\Item as OrderItem;
  * @author     Magento Core Team <core@magentocommerce.com>
  * @since 100.0.2
  */
-class DefaultItems extends Template
+class DefaultItems extends \Magento\Framework\View\Element\Template
 {
     /**
      * Retrieve current order model instance
@@ -31,8 +29,6 @@ class DefaultItems extends Template
     }
 
     /**
-     * Get available item options
-     *
      * @return array
      */
     public function getItemOptions()
@@ -54,8 +50,6 @@ class DefaultItems extends Template
     }
 
     /**
-     * Get item html from the $value
-     *
      * @param string|array $value
      * @return string
      */
@@ -76,8 +70,6 @@ class DefaultItems extends Template
     }
 
     /**
-     * Get product Sku for the $item
-     *
      * @param mixed $item
      * @return mixed
      */
@@ -94,7 +86,6 @@ class DefaultItems extends Template
      * Return product additional information block
      *
      * @return \Magento\Framework\View\Element\AbstractBlock
-     * @throws LocalizedException
      */
     public function getProductAdditionalInformationBlock()
     {
@@ -106,13 +97,10 @@ class DefaultItems extends Template
      *
      * @param OrderItem|InvoiceItem|CreditmemoItem $item
      * @return string
-     * @throws LocalizedException
      */
     public function getItemPrice($item)
     {
         $block = $this->getLayout()->getBlock('item_price');
-        $item->setRowTotal((float) $item->getPrice() * (float) $this->getItem()->getQty());
-        $item->setBaseRowTotal((float) $item->getBasePrice() * (float) $this->getItem()->getQty());
         $block->setItem($item);
         return $block->toHtml();
     }

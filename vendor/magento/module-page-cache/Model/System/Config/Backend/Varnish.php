@@ -58,7 +58,7 @@ class Varnish extends \Magento\Framework\App\Config\Value
         $currentValue = $this->getValue();
         if (!$currentValue) {
             foreach ($data as $field => $value) {
-                if (strstr($this->getPath(), (string) $field)) {
+                if (strstr($this->getPath(), $field)) {
                     $this->setValue($value);
                     $this->save();
                     break;

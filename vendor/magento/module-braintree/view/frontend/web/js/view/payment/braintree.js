@@ -23,7 +23,7 @@ define(
             rendererList.push(
                 {
                     type: braintreeType,
-                    component: 'Magento_Braintree/js/view/payment/method-renderer/cc-form'
+                    component: 'Magento_Braintree/js/view/payment/method-renderer/hosted-fields'
                 }
             );
         }

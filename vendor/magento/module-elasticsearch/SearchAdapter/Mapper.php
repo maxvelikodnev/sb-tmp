@@ -6,18 +6,19 @@
 namespace Magento\Elasticsearch\SearchAdapter;
 
 use Magento\Framework\Search\RequestInterface;
+use Magento\Framework\Search\Request\QueryInterface as RequestQueryInterface;
 use Magento\Framework\Search\Request\Query\BoolExpression as BoolQuery;
+use Magento\Framework\Search\Request\Query\Filter as FilterQuery;
+use Magento\Framework\Search\Request\Query\Match as MatchQuery;
 use Magento\Elasticsearch\SearchAdapter\Query\Builder as QueryBuilder;
 use Magento\Elasticsearch\SearchAdapter\Query\Builder\Match as MatchQueryBuilder;
 use Magento\Elasticsearch\SearchAdapter\Filter\Builder as FilterBuilder;
 use Magento\Elasticsearch\Elasticsearch5\SearchAdapter\Mapper as Elasticsearch5Mapper;
 
 /**
- * Mapper class for Elasticsearch2
- *
+ * Mapper class
  * @api
  * @since 100.1.0
- * @deprecated 100.3.5 because of EOL for Elasticsearch2
  */
 class Mapper extends Elasticsearch5Mapper
 {

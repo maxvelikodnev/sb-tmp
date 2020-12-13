@@ -8,58 +8,34 @@ define([
     'jquery',
     'underscore',
     'Magento_Braintree/js/view/payment/method-renderer/paypal',
-    'Magento_Checkout/js/action/set-payment-information-extended',
+    'Magento_Checkout/js/action/set-payment-information',
     'Magento_Checkout/js/model/payment/additional-validators',
-    'Magento_Checkout/js/model/full-screen-loader'
+    'Magento_Checkout/js/model/full-screen-loader',
+    'mage/translate'
 ], function (
     $,
     _,
     Component,
-    setPaymentInformationExtended,
+    setPaymentInformationAction,
     additionalValidators,
-    fullScreenLoader
+    fullScreenLoader,
+    $t
 ) {
     'use strict';
 
     return Component.extend({
         defaults: {
             template: 'Magento_Braintree/payment/multishipping/paypal',
-            submitButtonSelector: '#payment-continue span',
-            paypalButtonSelector: '[id="parent-payment-continue"]',
-            reviewButtonHtml: ''
-        },
-
-        /**
-         * @override
-         */
-        initObservable: function () {
-            this.reviewButtonHtml = $(this.paypalButtonSelector).html();
-
-            return this._super();
-        },
-
-        /**
-         * Get configuration for PayPal.
-         *
-         * @returns {Object}
-         */
-        getPayPalConfig: function () {
-            var config;
-
-            config = this._super();
-            config.flow = 'vault';
-            config.enableShippingAddress = false;
-            config.shippingAddressEditable = false;
-
-            return config;
+            submitButtonSelector: '#payment-continue span'
         },
 
         /**
          * @override
          */
         onActiveChange: function (isActive) {
+            this.updateSubmitButtonTitle(isActive);
+
             this._super(isActive);
-            this.updateSubmitButton(isActive);
         },
 
         /**
@@ -68,7 +44,7 @@ define([
         beforePlaceOrder: function (data) {
             this._super(data);
 
-            this.updateSubmitButton(true);
+            this.updateSubmitButtonTitle(true);
         },
 
         /**
@@ -111,33 +87,38 @@ define([
          * @returns {Boolean}
          */
         isPaymentMethodNonceReceived: function () {
-            return this.paymentPayload.nonce !== null;
+            return this.paymentMethodNonce !== null;
         },
 
         /**
-         * Updates submit button on multi-addresses checkout billing form.
+         * Updates submit button title on multi-addresses checkout billing form.
          *
          * @param {Boolean} isActive
          */
-        updateSubmitButton: function (isActive) {
-            if (this.isPaymentMethodNonceReceived() || !isActive) {
-                $(this.paypalButtonSelector).html(this.reviewButtonHtml);
-            }
+        updateSubmitButtonTitle: function (isActive) {
+            var title = this.isPaymentMethodNonceReceived() || !isActive ?
+                $t('Go to Review Your Order') : $t('Continue to PayPal');
+
+            $(this.submitButtonSelector).html(title);
         },
 
         /**
          * @override
          */
         placeOrder: function () {
-            fullScreenLoader.startLoader();
-            $.when(
-                setPaymentInformationExtended(
-                    this.messageContainer,
-                    this.getData(),
-                    true
-                )
-            ).done(this.done.bind(this))
-                .fail(this.fail.bind(this));
+            if (!this.isPaymentMethodNonceReceived()) {
+                this.payWithPayPal();
+            } else {
+                fullScreenLoader.startLoader();
+
+                $.when(
+                    setPaymentInformationAction(
+                        this.messageContainer,
+                        this.getData()
+                    )
+                ).done(this.done.bind(this))
+                    .fail(this.fail.bind(this));
+            }
         },
 
         /**

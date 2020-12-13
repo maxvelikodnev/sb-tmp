@@ -63,7 +63,6 @@ define([
             this.initRowCallback = false;
             this.doFilterCallback = false;
             this.sortableUpdateCallback = false;
-            this.filterKeyPressCallback = false;
 
             this.reloadParams = false;
 
@@ -370,51 +369,6 @@ define([
         },
 
         /**
-         * Builds the form with fields containing the and submits
-         *
-         * @param {String} url
-         * @param {String} varName
-         * @param {String} varValue
-         * @private
-         */
-        _buildFormAndSubmit: function (url, varName, varValue) {
-            var re = new RegExp('\/(' + varName + '\/.*?\/)'),
-                parts = url.split(new RegExp('\\?')),
-                form = jQuery('<form/>'),
-                inputProps = [
-                    {
-                        name: varName,
-                        value: varValue
-                    },
-                    {
-                        name: 'form_key',
-                        value: window.FORM_KEY
-                    }
-                ],
-                input;
-
-            url = parts[0].replace(re, '/');
-
-            if (parts.size() > 1) {
-                url += '?' + parts[1];
-            }
-
-            form.attr('action', url);
-            form.attr('method', 'POST');
-
-            inputProps.forEach(function (item) {
-                input = jQuery('<input/>');
-                input.attr('name', item.name);
-                input.attr('type', 'hidden');
-                input.val(item.value);
-                form.append(input);
-            });
-            jQuery('[data-container="body"]').append(form);
-            form.submit();
-            form.remove();
-        },
-
-        /**
          * @param {*} varName
          * @param {*} varValue
          * @return {*|String}
@@ -435,14 +389,13 @@ define([
                 exportUrl = $(this.containerId + '_export').value;
 
                 if (this.massaction && this.massaction.checkedString) {
-                    this._buildFormAndSubmit(
+                    exportUrl = this._addVarToUrl(
                         exportUrl,
                         this.massaction.formFieldNameInternal,
                         this.massaction.checkedString
                     );
-                } else {
-                    location.href = exportUrl;
                 }
+                location.href = exportUrl;
             }
         },
 
@@ -511,10 +464,6 @@ define([
         filterKeyPress: function (event) {
             if (event.keyCode == Event.KEY_RETURN) { //eslint-disable-line eqeqeq
                 this.doFilter();
-            }
-
-            if (this.filterKeyPressCallback) {
-                this.filterKeyPressCallback(this, event);
             }
         },
 

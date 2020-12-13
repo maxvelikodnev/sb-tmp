@@ -311,27 +311,13 @@ class RuleTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Test after update action for inactive rule
+     * Test after update action
      *
      * @return void
      */
-    public function testAfterUpdateInactive()
+    public function testAfterUpdate()
     {
         $this->rule->isObjectNew(false);
-        $this->rule->setIsActive(0);
-        $this->_ruleProductProcessor->expects($this->never())->method('getIndexer');
-        $this->rule->afterSave();
-    }
-
-    /**
-     * Test after update action for active rule
-     *
-     * @return void
-     */
-    public function testAfterUpdateActive()
-    {
-        $this->rule->isObjectNew(false);
-        $this->rule->setIsActive(1);
         $indexer = $this->createMock(\Magento\Framework\Indexer\IndexerInterface::class);
         $indexer->expects($this->once())->method('invalidate');
         $this->_ruleProductProcessor->expects($this->once())->method('getIndexer')->will($this->returnValue($indexer));

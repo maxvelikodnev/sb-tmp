@@ -3,24 +3,22 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\CatalogRule\Pricing\Price;
 
 use Magento\Catalog\Model\Product;
 use Magento\CatalogRule\Model\ResourceModel\Rule;
+use Magento\CatalogRule\Model\ResourceModel\RuleFactory;
 use Magento\Customer\Model\Session;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Pricing\Adjustment\Calculator;
 use Magento\Framework\Pricing\Price\AbstractPrice;
 use Magento\Framework\Pricing\Price\BasePriceProviderInterface;
-use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
-use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\StoreManager;
 
 /**
  * Class CatalogRulePrice
- *
- * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
 class CatalogRulePrice extends AbstractPrice implements BasePriceProviderInterface
 {
@@ -30,22 +28,28 @@ class CatalogRulePrice extends AbstractPrice implements BasePriceProviderInterfa
     const PRICE_CODE = 'catalog_rule_price';
 
     /**
-     * @var TimezoneInterface
+     * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
      */
     protected $dateTime;
 
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManager
      */
     protected $storeManager;
 
     /**
-     * @var Session
+     * @var \Magento\Customer\Model\Session
      */
     protected $customerSession;
 
     /**
-     * @var Rule
+     * @var \Magento\CatalogRule\Model\ResourceModel\RuleFactory
+     * @deprecated 100.0.2
+     */
+    protected $resourceRuleFactory;
+
+    /**
+     * @var \Magento\CatalogRule\Model\ResourceModel\Rule
      */
     private $ruleResource;
 
@@ -53,27 +57,27 @@ class CatalogRulePrice extends AbstractPrice implements BasePriceProviderInterfa
      * @param Product $saleableItem
      * @param float $quantity
      * @param Calculator $calculator
-     * @param PriceCurrencyInterface $priceCurrency
+     * @param RuleFactory $catalogRuleResourceFactory
      * @param TimezoneInterface $dateTime
-     * @param StoreManagerInterface $storeManager
+     * @param StoreManager $storeManager
      * @param Session $customerSession
-     * @param Rule $ruleResource
+     * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
      */
     public function __construct(
         Product $saleableItem,
         $quantity,
         Calculator $calculator,
-        PriceCurrencyInterface $priceCurrency,
+        \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
         TimezoneInterface $dateTime,
-        StoreManagerInterface $storeManager,
+        StoreManager $storeManager,
         Session $customerSession,
-        Rule $ruleResource
+        RuleFactory $catalogRuleResourceFactory
     ) {
         parent::__construct($saleableItem, $quantity, $calculator, $priceCurrency);
         $this->dateTime = $dateTime;
         $this->storeManager = $storeManager;
         $this->customerSession = $customerSession;
-        $this->ruleResource = $ruleResource;
+        $this->resourceRuleFactory = $catalogRuleResourceFactory;
     }
 
     /**
@@ -85,15 +89,15 @@ class CatalogRulePrice extends AbstractPrice implements BasePriceProviderInterfa
     {
         if (null === $this->value) {
             if ($this->product->hasData(self::PRICE_CODE)) {
-                $value = $this->product->getData(self::PRICE_CODE);
-                $this->value = $value ? (float)$value : false;
+                $this->value = (float)$this->product->getData(self::PRICE_CODE) ?: false;
             } else {
-                $this->value = $this->ruleResource->getRulePrice(
-                    $this->dateTime->scopeDate($this->storeManager->getStore()->getId()),
-                    $this->storeManager->getStore()->getWebsiteId(),
-                    $this->customerSession->getCustomerGroupId(),
-                    $this->product->getId()
-                );
+                $this->value = $this->getRuleResource()
+                    ->getRulePrice(
+                        $this->dateTime->scopeDate($this->storeManager->getStore()->getId()),
+                        $this->storeManager->getStore()->getWebsiteId(),
+                        $this->customerSession->getCustomerGroupId(),
+                        $this->product->getId()
+                    );
                 $this->value = $this->value ? (float)$this->value : false;
             }
             if ($this->value) {
@@ -102,5 +106,18 @@ class CatalogRulePrice extends AbstractPrice implements BasePriceProviderInterfa
         }
 
         return $this->value;
+    }
+
+    /**
+     * @return Rule
+     * @deprecated 100.1.1
+     */
+    private function getRuleResource()
+    {
+        if (null === $this->ruleResource) {
+            $this->ruleResource = ObjectManager::getInstance()->get(Rule::class);
+        }
+
+        return $this->ruleResource;
     }
 }

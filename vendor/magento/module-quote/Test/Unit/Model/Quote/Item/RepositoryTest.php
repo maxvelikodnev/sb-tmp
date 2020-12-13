@@ -7,75 +7,64 @@
 
 namespace Magento\Quote\Test\Unit\Model\Quote\Item;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Catalog\Model\CustomOptions\CustomOptionProcessor;
-use Magento\Catalog\Model\Product;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartItemInterfaceFactory;
-use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Address;
-use Magento\Quote\Model\Quote\Item;
-use Magento\Quote\Model\Quote\Item\CartItemOptionsProcessor;
-use Magento\Quote\Model\Quote\Item\Repository;
-use PHPUnit\Framework\MockObject\MockObject;
-
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class RepositoryTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Repository
+     * @var \Magento\Framework\TestFramework\Unit\Helper\ObjectManager
      */
-    private $repository;
+    private $objectManager;
 
     /**
-     * @var CartRepositoryInterface|MockObject
+     * @var \Magento\Quote\Api\CartItemRepositoryInterface
      */
-    private $quoteRepositoryMock;
+    protected $repository;
 
     /**
-     * @var ProductRepositoryInterface|MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    private $productRepositoryMock;
+    protected $quoteRepositoryMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    private $itemMock;
+    protected $productRepositoryMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    private $quoteMock;
+    protected $itemMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    private $productMock;
+    protected $quoteMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    private $quoteItemMock;
+    protected $productMock;
 
     /**
-     * @var CartItemInterfaceFactory|MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    private $itemDataFactoryMock;
+    protected $quoteItemMock;
 
     /**
-     * @var CustomOptionProcessor|MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
-    private $customOptionProcessor;
+    protected $itemDataFactoryMock;
+
+    /** @var \Magento\Catalog\Model\CustomOptions\CustomOptionProcessor|\PHPUnit_Framework_MockObject_MockObject */
+    protected $customOptionProcessor;
+
+    /** @var \PHPUnit_Framework_MockObject_MockObject */
+    protected $shippingAddressMock;
 
     /**
-     * @var Address|MockObject
-     */
-    private $shippingAddressMock;
-
-    /**
-     * @var CartItemOptionsProcessor|MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     private $optionsProcessorMock;
 
@@ -84,28 +73,39 @@ class RepositoryTest extends \PHPUnit\Framework\TestCase
      */
     protected function setUp()
     {
-        $this->quoteRepositoryMock = $this->createMock(CartRepositoryInterface::class);
-        $this->productRepositoryMock = $this->createMock(ProductRepositoryInterface::class);
-        $this->itemDataFactoryMock = $this->createPartialMock(CartItemInterfaceFactory::class, ['create']);
-        $this->itemMock = $this->createMock(Item::class);
-        $this->quoteMock = $this->createMock(Quote::class);
-        $this->productMock = $this->createMock(Product::class);
+        $this->objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
+        $this->quoteRepositoryMock = $this->createMock(\Magento\Quote\Api\CartRepositoryInterface::class);
+        $this->productRepositoryMock = $this->createMock(\Magento\Catalog\Api\ProductRepositoryInterface::class);
+        $this->itemDataFactoryMock =
+            $this->createPartialMock(\Magento\Quote\Api\Data\CartItemInterfaceFactory::class, ['create']);
+        $this->itemMock = $this->createMock(\Magento\Quote\Model\Quote\Item::class);
+        $this->quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
+        $this->productMock = $this->createMock(\Magento\Catalog\Model\Product::class);
         $methods = ['getId', 'getSku', 'getQty', 'setData', '__wakeUp', 'getProduct', 'addProduct'];
         $this->quoteItemMock =
-            $this->createPartialMock(Item::class, $methods);
-        $this->customOptionProcessor = $this->createMock(CustomOptionProcessor::class);
+            $this->createPartialMock(\Magento\Quote\Model\Quote\Item::class, $methods);
+        $this->customOptionProcessor = $this->createMock(
+            \Magento\Catalog\Model\CustomOptions\CustomOptionProcessor::class
+        );
         $this->shippingAddressMock = $this->createPartialMock(
-            Address::class,
+            \Magento\Quote\Model\Quote\Address::class,
             ['setCollectShippingRates']
         );
-        $this->optionsProcessorMock = $this->createMock(CartItemOptionsProcessor::class);
 
-        $this->repository = new Repository(
+        $this->optionsProcessorMock = $this->createMock(
+            \Magento\Quote\Model\Quote\Item\CartItemOptionsProcessor::class
+        );
+
+        $this->repository = new \Magento\Quote\Model\Quote\Item\Repository(
             $this->quoteRepositoryMock,
             $this->productRepositoryMock,
             $this->itemDataFactoryMock,
-            $this->optionsProcessorMock,
             ['custom_options' => $this->customOptionProcessor]
+        );
+        $this->objectManager->setBackwardCompatibleProperty(
+            $this->repository,
+            'cartItemOptionsProcessor',
+            $this->optionsProcessorMock
         );
     }
 
@@ -118,7 +118,7 @@ class RepositoryTest extends \PHPUnit\Framework\TestCase
         $itemId = 20;
 
         $quoteMock = $this->createPartialMock(
-            Quote::class,
+            \Magento\Quote\Model\Quote::class,
             ['getItems', 'setItems', 'collectTotals', 'getLastAddedItem']
         );
 
@@ -197,11 +197,11 @@ class RepositoryTest extends \PHPUnit\Framework\TestCase
     public function testGetList()
     {
         $productType = 'type';
-        $quoteMock = $this->createMock(Quote::class);
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
         $this->quoteRepositoryMock->expects($this->once())->method('getActive')
             ->with(33)
             ->will($this->returnValue($quoteMock));
-        $itemMock = $this->createMock(Item::class);
+        $itemMock = $this->createMock(\Magento\Quote\Model\Quote\Item::class);
         $quoteMock->expects($this->once())->method('getAllVisibleItems')->will($this->returnValue([$itemMock]));
         $itemMock->expects($this->once())->method('getProductType')->willReturn($productType);
 

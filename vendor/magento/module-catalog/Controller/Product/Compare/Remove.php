@@ -6,7 +6,6 @@
  */
 namespace Magento\Catalog\Controller\Product\Compare;
 
-use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -18,13 +17,12 @@ class Remove extends \Magento\Catalog\Controller\Product\Compare implements Http
     /**
      * Remove item from compare list.
      *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @return \Magento\Framework\Controller\ResultInterface
      */
     public function execute()
     {
         $productId = (int)$this->getRequest()->getParam('product');
-        if ($this->_formKeyValidator->validate($this->getRequest()) && $productId) {
+        if ($productId) {
             $storeId = $this->_storeManager->getStore()->getId();
             try {
                 /** @var \Magento\Catalog\Model\Product $product */
@@ -33,7 +31,7 @@ class Remove extends \Magento\Catalog\Controller\Product\Compare implements Http
                 $product = null;
             }
 
-            if ($product && (int)$product->getStatus() !== Status::STATUS_DISABLED) {
+            if ($product && $product->isSalable()) {
                 /** @var $item \Magento\Catalog\Model\Product\Compare\Item */
                 $item = $this->_compareItemFactory->create();
                 if ($this->_customerSession->isLoggedIn()) {

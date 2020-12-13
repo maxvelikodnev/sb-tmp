@@ -75,17 +75,6 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
         $review = $this->_coreRegistry->registry('review_data');
         $product = $this->_productFactory->create()->load($review->getEntityPkValue());
 
-        $formActionParams = [
-            'id' => $this->getRequest()->getParam('id'),
-            'ret' => $this->_coreRegistry->registry('ret')
-        ];
-        if ($this->getRequest()->getParam('productId')) {
-            $formActionParams['productId'] = $this->getRequest()->getParam('productId');
-        }
-        if ($this->getRequest()->getParam('customerId')) {
-            $formActionParams['customerId'] = $this->getRequest()->getParam('customerId');
-        }
-
         /** @var \Magento\Framework\Data\Form $form */
         $form = $this->_formFactory->create(
             [
@@ -93,7 +82,11 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                     'id' => 'edit_form',
                     'action' => $this->getUrl(
                         'review/*/save',
-                        $formActionParams
+                        [
+                            'id' => $this->getRequest()->getParam('id'),
+                            'ret' => $this->_coreRegistry->registry('ret'),
+                            'productId' => $this->getRequest()->getParam('productId')
+                        ]
                     ),
                     'method' => 'post',
                 ],

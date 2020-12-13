@@ -7,8 +7,6 @@ namespace Magento\Downloadable\Controller\Adminhtml\Downloadable\File;
 
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Class Upload
@@ -78,27 +76,23 @@ class Upload extends \Magento\Downloadable\Controller\Adminhtml\Downloadable\Fil
      */
     public function execute()
     {
-        try {
-            $type = $this->getRequest()->getParam('type');
-            $tmpPath = '';
-            if ($type === 'samples') {
-                $tmpPath = $this->_sample->getBaseTmpPath();
-            } elseif ($type === 'links') {
-                $tmpPath = $this->_link->getBaseTmpPath();
-            } elseif ($type === 'link_samples') {
-                $tmpPath = $this->_link->getBaseSampleTmpPath();
-            } else {
-                throw new LocalizedException(__('Upload type can not be determined.'));
-            }
+        $type = $this->getRequest()->getParam('type');
+        $tmpPath = '';
+        if ($type == 'samples') {
+            $tmpPath = $this->_sample->getBaseTmpPath();
+        } elseif ($type == 'links') {
+            $tmpPath = $this->_link->getBaseTmpPath();
+        } elseif ($type == 'link_samples') {
+            $tmpPath = $this->_link->getBaseSampleTmpPath();
+        }
 
+        try {
             $uploader = $this->uploaderFactory->create(['fileId' => $type]);
 
             $result = $this->_fileHelper->uploadFromTmp($tmpPath, $uploader);
 
             if (!$result) {
-                throw new FileSystemException(
-                    __('File can not be moved from temporary folder to the destination folder.')
-                );
+                throw new \Exception('File can not be moved from temporary folder to the destination folder.');
             }
 
             unset($result['tmp_name'], $result['path']);
@@ -107,7 +101,7 @@ class Upload extends \Magento\Downloadable\Controller\Adminhtml\Downloadable\Fil
                 $relativePath = rtrim($tmpPath, '/') . '/' . ltrim($result['file'], '/');
                 $this->storageDatabase->saveFile($relativePath);
             }
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             $result = ['error' => $e->getMessage(), 'errorcode' => $e->getCode()];
         }
 

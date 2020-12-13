@@ -12,13 +12,13 @@
         <annotations>
             <features value="CatalogRule"/>
             <stories value="Customer view catalog price rule"/>
-            <title value="DEPRECATED. Customer should not see the catalog price rule promotion if status is inactive"/>
+            <title value="Customer should not see the catalog price rule promotion if status is inactive"/>
             <description value="Customer should not see the catalog price rule promotion if status is inactive"/>
             <severity value="CRITICAL"/>
             <testCaseId value="MC-79"/>
             <group value="CatalogRule"/>
             <skip>
-                <issueId value="DEPRECATED">Use StorefrontInactiveCatalogRule2Test instead.</issueId>
+                <issueId value="MC-5777"/>
             </skip>
         </annotations>
         <before>
@@ -29,14 +29,9 @@
             </createData>
             <actionGroup stepKey="createNewPriceRule" ref="newCatalogPriceRuleByUI"/>
             <actionGroup stepKey="selectLoggedInCustomers" ref="selectNotLoggedInCustomerGroup"/>
-            <scrollToTopOfPage stepKey="scrollToTop"/>
-            <click stepKey="setInactive" selector="{{AdminCategoryBasicFieldSection.enableCategoryLabel}}"/>
+            <selectOption selector="{{AdminNewCatalogPriceRule.status}}" userInput="Inactive" stepKey="setInactive"/>
             <click selector="{{AdminNewCatalogPriceRule.saveAndApply}}" stepKey="saveAndApply"/>
             <see selector="{{AdminCategoryMessagesSection.SuccessMessage}}" userInput="You saved the rule." stepKey="seeSuccess"/>
-
-            <!-- Perform reindex and flush cache -->
-            <magentoCLI command="indexer:reindex" stepKey="reindex"/>
-            <magentoCLI command="cache:flush" stepKey="flushCache"/>
         </before>
         <after>
             <deleteData createDataKey="createProduct" stepKey="deleteSimpleProduct"/>
@@ -62,7 +57,6 @@
         <!-- Verify price is not discounted in the cart -->
         <click selector="{{StorefrontProductActionSection.addToCart}}" stepKey="addToCart"/>
         <waitForPageLoad stepKey="waitForCart"/>
-        <waitForElementVisible selector="{{StorefrontMessagesSection.success}}" stepKey="waitForSuccessMessage"/>
         <amOnPage url="{{CheckoutCartPage.url}}" stepKey="goToCheckout"/>
         <waitForPageLoad stepKey="waitForCheckout"/>
         <see selector="{{CheckoutCartSummarySection.subtotal}}" userInput="$$createProduct.price$$" stepKey="seePrice3"/>

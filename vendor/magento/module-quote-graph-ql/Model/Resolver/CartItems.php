@@ -29,7 +29,7 @@ class CartItems implements ResolverInterface
         $cart = $value['model'];
 
         $itemsData = [];
-        foreach ($cart->getAllVisibleItems() as $cartItem) {
+        foreach ($cart->getAllItems() as $cartItem) {
             /**
              * @var QuoteItem $cartItem
              */

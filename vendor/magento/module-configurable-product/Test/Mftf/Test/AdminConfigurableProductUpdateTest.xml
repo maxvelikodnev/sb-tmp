@@ -8,6 +8,75 @@
 
 <tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="AdminConfigurableProductBulkUpdateTest">
+        <annotations>
+            <features value="ConfigurableProduct"/>
+            <stories value="Create, Read, Update, Delete"/>
+            <title value="admin should be able to bulk update attributes of configurable products"/>
+            <description value="admin should be able to bulk update attributes of configurable products"/>
+            <testCaseId value="MC-88"/>
+            <group value="ConfigurableProduct"/>
+            <severity value="AVERAGE"/>
+        </annotations>
+
+        <before>
+            <createData entity="ApiCategory" stepKey="createCategory"/>
+            <createData entity="ApiConfigurableProduct" stepKey="createProduct1">
+                <requiredEntity createDataKey="createCategory"/>
+            </createData>
+            <createData entity="ApiConfigurableProduct" stepKey="createProduct2">
+                <requiredEntity createDataKey="createCategory"/>
+            </createData>
+            <createData entity="ApiConfigurableProduct" stepKey="createProduct3">
+                <requiredEntity createDataKey="createCategory"/>
+            </createData>
+            <actionGroup ref="LoginAsAdmin" stepKey="login"/>
+        </before>
+
+        <after>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="logout"/>
+            <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
+        </after>
+
+        <!-- Search for prefix of the 3 products we created via api -->
+        <amOnPage url="{{AdminProductIndexPage.url}}" stepKey="goToProductList"/>
+        <waitForPageLoad stepKey="wait1"/>
+        <conditionalClick selector="{{AdminProductGridFilterSection.clearAll}}" dependentSelector="{{AdminProductGridFilterSection.clearAll}}" stepKey="clearAll" visible="true"/>
+        <actionGroup ref="searchProductGridByKeyword" stepKey="searchForProduct">
+            <argument name="keyword" value="ApiConfigurableProduct.name"/>
+        </actionGroup>
+
+        <!-- Select all, then start the bulk update attributes flow -->
+        <click selector="{{AdminProductGridSection.multicheckDropdown}}" stepKey="openMulticheckDropdown"/>
+        <click selector="{{AdminProductGridSection.multicheckOption('Select All')}}" stepKey="selectAllProductInFilteredGrid"/>
+        <click selector="{{AdminProductGridSection.bulkActionDropdown}}" stepKey="clickActionDropdown"/>
+        <click selector="{{AdminProductGridSection.bulkActionOption('Update attributes')}}" stepKey="clickBulkUpdate"/>
+        <waitForPageLoad stepKey="wait2"/>
+
+        <!-- Update the description -->
+        <click selector="{{AdminUpdateAttributesSection.toggleDescription}}" stepKey="clickToggleDescription"/>
+        <fillField selector="{{AdminUpdateAttributesSection.description}}" userInput="MFTF automation!" stepKey="fillDescription"/>
+        <click selector="{{AdminUpdateAttributesSection.saveButton}}" stepKey="clickSave"/>
+        <see selector="{{AdminProductMessagesSection.successMessage}}" userInput="Message is added to queue" stepKey="seeSaveSuccess"/>
+
+        <!-- Run cron twice -->
+        <magentoCLI command="cron:run" stepKey="runCron1"/>
+        <magentoCLI command="cron:run" stepKey="runCron2"/>
+        <reloadPage stepKey="refreshPage"/>
+        <waitForPageLoad stepKey="waitFormToReload1"/>
+
+        <!-- Check storefront for description -->
+        <amOnPage url="$$createProduct1.sku$$.html" stepKey="gotoProduct1"/>
+        <waitForPageLoad stepKey="wait3"/>
+        <see selector="{{StorefrontProductInfoMainSection.productDescription}}" userInput="MFTF automation!" stepKey="seeDescription1"/>
+        <amOnPage url="$$createProduct2.sku$$.html" stepKey="gotoProduct2"/>
+        <waitForPageLoad stepKey="wait4"/>
+        <see selector="{{StorefrontProductInfoMainSection.productDescription}}" userInput="MFTF automation!" stepKey="seeDescription2"/>
+        <amOnPage url="$$createProduct3.sku$$.html" stepKey="gotoProduct3"/>
+        <waitForPageLoad stepKey="wait5"/>
+        <see selector="{{StorefrontProductInfoMainSection.productDescription}}" userInput="MFTF automation!" stepKey="seeDescription3"/>
+    </test>
+
     <test name="AdminConfigurableProductRemoveAnOptionTest">
         <annotations>
             <features value="ConfigurableProduct"/>
@@ -70,9 +139,6 @@
             <deleteData createDataKey="createConfigChildProduct2" stepKey="deleteConfigChildProduct2"/>
             <deleteData createDataKey="createConfigProduct" stepKey="deleteConfigProduct"/>
             <deleteData createDataKey="createConfigProductAttribute" stepKey="deleteConfigProductAttribute"/>
-
-            <!-- Reindex invalidated indices after product attribute has been created/deleted -->
-            <actionGroup ref="CliRunReindexUsingCronJobsActionGroup" stepKey="reindexInvalidatedIndices"/>
         </after>
 
         <!--check storefront for both options-->
@@ -166,9 +232,6 @@
             <deleteData createDataKey="createConfigChildProduct2" stepKey="deleteConfigChildProduct2"/>
             <deleteData createDataKey="createConfigProduct" stepKey="deleteConfigProduct"/>
             <deleteData createDataKey="createConfigProductAttribute" stepKey="deleteConfigProductAttribute"/>
-
-            <!-- Reindex invalidated indices after product attribute has been created/deleted -->
-            <actionGroup ref="CliRunReindexUsingCronJobsActionGroup" stepKey="reindexInvalidatedIndices"/>
         </after>
 
         <!--check storefront for both options-->
@@ -211,7 +274,7 @@
 
         <after>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="logout"/>
         </after>
 
         <!-- Create a configurable product via the UI -->
@@ -260,7 +323,7 @@
 
         <after>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="logout"/>
         </after>
 
         <!-- Create a configurable product via the UI -->
@@ -277,7 +340,6 @@
         <!-- Add a configuration option to the configurable product -->
         <click selector="{{AdminProductFormConfigurationsSection.createConfigurations}}" stepKey="clickEditConfigurations"/>
         <click selector="{{AdminCreateProductConfigurationsPanel.next}}" stepKey="clickOnNextButton1"/>
-        <waitForElementVisible selector="{{AdminCreateProductConfigurationsPanel.createNewValue}}" stepKey="waitCreateNewValueAppears"/>
         <click selector="{{AdminCreateProductConfigurationsPanel.createNewValue}}" stepKey="clickOnCreateNewValue1"/>
         <fillField userInput="{{colorProductAttribute4.name}}" selector="{{AdminCreateProductConfigurationsPanel.attributeName}}" stepKey="fillFieldForNewAttribute1"/>
         <click selector="{{AdminCreateProductConfigurationsPanel.saveAttribute}}" stepKey="clickOnSaveNewAttribute1"/>

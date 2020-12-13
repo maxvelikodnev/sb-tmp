@@ -191,6 +191,13 @@
                 </validation>
                 <dataType>text</dataType>
             </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Magento\Directory\Model\ResourceModel\Country\Collection"/>
+                    </settings>
+                </select>
+            </formElements>
         </field>
         <field name="region_id" component="Magento_Customer/js/form/element/region" formElement="select">
             <settings>
@@ -208,6 +215,7 @@
                             <target>${ $.provider }:${ $.parentScope }.country_id</target>
                         </filterBy>
                         <customEntry>region</customEntry>
+                        <options class="Magento\Directory\Model\ResourceModel\Region\Collection"/>
                     </settings>
                 </select>
             </formElements>

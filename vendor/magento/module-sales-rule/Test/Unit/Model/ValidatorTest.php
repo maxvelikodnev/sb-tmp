@@ -5,42 +5,21 @@
  */
 namespace Magento\SalesRule\Test\Unit\Model;
 
-use Magento\Catalog\Helper\Data;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Message\Manager;
-use Magento\Framework\Message\ManagerInterface;
-use Magento\Framework\Model\Context;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
-use Magento\Framework\Registry;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Framework\Validator\AbstractValidator;
-use Magento\Quote\Api\Data\CartExtension;
 use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Address;
-use Magento\Quote\Model\Quote\Item;
-use Magento\Quote\Model\Quote\Item\AbstractItem;
-use Magento\Rule\Model\Action\Collection;
-use Magento\SalesRule\Helper\CartFixedDiscount;
-use Magento\SalesRule\Model\ResourceModel\Rule\Collection as RuleCollection;
-use Magento\SalesRule\Model\ResourceModel\Rule\CollectionFactory;
 use Magento\SalesRule\Model\Rule;
-use Magento\SalesRule\Model\RulesApplier;
-use Magento\SalesRule\Model\Utility;
 use Magento\SalesRule\Model\Validator;
-use Magento\SalesRule\Model\Validator\Pool;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 /**
- * Test sales rule model validator
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * Class ValidatorTest
+ * @@SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class ValidatorTest extends TestCase
+class ValidatorTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var ObjectManager
+     * @var \Magento\Framework\TestFramework\Unit\Helper\ObjectManager
      */
     protected $helper;
 
@@ -50,42 +29,42 @@ class ValidatorTest extends TestCase
     protected $model;
 
     /**
-     * @var Item|MockObject
+     * @var \Magento\Quote\Model\Quote\Item|MockObject
      */
     protected $item;
 
     /**
-     * @var Address|MockObject
+     * @var \Magento\Quote\Model\Quote\Address|MockObject
      */
     protected $addressMock;
 
     /**
-     * @var RulesApplier|MockObject
+     * @var \Magento\SalesRule\Model\RulesApplier|MockObject
      */
     protected $rulesApplier;
 
     /**
-     * @var Pool|MockObject
+     * @var \Magento\SalesRule\Model\Validator\Pool|MockObject
      */
     protected $validators;
 
     /**
-     * @var Utility|MockObject
+     * @var \Magento\SalesRule\Model\Utility|MockObject
      */
     protected $utility;
 
     /**
-     * @var RuleCollection|MockObject
+     * @var \Magento\SalesRule\Model\ResourceModel\Rule\Collection|MockObject
      */
     protected $ruleCollection;
 
     /**
-     * @var Data|MockObject
+     * @var \Magento\Catalog\Helper\Data|MockObject
      */
     protected $catalogData;
 
     /**
-     * @var ManagerInterface|MockObject
+     * @var \Magento\Framework\Message\ManagerInterface|MockObject
      */
     protected $messageManager;
 
@@ -94,20 +73,15 @@ class ValidatorTest extends TestCase
      */
     private $priceCurrency;
 
-    /**
-     * @var CartFixedDiscount|MockObject
-     */
-    private $cartFixedDiscountHelper;
-
     protected function setUp()
     {
-        $this->helper = new ObjectManager($this);
+        $this->helper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         $this->rulesApplier = $this->createPartialMock(
-            RulesApplier::class,
+            \Magento\SalesRule\Model\RulesApplier::class,
             ['setAppliedRuleIds', 'applyRules', 'addDiscountDescription', '__wakeup']
         );
 
-        $this->addressMock = $this->getMockBuilder(Address::class)
+        $this->addressMock = $this->getMockBuilder(\Magento\Quote\Model\Quote\Address::class)
             ->disableOriginalConstructor()
             ->setMethods(
                 [
@@ -120,41 +94,29 @@ class ValidatorTest extends TestCase
             )
             ->getMock();
 
-        /** @var AbstractItem|MockObject $item */
+        /** @var \Magento\Quote\Model\Quote\Item\AbstractItem|MockObject $item */
         $this->item = $this->createPartialMock(
-            Item::class,
+            \Magento\Quote\Model\Quote\Item::class,
             ['__wakeup', 'getAddress', 'getParentItemId']
         );
         $this->item->expects($this->any())
             ->method('getAddress')
             ->willReturn($this->addressMock);
 
-        $context = $this->createMock(Context::class);
-        $registry = $this->createMock(Registry::class);
-        $this->catalogData = $this->createMock(Data::class);
-        $this->utility = $this->createMock(Utility::class);
-        $this->validators = $this->createPartialMock(Pool::class, ['getValidators']);
-        $this->messageManager = $this->createMock(Manager::class);
-        $this->ruleCollection = $this->getMockBuilder(RuleCollection::class)
+        $context = $this->createMock(\Magento\Framework\Model\Context::class);
+        $registry = $this->createMock(\Magento\Framework\Registry::class);
+        $this->catalogData = $this->createMock(\Magento\Catalog\Helper\Data::class);
+        $this->utility = $this->createMock(\Magento\SalesRule\Model\Utility::class);
+        $this->validators = $this->createPartialMock(\Magento\SalesRule\Model\Validator\Pool::class, ['getValidators']);
+        $this->messageManager = $this->createMock(\Magento\Framework\Message\Manager::class);
+        $this->ruleCollection = $this->getMockBuilder(\Magento\SalesRule\Model\ResourceModel\Rule\Collection::class)
             ->disableOriginalConstructor()
             ->getMock();
         $ruleCollectionFactoryMock = $this->prepareRuleCollectionMock($this->ruleCollection);
         $this->priceCurrency = $this->getMockBuilder(PriceCurrencyInterface::class)
             ->disableOriginalConstructor()
-            ->setMethods(['roundPrice'])
-            ->getMockForAbstractClass();
-        $this->cartFixedDiscountHelper = $this->getMockBuilder(CartFixedDiscount::class)
-            ->setMethods([
-                'calculateShippingAmountWhenAppliedToShipping',
-                'getDiscountAmount',
-                'getShippingDiscountAmount',
-                'checkMultiShippingQuote',
-                'getQuoteTotalsForMultiShipping',
-                'getQuoteTotalsForRegularShipping',
-                'getBaseRuleTotals',
-                'getAvailableDiscountAmount'])
-            ->disableOriginalConstructor()
             ->getMock();
+
         /** @var Validator|MockObject $validator */
         $this->model = $this->helper->getObject(
             Validator::class,
@@ -167,8 +129,7 @@ class ValidatorTest extends TestCase
                 'rulesApplier' => $this->rulesApplier,
                 'validators' => $this->validators,
                 'messageManager' => $this->messageManager,
-                'priceCurrency' => $this->priceCurrency,
-                'cartFixedDiscountHelper' => $this->cartFixedDiscountHelper
+                'priceCurrency' => $this->priceCurrency
             ]
         );
         $this->model->setWebsiteId(1);
@@ -187,19 +148,18 @@ class ValidatorTest extends TestCase
     }
 
     /**
-     * @return Item|MockObject
-     * @throws LocalizedException
+     * @return \Magento\Quote\Model\Quote\Item|MockObject
      */
     protected function getQuoteItemMock()
     {
         $fixturePath = __DIR__ . '/_files/';
         $itemDownloadable = $this->createPartialMock(
-            Item::class,
+            \Magento\Quote\Model\Quote\Item::class,
             ['getAddress', '__wakeup']
         );
         $itemDownloadable->expects($this->any())->method('getAddress')->will($this->returnValue($this->addressMock));
 
-        $itemSimple = $this->createPartialMock(Item::class, ['getAddress', '__wakeup']);
+        $itemSimple = $this->createPartialMock(\Magento\Quote\Model\Quote\Item::class, ['getAddress', '__wakeup']);
         $itemSimple->expects($this->any())->method('getAddress')->will($this->returnValue($this->addressMock));
 
         /** @var $quote Quote */
@@ -226,7 +186,7 @@ class ValidatorTest extends TestCase
         );
         $item = $this->getQuoteItemMock();
         $rule = $this->createMock(Rule::class);
-        $actionsCollection = $this->createPartialMock(Collection::class, ['validate']);
+        $actionsCollection = $this->createPartialMock(\Magento\Rule\Model\Action\Collection::class, ['validate']);
         $actionsCollection->expects($this->any())
             ->method('validate')
             ->with($item)
@@ -346,7 +306,7 @@ class ValidatorTest extends TestCase
 
     public function testCanApplyDiscount()
     {
-        $validator = $this->getMockBuilder(AbstractValidator::class)
+        $validator = $this->getMockBuilder(\Magento\Framework\Validator\AbstractValidator::class)
             ->setMethods(['isValid'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
@@ -375,7 +335,7 @@ class ValidatorTest extends TestCase
             ['getSimpleAction', 'getActions', 'getId']
         );
         $item1 = $this->getMockForAbstractClass(
-            AbstractItem::class,
+            \Magento\Quote\Model\Quote\Item\AbstractItem::class,
             [],
             '',
             false,
@@ -386,21 +346,18 @@ class ValidatorTest extends TestCase
                 'getDiscountCalculationPrice',
                 'getBaseDiscountCalculationPrice',
                 'getCalculationPrice',
-                'getParentItemId',
-                'getParentItem'
+                'getParentItemId'
             ]
         );
         $item2 = clone $item1;
-        $item3 = clone $item1;
-        $item4 = clone $item1;
-        $items = [$item1, $item2, $item3, $item4];
+        $items = [$item1, $item2];
 
         $rule->expects($this->any())
             ->method('getSimpleAction')
             ->willReturn(Rule::CART_FIXED_ACTION);
         $iterator = new \ArrayIterator([$rule]);
         $this->ruleCollection->expects($this->once())->method('getIterator')->willReturn($iterator);
-        $validator = $this->getMockBuilder(AbstractValidator::class)
+        $validator = $this->getMockBuilder(\Magento\Framework\Validator\AbstractValidator::class)
             ->setMethods(['isValid'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
@@ -410,26 +367,16 @@ class ValidatorTest extends TestCase
         $validator->expects($this->at(0))->method('isValid')->with($item1)->willReturn(false);
         $validator->expects($this->at(1))->method('isValid')->with($item2)->willReturn(true);
 
-        $item1->expects($this->any())->method('getParentItemId')->willReturn(null);
-        $item1->expects($this->any())->method('getParentItem')->willReturn(null);
+        $item1->expects($this->any())->method('getParentItemId')->willReturn(false);
         $item1->expects($this->never())->method('getDiscountCalculationPrice');
         $item1->expects($this->never())->method('getBaseDiscountCalculationPrice');
-        $item2->expects($this->any())->method('getParentItemId')->willReturn(null);
-        $item2->expects($this->any())->method('getParentItem')->willReturn(null);
+        $item2->expects($this->any())->method('getParentItemId')->willReturn(false);
         $item2->expects($this->any())->method('getDiscountCalculationPrice')->willReturn(50);
         $item2->expects($this->once())->method('getBaseDiscountCalculationPrice')->willReturn(50);
-        $item3->expects($this->any())->method('getParentItemId')->willReturn(null);
-        $item3->expects($this->any())->method('getParentItem')->willReturn($item1);
-        $item3->expects($this->never())->method('getDiscountCalculationPrice');
-        $item3->expects($this->never())->method('getBaseDiscountCalculationPrice');
-        $item4->expects($this->any())->method('getParentItemId')->willReturn(12345);
-        $item4->expects($this->any())->method('getParentItem')->willReturn(null);
-        $item4->expects($this->never())->method('getDiscountCalculationPrice');
-        $item4->expects($this->never())->method('getBaseDiscountCalculationPrice');
         $this->utility->expects($this->once())->method('getItemQty')->willReturn(1);
         $this->utility->expects($this->any())->method('canProcessRule')->willReturn(true);
 
-        $actionsCollection = $this->createPartialMock(Collection::class, ['validate']);
+        $actionsCollection = $this->createPartialMock(\Magento\Rule\Model\Action\Collection::class, ['validate']);
         $actionsCollection->expects($this->at(0))->method('validate')->with($item1)->willReturn(true);
         $actionsCollection->expects($this->at(1))->method('validate')->with($item2)->willReturn(true);
         $rule->expects($this->any())->method('getActions')->willReturn($actionsCollection);
@@ -449,7 +396,7 @@ class ValidatorTest extends TestCase
 
     public function testInitTotalsNoItems()
     {
-        $address = $this->createMock(Address::class);
+        $address = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
         $this->item->expects($this->never())
             ->method('getParentItemId');
         $this->model->init(
@@ -475,7 +422,7 @@ class ValidatorTest extends TestCase
             ->will($this->returnSelf());
 
         $ruleCollectionFactoryMock =
-            $this->getMockBuilder(CollectionFactory::class)
+            $this->getMockBuilder(\Magento\SalesRule\Model\ResourceModel\Rule\CollectionFactory::class)
             ->disableOriginalConstructor()
             ->setMethods(['create'])
             ->getMock();
@@ -530,12 +477,10 @@ class ValidatorTest extends TestCase
      * @param int $ruleDiscount
      * @param int $shippingDiscount
      * @dataProvider dataProviderActions
-     * @throws \Zend_Db_Select_Exception
      */
     public function testProcessShippingAmountActions($action, $ruleDiscount, $shippingDiscount): void
     {
         $shippingAmount = 5;
-        $quoteBaseSubTotal = 10;
 
         $ruleMock = $this->getMockBuilder(Rule::class)
             ->disableOriginalConstructor()
@@ -558,16 +503,13 @@ class ValidatorTest extends TestCase
         $this->priceCurrency->method('convert')
             ->willReturn($ruleDiscount);
 
-        $this->priceCurrency->method('roundPrice')
-            ->willReturn(round($shippingDiscount, 2));
-
         $this->model->init(
             $this->model->getWebsiteId(),
             $this->model->getCustomerGroupId(),
             $this->model->getCouponCode()
         );
 
-        $addressMock = $this->setupAddressMock($shippingAmount, $quoteBaseSubTotal);
+        $addressMock = $this->setupAddressMock($shippingAmount);
 
         self::assertInstanceOf(Validator::class, $this->model->processShippingAmount($addressMock));
         self::assertEquals($shippingDiscount, $addressMock->getShippingDiscountAmount());
@@ -589,12 +531,10 @@ class ValidatorTest extends TestCase
 
     /**
      * @param null|int $shippingAmount
-     * @param null|int $quoteBaseSubTotal
      * @return MockObject
      */
-    protected function setupAddressMock($shippingAmount = null, $quoteBaseSubTotal = null)
+    protected function setupAddressMock($shippingAmount = null)
     {
-        $shippingAssignments = ['test_assignment_1'];
         $storeMock = $this->getMockBuilder(Store::class)
             ->disableOriginalConstructor()
             ->setMethods([])
@@ -602,17 +542,7 @@ class ValidatorTest extends TestCase
 
         $quoteMock = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
-            ->setMethods([
-                'setAppliedRuleIds',
-                'getStore',
-                'getBaseSubtotal',
-                'getExtensionAttributes',
-                'isVirtual'
-            ])
-            ->getMock();
-        $cartExtensionMock = $this->getMockBuilder(CartExtension::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getShippingAssignments'])
+            ->setMethods(['setAppliedRuleIds', 'getStore'])
             ->getMock();
 
         $quoteMock->method('getStore')
@@ -620,26 +550,6 @@ class ValidatorTest extends TestCase
 
         $quoteMock->method('setAppliedRuleIds')
             ->willReturnSelf();
-
-        $quoteMock->method('isVirtual')
-            ->willReturn(false);
-
-        $quoteMock->method('getBaseSubtotal')
-            ->willReturn($quoteBaseSubTotal);
-
-        $this->cartFixedDiscountHelper
-            ->method('getQuoteTotalsForRegularShipping')
-            ->willReturn($quoteBaseSubTotal);
-
-        $this->cartFixedDiscountHelper
-            ->method('getShippingDiscountAmount')
-            ->willReturn($shippingAmount);
-
-        $quoteMock->method('getExtensionAttributes')
-            ->willReturn($cartExtensionMock);
-
-        $cartExtensionMock->method('getShippingAssignments')
-            ->willReturn($shippingAssignments);
 
         $this->addressMock->method('getShippingAmountForDiscount')
             ->willReturn($shippingAmount);
@@ -663,7 +573,7 @@ class ValidatorTest extends TestCase
         $quoteMock = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $addressMock = $this->getMockBuilder(Address::class)
+        $addressMock = $this->getMockBuilder(\Magento\Quote\Model\Quote\Address::class)
             ->disableOriginalConstructor()
             ->getMock();
         $addressMock->expects($this->once())

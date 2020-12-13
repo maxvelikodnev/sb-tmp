@@ -71,7 +71,7 @@ class Recent extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * @inheritDoc
+     * @return void
      */
     protected function _construct()
     {
@@ -105,8 +105,6 @@ class Recent extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Get order view URL
-     *
      * @param object $order
      * @return string
      */
@@ -116,22 +114,16 @@ class Recent extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Get order track URL
-     *
      * @param object $order
      * @return string
-     * @deprecated 102.0.3 Action does not exist
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function getTrackUrl($order)
     {
-        //phpcs:ignore Magento2.Functions.DiscouragedFunction
-        trigger_error('Method is deprecated', E_USER_DEPRECATED);
-        return '';
+        return $this->getUrl('sales/order/track', ['order_id' => $order->getId()]);
     }
 
     /**
-     * @inheritDoc
+     * @return string
      */
     protected function _toHtml()
     {
@@ -142,8 +134,6 @@ class Recent extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Get reorder URL
-     *
      * @param object $order
      * @return string
      */

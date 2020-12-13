@@ -77,7 +77,6 @@ class AgreementsConfigProviderTest extends \PHPUnit\Framework\TestCase
         $escapedCheckboxText = 'escaped_checkbox_text';
         $mode = \Magento\CheckoutAgreements\Model\AgreementModeOptions::MODE_AUTO;
         $agreementId = 100;
-        $contentHeight = '100px';
         $expectedResult = [
             'checkoutAgreements' => [
                 'isEnabled' => 1,
@@ -87,7 +86,6 @@ class AgreementsConfigProviderTest extends \PHPUnit\Framework\TestCase
                         'checkboxText' => $escapedCheckboxText,
                         'mode' => $mode,
                         'agreementId' => $agreementId,
-                        'contentHeight' => $contentHeight
                     ],
                 ],
             ],
@@ -118,7 +116,6 @@ class AgreementsConfigProviderTest extends \PHPUnit\Framework\TestCase
         $agreement->expects($this->once())->method('getCheckboxText')->willReturn($checkboxText);
         $agreement->expects($this->once())->method('getMode')->willReturn($mode);
         $agreement->expects($this->once())->method('getAgreementId')->willReturn($agreementId);
-        $agreement->expects($this->once())->method('getContentHeight')->willReturn($contentHeight);
 
         $this->assertEquals($expectedResult, $this->model->getConfig());
     }
@@ -136,7 +133,6 @@ class AgreementsConfigProviderTest extends \PHPUnit\Framework\TestCase
         $escapedCheckboxText = 'escaped_checkbox_text';
         $mode = \Magento\CheckoutAgreements\Model\AgreementModeOptions::MODE_AUTO;
         $agreementId = 100;
-        $contentHeight = '100px';
         $expectedResult = [
             'checkoutAgreements' => [
                 'isEnabled' => 1,
@@ -146,7 +142,6 @@ class AgreementsConfigProviderTest extends \PHPUnit\Framework\TestCase
                         'checkboxText' => $escapedCheckboxText,
                         'mode' => $mode,
                         'agreementId' => $agreementId,
-                        'contentHeight' => $contentHeight
                     ],
                 ],
             ],
@@ -177,7 +172,6 @@ class AgreementsConfigProviderTest extends \PHPUnit\Framework\TestCase
         $agreement->expects($this->once())->method('getCheckboxText')->willReturn($checkboxText);
         $agreement->expects($this->once())->method('getMode')->willReturn($mode);
         $agreement->expects($this->once())->method('getAgreementId')->willReturn($agreementId);
-        $agreement->expects($this->once())->method('getContentHeight')->willReturn($contentHeight);
 
         $this->assertEquals($expectedResult, $this->model->getConfig());
     }

@@ -5,13 +5,14 @@
  */
 namespace Magento\CatalogInventory\Model\ResourceModel\Stock;
 
-use Magento\Catalog\Model\Indexer\Product\Price\Processor as PriceIndexProcessor;
+use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Model\Stock;
 use Magento\CatalogInventory\Model\Indexer\Stock\Processor;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Framework\DB\Select;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 
 /**
@@ -42,32 +43,26 @@ class Item extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     private $dateTime;
 
     /**
-     * @var PriceIndexProcessor
-     */
-    private $priceIndexProcessor;
-
-    /**
      * @param Context $context
      * @param Processor $processor
+     * @param string $connectionName
      * @param StockConfigurationInterface $stockConfiguration
      * @param DateTime $dateTime
-     * @param PriceIndexProcessor $priceIndexProcessor
-     * @param string $connectionName
      */
     public function __construct(
         Context $context,
         Processor $processor,
-        StockConfigurationInterface $stockConfiguration,
-        DateTime $dateTime,
-        PriceIndexProcessor $priceIndexProcessor,
-        $connectionName = null
+        $connectionName = null,
+        StockConfigurationInterface $stockConfiguration = null,
+        DateTime $dateTime = null
     ) {
         $this->stockIndexerProcessor = $processor;
         parent::__construct($context, $connectionName);
 
-        $this->stockConfiguration = $stockConfiguration;
-        $this->dateTime = $dateTime;
-        $this->priceIndexProcessor = $priceIndexProcessor;
+        $this->stockConfiguration = $stockConfiguration ??
+            ObjectManager::getInstance()->get(StockConfigurationInterface::class);
+        $this->dateTime = $dateTime ??
+            ObjectManager::getInstance()->get(DateTime::class);
     }
 
     /**
@@ -149,25 +144,10 @@ class Item extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     protected function _afterSave(AbstractModel $object)
     {
         parent::_afterSave($object);
-
-        $productId = $object->getProductId();
+        /** @var StockItemInterface $object */
         if ($this->processIndexEvents) {
-            $this->stockIndexerProcessor->reindexRow($productId);
+            $this->stockIndexerProcessor->reindexRow($object->getProductId());
         }
-        $fields = [
-            'is_in_stock',
-            'use_config_manage_stock',
-            'manage_stock',
-        ];
-        foreach ($fields as $field) {
-            if ($object->dataHasChangedFor($field)) {
-                $this->addCommitCallback(function () use ($productId) {
-                    $this->priceIndexProcessor->reindexRow($productId);
-                });
-                break;
-            }
-        }
-
         return $this;
     }
 
@@ -216,7 +196,6 @@ class Item extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $connection->update($this->getMainTable(), $values, $where);
 
         $this->stockIndexerProcessor->markIndexerAsInvalid();
-        $this->priceIndexProcessor->markIndexerAsInvalid();
     }
 
     /**
@@ -249,7 +228,6 @@ class Item extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $connection->update($this->getMainTable(), $values, $where);
 
         $this->stockIndexerProcessor->markIndexerAsInvalid();
-        $this->priceIndexProcessor->markIndexerAsInvalid();
     }
 
     /**

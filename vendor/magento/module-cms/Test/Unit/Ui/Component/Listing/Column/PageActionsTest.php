@@ -65,7 +65,6 @@ class PageActionsTest extends \PHPUnit\Framework\TestCase
                     'edit' => [
                         'href' => 'test/url/edit',
                         'label' => __('Edit'),
-                        '__disableTmpl' => true,
                     ],
                     'delete' => [
                         'href' => 'test/url/delete',
@@ -76,7 +75,6 @@ class PageActionsTest extends \PHPUnit\Framework\TestCase
                             '__disableTmpl' => true,
                         ],
                         'post' => true,
-                        '__disableTmpl' => true,
                     ],
                 ],
             ],
@@ -86,6 +84,7 @@ class PageActionsTest extends \PHPUnit\Framework\TestCase
             ->method('escapeHtml')
             ->with($title)
             ->willReturn($title);
+
         // Configure mocks and object data
         $urlBuilderMock->expects($this->any())
             ->method('getUrl')
@@ -107,6 +106,7 @@ class PageActionsTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]
             );
+
         $model->setName($name);
         $items = $model->prepareDataSource($items);
         // Run test

@@ -222,11 +222,9 @@ class QuantityValidator
     {
         $removeErrors = true;
         foreach ($options as $option) {
-            $optionValue = $option->getValue();
-            $optionQty = $quoteItem->getData('qty') * $optionValue;
             $result = $this->stockState->checkQtyIncrements(
                 $option->getProduct()->getId(),
-                $optionQty,
+                $quoteItem->getData('qty'),
                 $option->getProduct()->getStore()->getWebsiteId()
             );
             if ($result->getHasError()) {

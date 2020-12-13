@@ -39,8 +39,6 @@ class SalesChannels
     }
 
     /**
-     * Plugin to add sales channels to stock data provider.
-     *
      * @param StockDataProvider $subject
      * @param array $data
      * @return array
@@ -68,16 +66,13 @@ class SalesChannels
     }
 
     /**
-     * Get sales channels from extension attributes on stock data.
-     *
      * @param array $stock
      * @return array
      */
     private function getSalesChannelsDataForStock(array $stock): array
     {
         $salesChannelsData = [];
-        if (isset($stock['extension_attributes']) && isset($stock['extension_attributes']['sales_channels'])) {
-            $salesChannels = $stock['extension_attributes']['sales_channels'];
+        foreach ($stock['extension_attributes'] as $salesChannels) {
             foreach ($salesChannels as $salesChannel) {
                 $salesChannelsData[$salesChannel['type']][] = $salesChannel['code'];
             }

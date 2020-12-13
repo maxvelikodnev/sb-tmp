@@ -3,21 +3,16 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\UrlRewrite\Controller;
 
 use Magento\TestFramework\TestCase\AbstractController;
 use Magento\Framework\App\Response\Http as HttpResponse;
 
-/**
- * Class to test Match corresponding URL Rewrite
- */
 class UrlRewriteTest extends AbstractController
 {
     /**
      * @magentoDataFixture Magento/UrlRewrite/_files/url_rewrite.php
-     * @magentoDbIsolation disabled
+     * @magentoAppIsolation enabled
      *
      * @covers \Magento\UrlRewrite\Controller\Router::match
      * @covers \Magento\UrlRewrite\Model\Storage\DbStorage::doFindOneByData
@@ -25,35 +20,32 @@ class UrlRewriteTest extends AbstractController
      * @param string $request
      * @param string $redirect
      * @param int $expectedCode
-     * @return void
      *
      * @dataProvider requestDataProvider
      */
     public function testMatchUrlRewrite(
         string $request,
         string $redirect,
-        int $expectedCode = HttpResponse::STATUS_CODE_301
-    ): void {
+        int $expectedCode = 301
+    ) {
         $this->dispatch($request);
         /** @var HttpResponse $response */
         $response = $this->getResponse();
         $code = $response->getHttpResponseCode();
-        $this->assertEquals($expectedCode, $code, 'Invalid response code');
+        $location = $response->getHeader('Location')->getFieldValue();
 
-        if ($expectedCode !== HttpResponse::STATUS_CODE_200) {
-            $location = $response->getHeader('Location')->getFieldValue();
-            $this->assertStringEndsWith(
-                $redirect,
-                $location,
-                'Invalid location header'
-            );
-        }
+        $this->assertEquals($expectedCode, $code, 'Invalid response code');
+        $this->assertStringEndsWith(
+            $redirect,
+            $location,
+            'Invalid location header'
+        );
     }
 
     /**
      * @return array
      */
-    public function requestDataProvider(): array
+    public function requestDataProvider()
     {
         return [
             'Use Case #1: Rewrite: page-one/ --(301)--> page-a/; Request: page-one/ --(301)--> page-a/' => [

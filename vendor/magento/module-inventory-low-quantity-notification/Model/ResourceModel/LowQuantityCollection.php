@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Magento\InventoryLowQuantityNotification\Model\ResourceModel;
 
 use Magento\Catalog\Api\Data\ProductInterface;
-use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Framework\Data\Collection\Db\FetchStrategyInterface;
@@ -29,8 +28,6 @@ use Magento\Store\Model\Store;
 use Psr\Log\LoggerInterface;
 
 /**
- * Low quantity report collection.
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class LowQuantityCollection extends AbstractCollection
@@ -114,8 +111,6 @@ class LowQuantityCollection extends AbstractCollection
     }
 
     /**
-     * Set store id to filter.
-     *
      * @param int $storeId
      * @return void
      */
@@ -153,17 +148,16 @@ class LowQuantityCollection extends AbstractCollection
     }
 
     /**
-     * JoinCatalogProduct depends on dynamic condition 'filterStoreId'
+     * joinCatalogProduct depends on dynamic condition 'filterStoreId'
      *
      * @return void
      */
-    private function joinCatalogProduct(): void
+    private function joinCatalogProduct()
     {
         $productEntityTable = $this->getTable('catalog_product_entity');
         $productEavVarcharTable = $this->getTable('catalog_product_entity_varchar');
-        $productEavIntTable = $this->getTable('catalog_product_entity_int');
         $nameAttribute = $this->attributeRepository->get('catalog_product', 'name');
-        $statusAttribute = $this->attributeRepository->get('catalog_product', 'status');
+
         $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
         $linkField = $metadata->getLinkField();
 
@@ -176,16 +170,8 @@ class LowQuantityCollection extends AbstractCollection
         $this->getSelect()->joinInner(
             ['product_entity_varchar' => $productEavVarcharTable],
             'product_entity_varchar.' . $linkField . ' = product_entity.' . $linkField . ' ' .
-            'AND product_entity_varchar.store_id = ' . Store::DEFAULT_STORE_ID . ' ' .
+            'AND product_entity_varchar.store_id = ' . Store::DEFAULT_STORE_ID. ' ' .
             'AND product_entity_varchar.attribute_id = ' . (int)$nameAttribute->getAttributeId(),
-            []
-        );
-
-        $this->getSelect()->joinInner(
-            ['product_entity_int' => $productEavIntTable],
-            'product_entity_int.' . $linkField . ' = product_entity.' . $linkField . ' ' .
-            'AND product_entity_int.attribute_id = ' . (int)$statusAttribute->getAttributeId()
-            . ' AND product_entity_int.store_id = ' . Store::DEFAULT_STORE_ID,
             []
         );
 
@@ -199,34 +185,18 @@ class LowQuantityCollection extends AbstractCollection
                     'product_name' => $this->getConnection()->getIfNullSql(
                         'product_entity_varchar_store.value',
                         'product_entity_varchar.value'
-                    ),
+                    )
                 ]
             );
-            $this->getSelect()->joinLeft(
-                ['product_entity_int_store' => $productEavIntTable],
-                'product_entity_int_store.' . $linkField . ' = product_entity.' . $linkField . ' ' .
-                'AND product_entity_int_store.attribute_id = ' . (int)$statusAttribute->getAttributeId()
-                . ' AND product_entity_int_store.store_id = ' . $this->filterStoreId,
-                []
-            )->where(
-                $this->getConnection()->getIfNullSql(
-                    'product_entity_int_store.value',
-                    'product_entity_int.value'
-                ) . '= ?',
-                Status::STATUS_ENABLED
-            );
         } else {
-            $this->getSelect()->columns(['product_name' => 'product_entity_varchar.value'])
-                ->where('product_entity_int.value = ?', Status::STATUS_ENABLED);
+            $this->getSelect()->columns(['product_name' => 'product_entity_varchar.value']);
         }
     }
 
     /**
-     * Add inventory configuration information to collection.
-     *
      * @return void
      */
-    private function joinInventoryConfiguration(): void
+    private function joinInventoryConfiguration()
     {
         $sourceItemConfigurationTable = $this->getTable('inventory_low_stock_notification_configuration');
 
@@ -244,11 +214,9 @@ class LowQuantityCollection extends AbstractCollection
     }
 
     /**
-     * Filter allowed product types.
-     *
      * @return void
      */
-    private function addProductTypeFilter(): void
+    private function addProductTypeFilter()
     {
         $this->addFieldToFilter(
             'product_entity.type_id',
@@ -257,11 +225,9 @@ class LowQuantityCollection extends AbstractCollection
     }
 
     /**
-     * Add notify configuration information to collection.
-     *
      * @return void
      */
-    private function addNotifyStockQtyFilter(): void
+    private function addNotifyStockQtyFilter()
     {
         $notifyStockExpression = $this->getConnection()->getIfNullSql(
             'notification_configuration.' . SourceItemConfigurationInterface::INVENTORY_NOTIFY_QTY,
@@ -275,11 +241,9 @@ class LowQuantityCollection extends AbstractCollection
     }
 
     /**
-     * Filter disabled sources.
-     *
      * @return void
      */
-    private function addEnabledSourceFilter(): void
+    private function addEnabledSourceFilter()
     {
         $this->getSelect()->joinInner(
             ['inventory_source' => $this->getTable(Source::TABLE_NAME_SOURCE)],
@@ -294,15 +258,10 @@ class LowQuantityCollection extends AbstractCollection
     }
 
     /**
-     * Filter out of stock source items.
-     *
      * @return void
      */
-    private function addSourceItemInStockFilter(): void
+    private function addSourceItemInStockFilter()
     {
-        $condition = '(' . SourceItemInterface::QUANTITY . ' > 0 AND main_table.status = ' .
-            SourceItemInterface::STATUS_IN_STOCK . ') OR
-            (' . SourceItemInterface::QUANTITY . ' = 0)';
-        $this->getSelect()->where($condition);
+        $this->addFieldToFilter('main_table.status', SourceItemInterface::STATUS_IN_STOCK);
     }
 }

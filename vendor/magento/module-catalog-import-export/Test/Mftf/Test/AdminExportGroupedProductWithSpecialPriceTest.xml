@@ -48,14 +48,19 @@
                 <requiredEntity createDataKey="createSecondSimpleProduct"/>
             </updateData>
 
-            <comment userInput="Reindex invalidated indices" stepKey="runCron1"/>
-            <actionGroup ref="CliRunReindexUsingCronJobsActionGroup" stepKey="runCron2"/>
-
             <!-- Login as admin -->
             <actionGroup ref="LoginAsAdmin" stepKey="loginAsAdmin"/>
-            <actionGroup ref="deleteAllExportedFiles" stepKey="clearExportedFilesList"/>
+
+            <!-- Run cron twice -->
+            <magentoCLI command="cron:run" stepKey="runCron1"/>
+            <magentoCLI command="cron:run" stepKey="runCron2"/>
         </before>
         <after>
+            <!-- Delete exported file -->
+            <actionGroup ref="deleteExportedFile" stepKey="deleteExportedFile">
+                <argument name="rowIndex" value="0"/>
+            </actionGroup>
+
             <!-- Deleted created products -->
             <deleteData createDataKey="createFirstSimpleProduct" stepKey="deleteFirstSimpleProduct"/>
             <deleteData createDataKey="createSecondSimpleProduct" stepKey="deleteSecondSimpleProduct"/>
@@ -64,10 +69,6 @@
             <!-- Delete category -->
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
 
-            <!-- Delete exported file -->
-            <actionGroup ref="deleteExportedFile" stepKey="deleteExportedFile">
-                <argument name="rowIndex" value="0"/>
-            </actionGroup>
             <!-- Log out -->
             <actionGroup ref="logout" stepKey="logout"/>
         </after>
@@ -79,11 +80,8 @@
         <!-- Export created below products -->
         <actionGroup ref="exportAllProducts" stepKey="exportCreatedProducts"/>
 
-        <comment userInput="Start message queue for export consumer" stepKey="runCron3"/>
-        <actionGroup ref="CliConsumerStartActionGroup" stepKey="runCron4">
-            <argument name="consumerName" value="{{AdminExportMessageConsumerData.consumerName}}"/>
-            <argument name="maxMessages" value="{{AdminExportMessageConsumerData.messageLimit}}"/>
-        </actionGroup>
+        <!-- Run cron -->
+        <magentoCLI command="cron:run" stepKey="runCron3"/>
 
         <!-- Download product -->
         <actionGroup ref="downloadFileByRowIndex" stepKey="downloadCreatedProducts">

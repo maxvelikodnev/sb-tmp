@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\CatalogSearch\Test\Unit\Model\Search\RequestGenerator;
 
@@ -12,9 +11,6 @@ use Magento\CatalogSearch\Model\Search\RequestGenerator\Decimal;
 use Magento\Framework\Search\Request\BucketInterface;
 use Magento\Framework\Search\Request\FilterInterface;
 
-/**
- * Test catalog search range request generator.
- */
 class DecimalTest extends \PHPUnit\Framework\TestCase
 {
     /** @var  Decimal */

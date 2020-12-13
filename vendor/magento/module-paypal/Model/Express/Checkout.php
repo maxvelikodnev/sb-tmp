@@ -357,14 +357,12 @@ class Checkout
         if (isset($params['config']) && $params['config'] instanceof PaypalConfig) {
             $this->_config = $params['config'];
         } else {
-            // phpcs:ignore Magento2.Exceptions.DirectThrow
             throw new \Exception('Config instance is required.');
         }
 
         if (isset($params['quote']) && $params['quote'] instanceof \Magento\Quote\Model\Quote) {
             $this->_quote = $params['quote'];
         } else {
-            // phpcs:ignore Magento2.Exceptions.DirectThrow
             throw new \Exception('Quote instance is required.');
         }
     }
@@ -633,9 +631,10 @@ class Checkout
             if ($shippingAddress) {
                 if ($exportedShippingAddress && $isButton) {
                     $this->_setExportedAddressData($shippingAddress, $exportedShippingAddress);
-                    // PayPal doesn't provide detailed shipping info: prefix, middlename, suffix
+                    // PayPal doesn't provide detailed shipping info: prefix, middlename, lastname, suffix
                     $shippingAddress->setPrefix(null);
                     $shippingAddress->setMiddlename(null);
+                    $shippingAddress->setLastname(null);
                     $shippingAddress->setSuffix(null);
                     $shippingAddress->setCollectShippingRates(true);
                     $shippingAddress->setSameAsBilling(0);
@@ -1038,7 +1037,7 @@ class Checkout
 
         // Magento will transfer only first 10 cheapest shipping options if there are more than 10 available.
         if (count($options) > 10) {
-            usort($options, [$this, 'cmpShippingOptions']);
+            usort($options, [get_class($this), 'cmpShippingOptions']);
             array_splice($options, 10);
             // User selected option will be always included in options list
             if ($userSelectedOption !== null && !in_array($userSelectedOption, $options)) {
@@ -1059,7 +1058,7 @@ class Checkout
      * @param \Magento\Framework\DataObject $option2
      * @return int
      */
-    protected function cmpShippingOptions(DataObject $option1, DataObject $option2)
+    protected static function cmpShippingOptions(DataObject $option1, DataObject $option2)
     {
         return $option1->getAmount() <=> $option2->getAmount();
     }

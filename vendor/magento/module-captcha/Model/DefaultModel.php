@@ -7,9 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Captcha\Model;
 
-use Magento\Authorization\Model\UserContextInterface;
 use Magento\Captcha\Helper\Data;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Math\Random;
 
 /**
@@ -96,17 +94,11 @@ class DefaultModel extends \Zend\Captcha\Image implements \Magento\Captcha\Model
     private $randomMath;
 
     /**
-     * @var UserContextInterface
-     */
-    private $userContext;
-
-    /**
      * @param \Magento\Framework\Session\SessionManagerInterface $session
      * @param \Magento\Captcha\Helper\Data $captchaData
      * @param ResourceModel\LogFactory $resLogFactory
      * @param string $formId
-     * @param Random|null $randomMath
-     * @param UserContextInterface|null $userContext
+     * @param Random $randomMath
      * @throws \Zend\Captcha\Exception\ExtensionNotLoadedException
      */
     public function __construct(
@@ -114,16 +106,14 @@ class DefaultModel extends \Zend\Captcha\Image implements \Magento\Captcha\Model
         \Magento\Captcha\Helper\Data $captchaData,
         \Magento\Captcha\Model\ResourceModel\LogFactory $resLogFactory,
         $formId,
-        Random $randomMath = null,
-        ?UserContextInterface $userContext = null
+        Random $randomMath = null
     ) {
         parent::__construct();
         $this->session = $session;
         $this->captchaData = $captchaData;
         $this->resLogFactory = $resLogFactory;
         $this->formId = $formId;
-        $this->randomMath = $randomMath ?? ObjectManager::getInstance()->get(Random::class);
-        $this->userContext = $userContext ?? ObjectManager::getInstance()->get(UserContextInterface::class);
+        $this->randomMath = $randomMath ?? \Magento\Framework\App\ObjectManager::getInstance()->get(Random::class);
     }
 
     /**
@@ -162,7 +152,6 @@ class DefaultModel extends \Zend\Captcha\Image implements \Magento\Captcha\Model
                 $this->formId,
                 $this->getTargetForms()
             )
-            || $this->userContext->getUserType() === UserContextInterface::USER_TYPE_INTEGRATION
         ) {
             return false;
         }
@@ -252,7 +241,7 @@ class DefaultModel extends \Zend\Captcha\Image implements \Magento\Captcha\Model
      */
     private function isUserAuth()
     {
-        return $this->session->isLoggedIn() || $this->userContext->getUserId();
+        return $this->session->isLoggedIn();
     }
 
     /**
@@ -438,7 +427,7 @@ class DefaultModel extends \Zend\Captcha\Image implements \Magento\Captcha\Model
             $to = self::DEFAULT_WORD_LENGTH_TO;
         }
 
-        return Random::getRandomNumber($from, $to);
+        return \Magento\Framework\Math\Random::getRandomNumber($from, $to);
     }
 
     /**
@@ -518,7 +507,7 @@ class DefaultModel extends \Zend\Captcha\Image implements \Magento\Captcha\Model
     /**
      * Set captcha word
      *
-     * @param string $word
+     * @param  string $word
      * @return $this
      * @since 100.2.0
      */
@@ -555,7 +544,7 @@ class DefaultModel extends \Zend\Captcha\Image implements \Magento\Captcha\Model
      */
     protected function randomSize()
     {
-        return Random::getRandomNumber(280, 300) / 100;
+        return \Magento\Framework\Math\Random::getRandomNumber(280, 300) / 100;
     }
 
     /**

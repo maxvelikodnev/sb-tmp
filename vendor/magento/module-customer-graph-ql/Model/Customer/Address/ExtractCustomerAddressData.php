@@ -105,7 +105,6 @@ class ExtractCustomerAddressData
             foreach ($addressData[CustomAttributesDataInterface::CUSTOM_ATTRIBUTES] as $attribute) {
                 $isArray = false;
                 if (is_array($attribute['value'])) {
-                    // @ignoreCoverageStart
                     $isArray = true;
                     foreach ($attribute['value'] as $attributeValue) {
                         if (is_array($attributeValue)) {
@@ -117,7 +116,6 @@ class ExtractCustomerAddressData
                         $customAttributes[$attribute['attribute_code']] = implode(',', $attribute['value']);
                         continue;
                     }
-                    // @ignoreCoverageEnd
                 }
                 if ($isArray) {
                     continue;
@@ -126,12 +124,6 @@ class ExtractCustomerAddressData
             }
         }
         $addressData = array_merge($addressData, $customAttributes);
-
-        $addressData['customer_id'] = null;
-
-        if (isset($addressData['country_id'])) {
-            $addressData['country_code'] = $addressData['country_id'];
-        }
 
         return $addressData;
     }

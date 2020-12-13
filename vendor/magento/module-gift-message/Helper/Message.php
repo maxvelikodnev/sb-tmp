@@ -120,8 +120,6 @@ class Message extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Skip page by page type
-     *
      * @param string $pageType
      * @return bool
      */
@@ -193,7 +191,7 @@ class Message extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Check availability of gift messages from store config if flag eq 2.
+     * Check availablity of gift messages from store config if flag eq 2.
      *
      * @param bool $productConfig
      * @param \Magento\Store\Model\Store|int|null $store

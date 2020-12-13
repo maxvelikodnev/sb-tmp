@@ -11,9 +11,6 @@ use Magento\UrlRewrite\Model\UrlFinderInterface;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
 use Magento\CatalogUrlRewrite\Model\ResourceModel\Category\Product;
 
-/**
- * Storage Plugin
- */
 class Storage
 {
     /**
@@ -39,8 +36,6 @@ class Storage
     }
 
     /**
-     * Save product/category urlRewrite association
-     *
      * @param \Magento\UrlRewrite\Model\StorageInterface $object
      * @param \Magento\UrlRewrite\Service\V1\Data\UrlRewrite[] $result
      * @param \Magento\UrlRewrite\Service\V1\Data\UrlRewrite[] $urls
@@ -58,15 +53,13 @@ class Storage
                 'product_id' => $record->getEntityId(),
             ];
         }
-        if (count($toSave) > 0) {
+        if ($toSave) {
             $this->productResource->saveMultiple($toSave);
         }
         return $result;
     }
 
     /**
-     * Remove product/category urlRewrite association
-     *
      * @param \Magento\UrlRewrite\Model\StorageInterface $object
      * @param array $data
      * @return void
@@ -78,8 +71,6 @@ class Storage
     }
 
     /**
-     * Filter urls
-     *
      * @param \Magento\UrlRewrite\Service\V1\Data\UrlRewrite[] $urls
      * @return \Magento\UrlRewrite\Service\V1\Data\UrlRewrite[]
      */
@@ -105,8 +96,6 @@ class Storage
     }
 
     /**
-     * Check if url is correct
-     *
      * @param UrlRewrite $url
      * @return bool
      */

@@ -56,7 +56,7 @@ class CompositeUserContext implements \Magento\Authorization\Model\UserContextIn
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getUserId()
     {
@@ -64,7 +64,7 @@ class CompositeUserContext implements \Magento\Authorization\Model\UserContextIn
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getUserType()
     {
@@ -78,7 +78,7 @@ class CompositeUserContext implements \Magento\Authorization\Model\UserContextIn
      */
     protected function getUserContext()
     {
-        if (!$this->chosenUserContext) {
+        if ($this->chosenUserContext === null) {
             /** @var UserContextInterface $userContext */
             foreach ($this->userContexts as $userContext) {
                 if ($userContext->getUserType() && $userContext->getUserId() !== null) {

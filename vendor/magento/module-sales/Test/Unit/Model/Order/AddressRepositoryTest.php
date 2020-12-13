@@ -3,181 +3,128 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Sales\Test\Unit\Model\Order;
 
-use Magento\Customer\Model\AttributeMetadataDataProvider;
-use Magento\Eav\Model\Entity\Attribute;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Sales\Model\Order\Address as OrderAddress;
-use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
-use Magento\Sales\Model\Order\AddressRepository;
-use Magento\Sales\Model\ResourceModel\Order\Address\Collection as OrderAddressCollection;
-use Magento\Customer\Model\ResourceModel\Form\Attribute\Collection as FormAttributeCollection;
-use Magento\Framework\Api\SearchCriteria;
-use Magento\Sales\Api\Data\OrderAddressSearchResultInterfaceFactory;
-use Magento\Sales\Model\ResourceModel\Metadata;
-use Magento\Sales\Model\Order\AddressRepository as OrderAddressRepository;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Exception\InputException;
 
 /**
  * Unit test for order address repository class.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class AddressRepositoryTest extends TestCase
+class AddressRepositoryTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Subject of testing.
      *
-     * @var OrderAddressRepository
+     * @var \Magento\Sales\Model\Order\AddressRepository
      */
     protected $subject;
 
     /**
      * Sales resource metadata.
      *
-     * @var Metadata|MockObject
+     * @var \Magento\Sales\Model\ResourceModel\Metadata|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $metadata;
 
     /**
-     * @var OrderAddressSearchResultInterfaceFactory|MockObject
+     * @var \Magento\Sales\Api\Data\OrderAddressSearchResultInterfaceFactory|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $searchResultFactory;
 
     /**
-     * @var CollectionProcessorInterface|MockObject
+     * @var CollectionProcessorInterface |\PHPUnit_Framework_MockObject_MockObject
      */
     private $collectionProcessorMock;
 
-    /**
-     * @var Attribute[]
-     */
-    private $attributesList;
-
-    /**
-     * @var AttributeMetadataDataProvider
-     */
-    private $attributeMetadataDataProvider;
-
-    /**
-     * @var OrderAddress|MockObject
-     */
-    private $orderAddress;
-
-    /**
-     * @var ObjectManager
-     */
-    private $objectManager;
-
-    /**
-     * @inheritdoc
-     */
     protected function setUp()
     {
-        $this->objectManager = new ObjectManager($this);
+        $objectManager = new ObjectManager($this);
 
-        $this->orderAddress = $this->createPartialMock(OrderAddress::class, ['getEntityId', 'load']);
         $this->metadata = $this->createPartialMock(
-            Metadata::class,
+            \Magento\Sales\Model\ResourceModel\Metadata::class,
             ['getNewInstance', 'getMapper']
         );
 
-        $this->attributeMetadataDataProvider = $this->getMockBuilder(AttributeMetadataDataProvider::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['loadAttributesCollection'])
-            ->getMock();
-        $collectionAttribute = $this->getMockBuilder(FormAttributeCollection::class)
-            ->setMethods(['addFieldToFilter', 'getIterator'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $collectionAttribute->method('getIterator')
-            ->willReturn(new \ArrayIterator([]));
-        $this->attributeMetadataDataProvider->method('loadAttributesCollection')->willReturn($collectionAttribute);
-
         $this->searchResultFactory = $this->createPartialMock(
-            OrderAddressSearchResultInterfaceFactory::class,
+            \Magento\Sales\Api\Data\OrderAddressSearchResultInterfaceFactory::class,
             ['create']
         );
 
         $this->collectionProcessorMock = $this->getMockBuilder(CollectionProcessorInterface::class)
             ->getMock();
 
-        $this->subject = $this->objectManager->getObject(
-            OrderAddressRepository::class,
+        $this->subject = $objectManager->getObject(
+            \Magento\Sales\Model\Order\AddressRepository::class,
             [
                 'metadata' => $this->metadata,
                 'searchResultFactory' => $this->searchResultFactory,
                 'collectionProcessor' => $this->collectionProcessorMock,
-                'attributeMetadataDataProvider' => $this->attributeMetadataDataProvider
             ]
         );
     }
 
     /**
-     * Test for get order address
-     *
      * @param int|null $id
      * @param int|null $entityId
-     *
-     * @return void
      * @dataProvider getDataProvider
      */
-    public function testGet(?int $id, ?int $entityId): void
+    public function testGet($id, $entityId)
     {
         if (!$id) {
-            $this->expectException(InputException::class);
+            $this->expectException(
+                \Magento\Framework\Exception\InputException::class
+            );
+
             $this->subject->get($id);
         } else {
-
-            $this->orderAddress->expects($this->once())
+            $address = $this->createPartialMock(\Magento\Sales\Model\Order\Address::class, ['load', 'getEntityId']);
+            $address->expects($this->once())
                 ->method('load')
                 ->with($id)
-                ->willReturn($this->orderAddress);
-            $this->orderAddress->expects($this->once())
+                ->willReturn($address);
+            $address->expects($this->once())
                 ->method('getEntityId')
                 ->willReturn($entityId);
 
             $this->metadata->expects($this->once())
                 ->method('getNewInstance')
-                ->willReturn($this->orderAddress);
+                ->willReturn($address);
 
             if (!$entityId) {
-                $this->expectException(NoSuchEntityException::class);
+                $this->expectException(
+                    \Magento\Framework\Exception\NoSuchEntityException::class
+                );
+
                 $this->subject->get($id);
             } else {
-                $this->assertEquals($this->orderAddress, $this->subject->get($id));
+                $this->assertEquals($address, $this->subject->get($id));
 
-                $this->orderAddress->expects($this->never())
+                $address->expects($this->never())
                     ->method('load')
                     ->with($id)
-                    ->willReturn($this->orderAddress);
-                $this->orderAddress->expects($this->never())
+                    ->willReturn($address);
+                $address->expects($this->never())
                     ->method('getEntityId')
                     ->willReturn($entityId);
 
                 $this->metadata->expects($this->never())
                     ->method('getNewInstance')
-                    ->willReturn($this->orderAddress);
+                    ->willReturn($address);
 
                 // Retrieve Address from registry.
-                $this->assertEquals($this->orderAddress, $this->subject->get($id));
+                $this->assertEquals($address, $this->subject->get($id));
             }
         }
     }
 
     /**
-     * Data for testGet
-     *
      * @return array
      */
-    public function getDataProvider(): array
+    public function getDataProvider()
     {
         return [
             [null, null],
@@ -186,15 +133,10 @@ class AddressRepositoryTest extends TestCase
         ];
     }
 
-    /**
-     * Test for get list order address
-     *
-     * @return void
-     */
-    public function testGetList(): void
+    public function testGetList()
     {
-        $searchCriteria = $this->createMock(SearchCriteria::class);
-        $collection = $this->createMock(OrderAddressCollection::class);
+        $searchCriteria = $this->createMock(\Magento\Framework\Api\SearchCriteria::class);
+        $collection = $this->createMock(\Magento\Sales\Model\ResourceModel\Order\Address\Collection::class);
 
         $this->collectionProcessorMock->expects($this->once())
             ->method('process')
@@ -206,19 +148,15 @@ class AddressRepositoryTest extends TestCase
         $this->assertEquals($collection, $this->subject->getList($searchCriteria));
     }
 
-    /**
-     * Test for delete order address
-     *
-     * @return void
-     */
-    public function testDelete(): void
+    public function testDelete()
     {
-        $this->orderAddress->expects($this->once())
+        $address = $this->createPartialMock(\Magento\Sales\Model\Order\Address::class, ['getEntityId']);
+        $address->expects($this->once())
             ->method('getEntityId')
             ->willReturn(1);
 
         $mapper = $this->getMockForAbstractClass(
-            AbstractDb::class,
+            \Magento\Framework\Model\ResourceModel\Db\AbstractDb::class,
             [],
             '',
             false,
@@ -228,29 +166,27 @@ class AddressRepositoryTest extends TestCase
         );
         $mapper->expects($this->once())
             ->method('delete')
-            ->with($this->orderAddress);
+            ->with($address);
 
         $this->metadata->expects($this->any())
             ->method('getMapper')
             ->willReturn($mapper);
 
-        $this->assertTrue($this->subject->delete($this->orderAddress));
+        $this->assertTrue($this->subject->delete($address));
     }
 
     /**
-     * Test for delete order address with exception
-     *
-     * @return void
      * @expectedException \Magento\Framework\Exception\CouldNotDeleteException
      * @expectedExceptionMessage The order address couldn't be deleted.
      */
-    public function testDeleteWithException(): void
+    public function testDeleteWithException()
     {
-        $this->orderAddress->expects($this->never())
+        $address = $this->createPartialMock(\Magento\Sales\Model\Order\Address::class, ['getEntityId']);
+        $address->expects($this->never())
             ->method('getEntityId');
 
         $mapper = $this->getMockForAbstractClass(
-            AbstractDb::class,
+            \Magento\Framework\Model\ResourceModel\Db\AbstractDb::class,
             [],
             '',
             false,
@@ -266,22 +202,18 @@ class AddressRepositoryTest extends TestCase
             ->method('getMapper')
             ->willReturn($mapper);
 
-        $this->subject->delete($this->orderAddress);
+        $this->subject->delete($address);
     }
 
-    /**
-     * Test for save order address
-     *
-     * @return void
-     */
-    public function testSave(): void
+    public function testSave()
     {
-        $this->orderAddress->expects($this->any())
+        $address = $this->createPartialMock(\Magento\Sales\Model\Order\Address::class, ['getEntityId']);
+        $address->expects($this->any())
             ->method('getEntityId')
             ->willReturn(1);
 
         $mapper = $this->getMockForAbstractClass(
-            AbstractDb::class,
+            \Magento\Framework\Model\ResourceModel\Db\AbstractDb::class,
             [],
             '',
             false,
@@ -291,29 +223,27 @@ class AddressRepositoryTest extends TestCase
         );
         $mapper->expects($this->once())
             ->method('save')
-            ->with($this->orderAddress);
+            ->with($address);
 
         $this->metadata->expects($this->any())
             ->method('getMapper')
             ->willReturn($mapper);
 
-        $this->assertEquals($this->orderAddress, $this->subject->save($this->orderAddress));
+        $this->assertEquals($address, $this->subject->save($address));
     }
 
     /**
-     * Test for save order address with exception
-     *
-     * @return void
      * @expectedException \Magento\Framework\Exception\CouldNotSaveException
      * @expectedExceptionMessage The order address couldn't be saved.
      */
-    public function testSaveWithException(): void
+    public function testSaveWithException()
     {
-        $this->orderAddress->expects($this->never())
+        $address = $this->createPartialMock(\Magento\Sales\Model\Order\Address::class, ['getEntityId']);
+        $address->expects($this->never())
             ->method('getEntityId');
 
         $mapper = $this->getMockForAbstractClass(
-            AbstractDb::class,
+            \Magento\Framework\Model\ResourceModel\Db\AbstractDb::class,
             [],
             '',
             false,
@@ -329,117 +259,17 @@ class AddressRepositoryTest extends TestCase
             ->method('getMapper')
             ->willReturn($mapper);
 
-        $this->assertEquals($this->orderAddress, $this->subject->save($this->orderAddress));
+        $this->assertEquals($address, $this->subject->save($address));
     }
 
-    /**
-     * Tets for create order address
-     *
-     * @return void
-     */
-    public function testCreate(): void
+    public function testCreate()
     {
+        $address = $this->createPartialMock(\Magento\Sales\Model\Order\Address::class, ['getEntityId']);
+
         $this->metadata->expects($this->once())
             ->method('getNewInstance')
-            ->willReturn($this->orderAddress);
+            ->willReturn($address);
 
-        $this->assertEquals($this->orderAddress, $this->subject->create());
-    }
-
-    /**
-     * Test for save sales address with multi-attribute.
-     *
-     * @param string $attributeType
-     * @param string $attributeCode
-     * @param array $attributeValue
-     * @param string $expected
-     *
-     * @return void
-     * @dataProvider dataMultiAttribute
-     */
-    public function testSaveWithMultiAttribute(
-        string $attributeType,
-        string $attributeCode,
-        array $attributeValue,
-        string $expected
-    ): void {
-        $orderAddress = $this->getMockBuilder(OrderAddress::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getEntityId', 'hasData', 'getData', 'setData'])
-            ->getMock();
-
-        $orderAddress->expects($this->any())
-            ->method('getEntityId')
-            ->willReturn(1);
-
-        $mapper = $this->getMockForAbstractClass(
-            AbstractDb::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['save']
-        );
-        $mapper->method('save')
-            ->with($orderAddress);
-        $this->metadata->method('getMapper')
-            ->willReturn($mapper);
-
-        $attributeModel = $this->getMockBuilder(Attribute::class)
-            ->setMethods(['getFrontendInput', 'getAttributeCode'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $attributeModel->method('getFrontendInput')->willReturn($attributeType);
-        $attributeModel->method('getAttributeCode')->willReturn($attributeCode);
-        $this->attributesList = [$attributeModel];
-
-        $this->subject = $this->objectManager->getObject(
-            AddressRepository::class,
-            [
-                'metadata' => $this->metadata,
-                'searchResultFactory' => $this->searchResultFactory,
-                'collectionProcessor' => $this->collectionProcessorMock,
-                'attributeMetadataDataProvider' => $this->attributeMetadataDataProvider,
-                'attributesList' => $this->attributesList,
-            ]
-        );
-
-        $orderAddress->method('hasData')->with($attributeCode)->willReturn(true);
-        $orderAddress->method('getData')->with($attributeCode)->willReturn($attributeValue);
-        $orderAddress->expects($this->once())->method('setData')->with($attributeCode, $expected);
-
-        $this->assertEquals($orderAddress, $this->subject->save($orderAddress));
-    }
-
-    /**
-     * Data for testSaveWithMultiAttribute
-     *
-     * @return array
-     */
-    public function dataMultiAttribute(): array
-    {
-        $data = [
-            'multiselect' => [
-                'multiselect',
-                'attr_multiselect',
-                [
-                    'opt1',
-                    'opt2',
-                ],
-                'opt1,opt2',
-            ],
-            'multiline' => [
-                'multiline',
-                'attr_multiline',
-                [
-                    'line1',
-                    'line2',
-                ],
-                'line1'.PHP_EOL.'line2',
-            ],
-        ];
-
-        return $data;
+        $this->assertEquals($address, $this->subject->create());
     }
 }

@@ -95,8 +95,7 @@ class GetDefaultSortedSourcesResult
 
         $itemsTdDeliver = [];
         foreach ($inventoryRequest->getItems() as $item) {
-            $normalizedSku = $this->normalizeSku($item->getSku());
-            $itemsTdDeliver[$normalizedSku] = $item->getQty();
+            $itemsTdDeliver[$item->getSku()] = $item->getQty();
         }
 
         $sortedSourceCodes = [];
@@ -111,20 +110,17 @@ class GetDefaultSortedSourcesResult
             );
 
         foreach ($sourceItems as $sourceItem) {
-            $normalizedSku = $this->normalizeSku($sourceItem->getSku());
             $sourceItemQtyAvailable = $this->getSourceItemQtyAvailable->execute($sourceItem);
-            $qtyToDeduct = min($sourceItemQtyAvailable, $itemsTdDeliver[$normalizedSku] ?? 0.0);
+            $qtyToDeduct = min($sourceItemQtyAvailable, $itemsTdDeliver[$sourceItem->getSku()] ?? 0.0);
 
-            $sourceItemSelections[] = $this->sourceSelectionItemFactory->create(
-                [
-                    'sourceCode' => $sourceItem->getSourceCode(),
-                    'sku' => $sourceItem->getSku(),
-                    'qtyToDeduct' => $qtyToDeduct,
-                    'qtyAvailable' => $sourceItemQtyAvailable
-                ]
-            );
+            $sourceItemSelections[] = $this->sourceSelectionItemFactory->create([
+                'sourceCode' => $sourceItem->getSourceCode(),
+                'sku' => $sourceItem->getSku(),
+                'qtyToDeduct' => $qtyToDeduct,
+                'qtyAvailable' => $sourceItemQtyAvailable
+            ]);
 
-            $itemsTdDeliver[$normalizedSku] -= $qtyToDeduct;
+            $itemsTdDeliver[$sourceItem->getSku()] -= $qtyToDeduct;
         }
 
         $isShippable = true;
@@ -141,18 +137,5 @@ class GetDefaultSortedSourcesResult
                 'isShippable' => $isShippable
             ]
         );
-    }
-
-    /**
-     * Convert SKU to lowercase
-     *
-     * Normalize SKU by converting it to lowercase.
-     *
-     * @param string $sku
-     * @return string
-     */
-    private function normalizeSku(string $sku): string
-    {
-        return mb_convert_case($sku, MB_CASE_LOWER, 'UTF-8');
     }
 }

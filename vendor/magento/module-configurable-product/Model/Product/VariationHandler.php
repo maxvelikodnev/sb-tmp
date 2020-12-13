@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\ConfigurableProduct\Model\Product;
 
@@ -106,7 +105,6 @@ class VariationHandler
             $this->fillSimpleProductData(
                 $newSimpleProduct,
                 $parentProduct,
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 array_merge($simpleProductData, $configurableAttribute)
             );
             $newSimpleProduct->save();
@@ -203,11 +201,12 @@ class VariationHandler
 
         $keysFilter = ['item_id', 'product_id', 'stock_id', 'type_id', 'website_id'];
         $postData['stock_data'] = array_diff_key((array)$parentProduct->getStockData(), array_flip($keysFilter));
-        $stockStatus = $parentProduct->getQuantityAndStockStatus();
-        if (isset($stockStatus['is_in_stock'])) {
-            $postData['stock_data']['is_in_stock'] = $stockStatus['is_in_stock'];
+        if (!isset($postData['stock_data']['is_in_stock'])) {
+            $stockStatus = $parentProduct->getQuantityAndStockStatus();
+            if (isset($stockStatus['is_in_stock'])) {
+                $postData['stock_data']['is_in_stock'] = $stockStatus['is_in_stock'];
+            }
         }
-
         $postData = $this->processMediaGallery($product, $postData);
         $postData['status'] = isset($postData['status'])
             ? $postData['status']
@@ -239,6 +238,10 @@ class VariationHandler
 
             foreach ($simpleProductData['media_gallery']['images'] as $imageId => $image) {
                 $image['variation_id'] = $variationId;
+                if (isset($imagesForCopy[$imageId][0])) {
+                    // skip duplicate image for first product
+                    unset($imagesForCopy[$imageId][0]);
+                }
                 $imagesForCopy[$imageId][] = $image;
             }
         }

@@ -14,7 +14,7 @@ use Magento\InventoryIndexer\Indexer\IndexStructure;
 use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 
 /**
- * Add Stock data to product collection
+ * Add Stock data to collection
  */
 class AddStockDataToCollection
 {
@@ -42,8 +42,6 @@ class AddStockDataToCollection
     }
 
     /**
-     * Add Stock data to product collection
-     *
      * @param Collection $collection
      * @param bool $isFilterInStock
      * @param int $stockId
@@ -70,7 +68,7 @@ class AddStockDataToCollection
             );
             $isSalableColumnName = IndexStructure::IS_SALABLE;
             $collection->getSelect()
-                ->{$isFilterInStock ? 'join' : 'joinLeft'}(
+                ->join(
                     ['stock_status_index' => $stockIndexTableName],
                     'product.sku = stock_status_index.' . IndexStructure::SKU,
                     [$isSalableColumnName]

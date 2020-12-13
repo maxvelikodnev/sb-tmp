@@ -99,8 +99,6 @@ interface CouponInterface extends \Magento\Framework\Api\ExtensibleDataInterface
     public function getTimesUsed();
 
     /**
-     * Set time used.
-     *
      * @param int $timesUsed
      * @return $this
      */
@@ -110,7 +108,6 @@ interface CouponInterface extends \Magento\Framework\Api\ExtensibleDataInterface
      * Get expiration date
      *
      * @return string|null
-     * @deprecated 101.1.3 Coupon expiration must follow sales rule expiration date.
      */
     public function getExpirationDate();
 
@@ -119,7 +116,6 @@ interface CouponInterface extends \Magento\Framework\Api\ExtensibleDataInterface
      *
      * @param string $expirationDate
      * @return $this
-     * @deprecated 101.1.3 Coupon expiration must follow sales rule expiration date.
      */
     public function setExpirationDate($expirationDate);
 
@@ -162,8 +158,6 @@ interface CouponInterface extends \Magento\Framework\Api\ExtensibleDataInterface
     public function getType();
 
     /**
-     * Set type of coupon.
-     *
      * @param int $type
      * @return $this
      */

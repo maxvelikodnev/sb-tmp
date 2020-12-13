@@ -3,14 +3,14 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\Config\Test\Unit\Model\Config\Reader\Source\Deployed;
 
+use Magento\Config\Model\Config\Reader;
 use Magento\Config\Model\Config\Reader\Source\Deployed\SettingChecker;
-use Magento\Config\Model\Placeholder\PlaceholderFactory;
-use Magento\Config\Model\Placeholder\PlaceholderInterface;
 use Magento\Framework\App\Config;
 use Magento\Framework\App\DeploymentConfig;
+use Magento\Config\Model\Placeholder\PlaceholderInterface;
+use Magento\Config\Model\Placeholder\PlaceholderFactory;
 
 /**
  * Test class for checking settings that defined in config file
@@ -71,23 +71,15 @@ class SettingCheckerTest extends \PHPUnit\Framework\TestCase
      * @param string $scopeCode
      * @param string|null $confValue
      * @param array $variables
-     * @param array $configMap
      * @param bool $expectedResult
      * @dataProvider isReadonlyDataProvider
      */
-    public function testIsReadonly(
-        $path,
-        $scope,
-        $scopeCode,
-        $confValue,
-        array $variables,
-        array $configMap,
-        $expectedResult
-    ) {
-        $this->placeholderMock->expects($this->any())
+    public function testIsReadonly($path, $scope, $scopeCode, $confValue, array $variables, $expectedResult)
+    {
+        $this->placeholderMock->expects($this->once())
             ->method('isApplicable')
             ->willReturn(true);
-        $this->placeholderMock->expects($this->any())
+        $this->placeholderMock->expects($this->once())
             ->method('generate')
             ->with($path, $scope, $scopeCode)
             ->willReturn('SOME_PLACEHOLDER');
@@ -103,18 +95,13 @@ class SettingCheckerTest extends \PHPUnit\Framework\TestCase
 
         $this->configMock->expects($this->any())
             ->method('get')
-            ->willReturnMap(
-                array_merge(
-                    [
-                        [
-                            'system/' . $scope . "/" . ($scopeCode ? $scopeCode . '/' : '') . $path,
-                            null,
-                            $confValue
-                        ],
-                    ],
-                    $configMap
-                )
-            );
+            ->willReturnMap([
+                [
+                    'system/' . $scope . "/" . ($scopeCode ? $scopeCode . '/' : '') . $path,
+                    null,
+                    $confValue
+                ],
+            ]);
 
         $this->assertSame($expectedResult, $this->checker->isReadOnly($path, $scope, $scopeCode));
     }
@@ -131,7 +118,6 @@ class SettingCheckerTest extends \PHPUnit\Framework\TestCase
                 'scopeCode' => 'myWebsite',
                 'confValue' => 'value',
                 'variables' => [],
-                'configMap' => [],
                 'expectedResult' => true,
             ],
             [
@@ -140,7 +126,6 @@ class SettingCheckerTest extends \PHPUnit\Framework\TestCase
                 'scopeCode' => 'myWebsite',
                 'confValue' => null,
                 'variables' => ['SOME_PLACEHOLDER' => 'value'],
-                'configMap' => [],
                 'expectedResult' => true,
             ],
             [
@@ -149,58 +134,7 @@ class SettingCheckerTest extends \PHPUnit\Framework\TestCase
                 'scopeCode' => 'myWebsite',
                 'confValue' => null,
                 'variables' => [],
-                'configMap' => [],
                 'expectedResult' => false,
-            ],
-            [
-                'path' => 'general/web/locale',
-                'scope' => 'website',
-                'scopeCode' => 'myWebsite',
-                'confValue' => null,
-                'variables' => [],
-                'configMap' => [
-                    [
-                        'system/default/general/web/locale',
-                        null,
-                        'default_value',
-                    ],
-                ],
-                'expectedResult' => true,
-            ],
-            [
-                'path' => 'general/web/locale',
-                'scope' => 'website',
-                'scopeCode' => 'myWebsite',
-                'confValue' => null,
-                'variables' => [],
-                'configMap' => [
-                    [
-                        'system/default/general/web/locale',
-                        null,
-                        'default_value',
-                    ],
-                ],
-                'expectedResult' => true,
-            ],
-            [
-                'path' => 'general/web/locale',
-                'scope' => 'store',
-                'scopeCode' => 'myStore',
-                'confValue' => null,
-                'variables' => [],
-                'configMap' => [
-                    [
-                        'system/default/general/web/locale',
-                        null,
-                        'default_value',
-                    ],
-                    [
-                        'system/website/myWebsite/general/web/locale',
-                        null,
-                        null,
-                    ],
-                ],
-                'expectedResult' => true,
             ]
         ];
     }

@@ -108,10 +108,6 @@ class AddressDataBuilderTest extends TestCase
         $this->assertEquals('abc', $result['transactionRequest']['customerIP']);
     }
 
-    /**
-     * @param $responseData
-     * @param $addressPrefix
-     */
     private function validateAddressData($responseData, $addressPrefix)
     {
         foreach ($this->mockAddressData as $fieldValue => $field) {
@@ -119,11 +115,6 @@ class AddressDataBuilderTest extends TestCase
         }
     }
 
-    /**
-     * @param $prefix
-     *
-     * @return \PHPUnit\Framework\MockObject\MockObject
-     */
     private function createAddressMock($prefix)
     {
         $addressAdapterMock = $this->createMock(AddressAdapterInterface::class);

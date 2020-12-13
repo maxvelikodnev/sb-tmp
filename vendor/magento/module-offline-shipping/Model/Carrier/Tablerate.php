@@ -141,9 +141,7 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
                 }
             }
             $oldValue = $request->getPackageValue();
-            $newPackageValue = $oldValue - $freePackageValue;
-            $request->setPackageValue($newPackageValue);
-            $request->setPackageValueWithDiscount($newPackageValue);
+            $request->setPackageValue($oldValue - $freePackageValue);
         }
 
         if (!$request->getConditionName()) {
@@ -280,7 +278,7 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
         /** @var  \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->_resultMethodFactory->create();
 
-        $method->setCarrier($this->getCarrierCode());
+        $method->setCarrier('tablerate');
         $method->setCarrierTitle($this->getConfigData('title'));
 
         $method->setMethod('bestway');

@@ -3,35 +3,26 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Backend\Block\Widget\Grid\Massaction;
 
-use Magento\Backend\Block\Template\Context;
-use Magento\Backend\Block\Widget;
-use Magento\Backend\Block\Widget\Grid\Column;
-use Magento\Backend\Block\Widget\Grid\ColumnSet;
 use Magento\Backend\Block\Widget\Grid\Massaction\VisibilityCheckerInterface as VisibilityChecker;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\DataObject;
-use Magento\Framework\DB\Select;
-use Magento\Framework\Json\EncoderInterface;
-use Magento\Quote\Model\Quote;
 
 /**
  * Grid widget massaction block
  *
- * phpcs:disable Magento2.Classes.AbstractApi
  * @api
- * @method Quote setHideFormElement(boolean $value) Hide Form element to prevent IE errors
+ * @method \Magento\Quote\Model\Quote setHideFormElement(boolean $value) Hide Form element to prevent IE errors
  * @method boolean getHideFormElement()
  * @deprecated 100.2.0 in favour of UI component implementation
  * @since 100.0.2
  */
-abstract class AbstractMassaction extends Widget
+abstract class AbstractMassaction extends \Magento\Backend\Block\Widget
 {
     /**
-     * @var EncoderInterface
+     * @var \Magento\Framework\Json\EncoderInterface
      */
     protected $_jsonEncoder;
 
@@ -48,13 +39,13 @@ abstract class AbstractMassaction extends Widget
     protected $_template = 'Magento_Backend::widget/grid/massaction.phtml';
 
     /**
-     * @param Context $context
-     * @param EncoderInterface $jsonEncoder
+     * @param \Magento\Backend\Block\Template\Context $context
+     * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param array $data
      */
     public function __construct(
-        Context $context,
-        EncoderInterface $jsonEncoder,
+        \Magento\Backend\Block\Template\Context $context,
+        \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         array $data = []
     ) {
         $this->_jsonEncoder = $jsonEncoder;
@@ -131,7 +122,11 @@ abstract class AbstractMassaction extends Widget
      */
     public function getItem($itemId)
     {
-        return $this->_items[$itemId] ?? null;
+        if (isset($this->_items[$itemId])) {
+            return $this->_items[$itemId];
+        }
+
+        return null;
     }
 
     /**
@@ -166,7 +161,7 @@ abstract class AbstractMassaction extends Widget
      */
     public function getCount()
     {
-        return count($this->_items);
+        return sizeof($this->_items);
     }
 
     /**
@@ -293,11 +288,11 @@ abstract class AbstractMassaction extends Widget
 
         if ($collection instanceof AbstractDb) {
             $idsSelect = clone $collection->getSelect();
-            $idsSelect->reset(Select::ORDER);
-            $idsSelect->reset(Select::LIMIT_COUNT);
-            $idsSelect->reset(Select::LIMIT_OFFSET);
-            $idsSelect->reset(Select::COLUMNS);
-            $idsSelect->columns($this->getMassactionIdField());
+            $idsSelect->reset(\Magento\Framework\DB\Select::ORDER);
+            $idsSelect->reset(\Magento\Framework\DB\Select::LIMIT_COUNT);
+            $idsSelect->reset(\Magento\Framework\DB\Select::LIMIT_OFFSET);
+            $idsSelect->reset(\Magento\Framework\DB\Select::COLUMNS);
+            $idsSelect->columns($this->getMassactionIdField(), 'main_table');
             $idList = $collection->getConnection()->fetchCol($idsSelect);
         } else {
             $idList = $collection->setPageSize(0)->getColumnValues($this->getMassactionIdField());
@@ -363,7 +358,7 @@ abstract class AbstractMassaction extends Widget
     {
         $columnId = 'massaction';
         $massactionColumn = $this->getLayout()->createBlock(
-            Column::class
+            \Magento\Backend\Block\Widget\Grid\Column::class
         )->setData(
             [
                 'index' => $this->getMassactionIdField(),
@@ -383,7 +378,7 @@ abstract class AbstractMassaction extends Widget
         $gridBlock = $this->getParentBlock();
         $massactionColumn->setSelected($this->getSelected())->setGrid($gridBlock)->setId($columnId);
 
-        /** @var $columnSetBlock ColumnSet */
+        /** @var $columnSetBlock \Magento\Backend\Block\Widget\Grid\ColumnSet */
         $columnSetBlock = $gridBlock->getColumnSet();
         $childNames = $columnSetBlock->getChildNames();
         $siblingElement = count($childNames) ? current($childNames) : 0;

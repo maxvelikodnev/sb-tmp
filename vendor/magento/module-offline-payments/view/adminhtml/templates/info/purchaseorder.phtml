@@ -6,9 +6,8 @@
 /**
  * @var $block \Magento\OfflinePayments\Block\Info\Purchaseorder
  */
-$paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->getOrder()->getStoreId());
 ?>
-<div class="order-payment-method-name"><?= $block->escapeHtml($paymentTitle) ?></div>
+<div class="order-payment-method-name"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></div>
 <table class="data-table admin__table-secondary">
     <tr>
         <th><?= $block->escapeHtml(__('Purchase Order Number')) ?>:</th>

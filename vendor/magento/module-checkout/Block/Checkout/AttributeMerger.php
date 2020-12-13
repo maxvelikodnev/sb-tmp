@@ -10,8 +10,6 @@ use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Helper\Address as AddressHelper;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Helper\Data as DirectoryHelper;
-use Magento\Directory\Model\AllowedCountries;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -95,31 +93,22 @@ class AttributeMerger
     private $topCountryCodes;
 
     /**
-     * @var AllowedCountries|null
-     */
-    private $allowedCountryReader;
-
-    /**
      * @param AddressHelper $addressHelper
      * @param Session $customerSession
      * @param CustomerRepository $customerRepository
      * @param DirectoryHelper $directoryHelper
-     * @param AllowedCountries $allowedCountryReader
      */
     public function __construct(
         AddressHelper $addressHelper,
         Session $customerSession,
         CustomerRepository $customerRepository,
-        DirectoryHelper $directoryHelper,
-        ?AllowedCountries $allowedCountryReader = null
+        DirectoryHelper $directoryHelper
     ) {
         $this->addressHelper = $addressHelper;
         $this->customerSession = $customerSession;
         $this->customerRepository = $customerRepository;
         $this->directoryHelper = $directoryHelper;
         $this->topCountryCodes = $directoryHelper->getTopCountryCodes();
-        $this->allowedCountryReader =
-            $allowedCountryReader ?: ObjectManager::getInstance()->get(AllowedCountries::class);
     }
 
     /**
@@ -300,7 +289,6 @@ class AttributeMerger
                 'dataScope' => $lineIndex,
                 'provider' => $providerName,
                 'validation' => $isFirstLine
-                    // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                     ? array_merge(
                         ['required-entry' => (bool)$attributeConfig['required']],
                         $attributeConfig['validation']
@@ -341,11 +329,7 @@ class AttributeMerger
     protected function getDefaultValue($attributeCode): ?string
     {
         if ($attributeCode === 'country_id') {
-            $defaultCountryId = $this->directoryHelper->getDefaultCountry();
-            if (!in_array($defaultCountryId, $this->allowedCountryReader->getAllowedCountries())) {
-                $defaultCountryId = null;
-            }
-            return $defaultCountryId;
+            return $this->directoryHelper->getDefaultCountry();
         }
 
         $customer = $this->getCustomer();

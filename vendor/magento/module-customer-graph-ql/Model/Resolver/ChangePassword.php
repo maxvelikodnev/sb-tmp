@@ -13,11 +13,9 @@ use Magento\CustomerGraphQl\Model\Customer\ExtractCustomerData;
 use Magento\CustomerGraphQl\Model\Customer\GetCustomer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
-use Magento\Framework\GraphQl\Exception\GraphQlAuthorizationException;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\GraphQl\Model\Query\ContextInterface;
 
 /**
  * Change customer password resolver
@@ -72,11 +70,6 @@ class ChangePassword implements ResolverInterface
         array $value = null,
         array $args = null
     ) {
-        /** @var ContextInterface $context */
-        if (false === $context->getExtensionAttributes()->getIsCustomer()) {
-            throw new GraphQlAuthorizationException(__('The current customer isn\'t authorized.'));
-        }
-
         if (!isset($args['currentPassword']) || '' == trim($args['currentPassword'])) {
             throw new GraphQlInputException(__('Specify the "currentPassword" value.'));
         }
@@ -85,7 +78,9 @@ class ChangePassword implements ResolverInterface
             throw new GraphQlInputException(__('Specify the "newPassword" value.'));
         }
 
-        $customerId = $context->getUserId();
+        $customer = $this->getCustomer->execute($context);
+        $customerId = (int)$customer->getId();
+
         $this->checkCustomerPassword->execute($args['currentPassword'], $customerId);
 
         try {
@@ -93,8 +88,6 @@ class ChangePassword implements ResolverInterface
         } catch (LocalizedException $e) {
             throw new GraphQlInputException(__($e->getMessage()), $e);
         }
-
-        $customer = $this->getCustomer->execute($context);
         return $this->extractCustomerData->execute($customer);
     }
 }

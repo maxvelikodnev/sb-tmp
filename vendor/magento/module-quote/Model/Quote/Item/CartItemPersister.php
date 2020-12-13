@@ -6,17 +6,14 @@
 
 namespace Magento\Quote\Model\Quote\Item;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Framework\Exception\CouldNotSaveException;
-use Magento\Framework\Exception\InputException;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 
-/**
- * Cart item save handler
- */
 class CartItemPersister
 {
     /**
@@ -42,8 +39,6 @@ class CartItemPersister
     }
 
     /**
-     * Save cart item into cart
-     *
      * @param CartInterface $quote
      * @param CartItemInterface $item
      * @return CartItemInterface
@@ -78,13 +73,12 @@ class CartItemPersister
                     $item = $quote->updateItem($itemId, $buyRequestData);
                 } else {
                     if ($item->getQty() !== $currentItem->getQty()) {
-                        $currentItem->clearMessage();
                         $currentItem->setQty($qty);
                         /**
                          * Qty validation errors are stored as items message
                          * @see \Magento\CatalogInventory\Model\Quote\Item\QuantityValidator::validate
                          */
-                        if (!empty($currentItem->getMessage()) && $currentItem->getHasError()) {
+                        if (!empty($currentItem->getMessage())) {
                             throw new LocalizedException(__($currentItem->getMessage()));
                         }
                     }

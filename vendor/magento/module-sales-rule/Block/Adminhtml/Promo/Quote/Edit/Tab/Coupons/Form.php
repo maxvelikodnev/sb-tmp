@@ -3,16 +3,12 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\SalesRule\Block\Adminhtml\Promo\Quote\Edit\Tab\Coupons;
 
 /**
  * Coupons generation parameters form
  *
  * @author      Magento Core Team <core@magentocommerce.com>
- *
- * Class \Magento\SalesRule\Block\Adminhtml\Promo\Quote\Edit\Tab\Coupons\Form
  */
 class Form extends \Magento\Backend\Block\Widget\Form\Generic
 {
@@ -81,8 +77,7 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'label' => __('Coupon Qty'),
                 'title' => __('Coupon Qty'),
                 'required' => true,
-                'class' => 'validate-digits validate-greater-than-zero',
-                'onchange' => 'window.validateCouponGenerate(this)'
+                'class' => 'validate-digits validate-greater-than-zero'
             ]
         );
 
@@ -96,8 +91,7 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => true,
                 'note' => __('Excluding prefix, suffix and separators.'),
                 'value' => $couponHelper->getDefaultLength(),
-                'class' => 'validate-digits validate-greater-than-zero',
-                'onchange' => 'window.validateCouponGenerate(this)'
+                'class' => 'validate-digits validate-greater-than-zero'
             ]
         );
 
@@ -109,8 +103,7 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'format',
                 'options' => $couponHelper->getFormatsList(),
                 'required' => true,
-                'value' => $couponHelper->getDefaultFormat(),
-                'onchange' => 'window.validateCouponGenerate(this)'
+                'value' => $couponHelper->getDefaultFormat()
             ]
         );
 
@@ -145,8 +138,7 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'title' => __('Dash Every X Characters'),
                 'note' => __('If empty no separation.'),
                 'value' => $couponHelper->getDefaultDashInterval(),
-                'class' => 'validate-digits',
-                'onchange' => 'window.validateCouponGenerate(this)'
+                'class' => 'validate-digits'
             ]
         );
 

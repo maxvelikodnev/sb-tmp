@@ -9,12 +9,9 @@ use Magento\Backend\Model\Session\Quote;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
-use Magento\Customer\Api\Data\AddressInterface;
-use Magento\Eav\Model\AttributeDataFactory;
 
 /**
  * Order create address form
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractForm
@@ -194,19 +191,17 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
         $emptyAddressForm = $this->_customerFormFactory->create(
             'customer_address',
             'adminhtml_customer_address',
-            [AddressInterface::COUNTRY_ID => $defaultCountryId]
+            [\Magento\Customer\Api\Data\AddressInterface::COUNTRY_ID => $defaultCountryId]
         );
-        $data = [0 => $emptyAddressForm->outputData(AttributeDataFactory::OUTPUT_FORMAT_JSON)];
+        $data = [0 => $emptyAddressForm->outputData(\Magento\Eav\Model\AttributeDataFactory::OUTPUT_FORMAT_JSON)];
         foreach ($this->getAddressCollection() as $address) {
             $addressForm = $this->_customerFormFactory->create(
                 'customer_address',
                 'adminhtml_customer_address',
-                $this->addressMapper->toFlatArray($address),
-                false,
-                false
+                $this->addressMapper->toFlatArray($address)
             );
             $data[$address->getId()] = $addressForm->outputData(
-                AttributeDataFactory::OUTPUT_FORMAT_JSON
+                \Magento\Eav\Model\AttributeDataFactory::OUTPUT_FORMAT_JSON
             );
         }
 
@@ -217,12 +212,15 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
      * Prepare Form and add elements to form
      *
      * @return $this
+     *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function _prepareForm()
     {
-        $storeId = $this->getAddressStoreId();
+        $storeId = $this->getCreateOrderModel()
+            ->getSession()
+            ->getStoreId();
         $this->_storeManager->setCurrentStore($storeId);
 
         $fieldset = $this->_form->addFieldset('main', ['no_container' => true]);
@@ -269,24 +267,21 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
 
         $this->_form->setValues($this->getFormValues());
 
-        $countryElement = $this->_form->getElement('country_id');
-
-        $this->processCountryOptions($countryElement);
-
-        if ($countryElement->getValue()) {
-            $countryId = $countryElement->getValue();
-            $countryElement->setValue(null);
-            foreach ($countryElement->getValues() as $country) {
+        if ($this->_form->getElement('country_id')->getValue()) {
+            $countryId = $this->_form->getElement('country_id')->getValue();
+            $this->_form->getElement('country_id')->setValue(null);
+            foreach ($this->_form->getElement('country_id')->getValues() as $country) {
                 if ($country['value'] == $countryId) {
-                    $countryElement->setValue($countryId);
+                    $this->_form->getElement('country_id')->setValue($countryId);
                 }
             }
         }
-        if ($countryElement->getValue() === null) {
-            $countryElement->setValue(
+        if ($this->_form->getElement('country_id')->getValue() === null) {
+            $this->_form->getElement('country_id')->setValue(
                 $this->directoryHelper->getDefaultCountry($this->getStore())
             );
         }
+        $this->processCountryOptions($this->_form->getElement('country_id'));
         // Set custom renderer for VAT field if needed
         $vatIdElement = $this->_form->getElement('vat_id');
         if ($vatIdElement && $this->getDisplayVatValidationButton() !== false) {
@@ -310,7 +305,7 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
      */
     private function processCountryOptions(\Magento\Framework\Data\Form\Element\AbstractElement $countryElement)
     {
-        $storeId = $this->getAddressStoreId();
+        $storeId = $this->getBackendQuoteSession()->getStoreId();
         $options = $this->getCountriesCollection()
             ->loadByStore($storeId)
             ->toOptionArray();
@@ -388,15 +383,5 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
         }
 
         return $this->escapeHtml($result);
-    }
-
-    /**
-     * Return address store id.
-     *
-     * @return int
-     */
-    protected function getAddressStoreId()
-    {
-        return $this->getBackendQuoteSession()->getStoreId();
     }
 }

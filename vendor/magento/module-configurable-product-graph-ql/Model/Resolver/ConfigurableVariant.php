@@ -18,7 +18,6 @@ use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\Resolver\ValueFactory;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
-use Magento\CatalogGraphQl\Model\Resolver\Products\Query\FieldSelection;
 
 /**
  * @inheritdoc
@@ -51,32 +50,24 @@ class ConfigurableVariant implements ResolverInterface
     private $metadataPool;
 
     /**
-     * @var FieldSelection
-     */
-    private $fieldSelection;
-
-    /**
      * @param Collection $variantCollection
      * @param OptionCollection $optionCollection
      * @param ValueFactory $valueFactory
      * @param AttributeCollection $attributeCollection
      * @param MetadataPool $metadataPool
-     * @param FieldSelection $fieldSelection
      */
     public function __construct(
         Collection $variantCollection,
         OptionCollection $optionCollection,
         ValueFactory $valueFactory,
         AttributeCollection $attributeCollection,
-        MetadataPool $metadataPool,
-        FieldSelection $fieldSelection
+        MetadataPool $metadataPool
     ) {
         $this->variantCollection = $variantCollection;
         $this->optionCollection = $optionCollection;
         $this->valueFactory = $valueFactory;
         $this->attributeCollection = $attributeCollection;
         $this->metadataPool = $metadataPool;
-        $this->fieldSelection = $fieldSelection;
     }
 
     /**
@@ -93,8 +84,9 @@ class ConfigurableVariant implements ResolverInterface
         }
 
         $this->variantCollection->addParentProduct($value['model']);
-        $fields = $this->fieldSelection->getProductsFieldSelection($info);
-        $this->variantCollection->addEavAttributes($fields);
+        $fields = $this->getProductFields($info);
+        $matchedFields = $this->attributeCollection->getRequestAttributes($fields);
+        $this->variantCollection->addEavAttributes($matchedFields);
         $this->optionCollection->addProductId((int)$value[$linkField]);
 
         $result = function () use ($value, $linkField) {
@@ -110,5 +102,27 @@ class ConfigurableVariant implements ResolverInterface
         };
 
         return $this->valueFactory->create($result);
+    }
+
+    /**
+     * Return field names for all requested product fields.
+     *
+     * @param ResolveInfo $info
+     * @return string[]
+     */
+    private function getProductFields(ResolveInfo $info)
+    {
+        $fieldNames = [];
+        foreach ($info->fieldNodes as $node) {
+            if ($node->name->value !== 'product') {
+                continue;
+            }
+
+            foreach ($node->selectionSet->selections as $selectionNode) {
+                $fieldNames[] = $selectionNode->name->value;
+            }
+        }
+
+        return $fieldNames;
     }
 }

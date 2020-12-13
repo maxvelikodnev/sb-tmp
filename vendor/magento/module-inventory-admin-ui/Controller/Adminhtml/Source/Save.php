@@ -22,14 +22,14 @@ use Magento\InventoryAdminUi\Model\Source\SourceHydrator;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 
 /**
- * Source save controller.
+ * Save Controller
  */
 class Save extends Action implements HttpPostActionInterface
 {
     /**
      * @see _isAllowed()
      */
-    const ADMIN_RESOURCE = 'Magento_InventoryApi::source_edit';
+    const ADMIN_RESOURCE = 'Magento_InventoryApi::source';
 
     /**
      * @var SourceInterfaceFactory
@@ -78,48 +78,42 @@ class Save extends Action implements HttpPostActionInterface
             $this->processRedirectAfterFailureSave($resultRedirect);
             return $resultRedirect;
         }
-        $sourceCode = $requestData['general'][SourceInterface::SOURCE_CODE];
+
+        $sourceCodeQueryParam = $request->getQuery(SourceInterface::SOURCE_CODE);
         try {
-            $source = $this->sourceRepository->get($sourceCode);
-            if ($source->getPostcode() !== $requestData['general'][SourceInterface::POSTCODE]) {
-                unset($requestData['general'][SourceInterface::LATITUDE]);
-                unset($requestData['general'][SourceInterface::LONGITUDE]);
-                $source->setLatitude(null);
-                $source->setLongitude(null);
-            }
-        } catch (NoSuchEntityException $e) {
-            $source = $this->sourceFactory->create();
-        }
-        try {
+            $source = (null !== $sourceCodeQueryParam)
+                ? $this->sourceRepository->get($sourceCodeQueryParam)
+                : $this->sourceFactory->create();
+
             $this->processSave($source, $requestData);
+
             $this->messageManager->addSuccessMessage(__('The Source has been saved.'));
             $this->processRedirectAfterSuccessSave($resultRedirect, $source->getSourceCode());
+        } catch (NoSuchEntityException $e) {
+            $this->messageManager->addErrorMessage(__('The Source does not exist.'));
+            $this->processRedirectAfterFailureSave($resultRedirect);
         } catch (ValidationException $e) {
             foreach ($e->getErrors() as $localizedError) {
                 $this->messageManager->addErrorMessage($localizedError->getMessage());
             }
             $this->_session->setSourceFormData($requestData);
-            $this->processRedirectAfterFailureSave($resultRedirect, $sourceCode);
+            $this->processRedirectAfterFailureSave($resultRedirect, $sourceCodeQueryParam ?? $sourceCodeQueryParam);
         } catch (CouldNotSaveException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             $this->_session->setSourceFormData($requestData);
-            $this->processRedirectAfterFailureSave($resultRedirect, $sourceCode);
+            $this->processRedirectAfterFailureSave($resultRedirect, $sourceCodeQueryParam ?? $sourceCodeQueryParam);
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__('Could not save Source.'));
             $this->_session->setSourceFormData($requestData);
-            $this->processRedirectAfterFailureSave($resultRedirect, $sourceCode);
+            $this->processRedirectAfterFailureSave($resultRedirect, $sourceCodeQueryParam ?? $sourceCodeQueryParam);
         }
         return $resultRedirect;
     }
 
     /**
-     * Hydrate data from request and save source.
-     *
      * @param SourceInterface $source
      * @param array $requestData
      * @return void
-     * @throws CouldNotSaveException
-     * @throws ValidationException
      */
     private function processSave(SourceInterface $source, array $requestData)
     {
@@ -145,8 +139,6 @@ class Save extends Action implements HttpPostActionInterface
     }
 
     /**
-     * Get redirect url after source save.
-     *
      * @param Redirect $resultRedirect
      * @param string $sourceCode
      * @return void
@@ -154,28 +146,20 @@ class Save extends Action implements HttpPostActionInterface
     private function processRedirectAfterSuccessSave(Redirect $resultRedirect, string $sourceCode)
     {
         if ($this->getRequest()->getParam('back')) {
-            $resultRedirect->setPath(
-                '*/*/edit',
-                [
-                    SourceInterface::SOURCE_CODE => $sourceCode,
-                    '_current' => true,
-                ]
-            );
+            $resultRedirect->setPath('*/*/edit', [
+                SourceInterface::SOURCE_CODE => $sourceCode,
+                '_current' => true,
+            ]);
         } elseif ($this->getRequest()->getParam('redirect_to_new')) {
-            $resultRedirect->setPath(
-                '*/*/new',
-                [
-                    '_current' => true,
-                ]
-            );
+            $resultRedirect->setPath('*/*/new', [
+                '_current' => true,
+            ]);
         } else {
             $resultRedirect->setPath('*/*/');
         }
     }
 
     /**
-     * Get redirect url after unsuccessful source save.
-     *
      * @param Redirect $resultRedirect
      * @param string|null $sourceCode
      * @return void
@@ -185,13 +169,10 @@ class Save extends Action implements HttpPostActionInterface
         if (null === $sourceCode) {
             $resultRedirect->setPath('*/*/new');
         } else {
-            $resultRedirect->setPath(
-                '*/*/edit',
-                [
-                    SourceInterface::SOURCE_CODE => $sourceCode,
-                    '_current' => true,
-                ]
-            );
+            $resultRedirect->setPath('*/*/edit', [
+                SourceInterface::SOURCE_CODE => $sourceCode,
+                '_current' => true,
+            ]);
         }
     }
 }

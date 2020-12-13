@@ -5,8 +5,6 @@
  */
 namespace Magento\AdminNotification\Model;
 
-use Magento\Framework\Escaper;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Config\ConfigOptionsListConstants;
 
 /**
@@ -26,11 +24,6 @@ class Feed extends \Magento\Framework\Model\AbstractModel
     const XML_FREQUENCY_PATH = 'system/adminnotification/frequency';
 
     const XML_LAST_UPDATE_PATH = 'system/adminnotification/last_update';
-
-    /**
-     * @var Escaper
-     */
-    private $escaper;
 
     /**
      * Feed url
@@ -84,7 +77,6 @@ class Feed extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
-     * @param Escaper|null $escaper
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -98,26 +90,21 @@ class Feed extends \Magento\Framework\Model\AbstractModel
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        array $data = [],
-        Escaper $escaper = null
+        array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
-        $this->_backendConfig = $backendConfig;
-        $this->_inboxFactory = $inboxFactory;
-        $this->curlFactory = $curlFactory;
+        $this->_backendConfig    = $backendConfig;
+        $this->_inboxFactory     = $inboxFactory;
+        $this->curlFactory       = $curlFactory;
         $this->_deploymentConfig = $deploymentConfig;
-        $this->productMetadata = $productMetadata;
-        $this->urlBuilder = $urlBuilder;
-        $this->escaper = $escaper ?? ObjectManager::getInstance()->get(
-            Escaper::class
-        );
+        $this->productMetadata   = $productMetadata;
+        $this->urlBuilder        = $urlBuilder;
     }
 
     /**
      * Init model
      *
      * @return void
-     * phpcs:disable Magento2.CodeAnalysis.EmptyBlock
      */
     protected function _construct()
     {
@@ -265,6 +252,6 @@ class Feed extends \Magento\Framework\Model\AbstractModel
      */
     private function escapeString(\SimpleXMLElement $data)
     {
-        return $this->escaper->escapeHtml((string)$data);
+        return htmlspecialchars((string)$data);
     }
 }

@@ -6,12 +6,9 @@
 namespace Magento\Catalog\Model\Indexer\Product\Flat;
 
 use Magento\Catalog\Model\Indexer\Product\Flat\Table\BuilderInterfaceFactory;
-use Magento\Store\Model\Store;
 
 /**
  * Class TableBuilder
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TableBuilder
 {
@@ -86,7 +83,6 @@ class TableBuilder
         //Create list of temporary tables based on available attributes attributes
         $valueTables = [];
         foreach ($temporaryEavAttributes as $tableName => $columns) {
-            // phpcs:ignore Magento2.Performance.ForeachArrayMerge
             $valueTables = array_merge(
                 $valueTables,
                 $this->_createTemporaryTable($this->_getTemporaryTableName($tableName), $columns, $valueFieldSuffix)
@@ -276,71 +272,75 @@ class TableBuilder
         $valueFieldSuffix,
         $storeId
     ) {
+        $metadata = $this->getMetadataPool()->getMetadata(\Magento\Catalog\Api\Data\ProductInterface::class);
         if (!empty($tableColumns)) {
-            $columnsChunks = array_chunk($tableColumns, Action\Indexer::ATTRIBUTES_CHUNK_SIZE / 2, true);
-
-            $entityTableName = $this->_productIndexerHelper->getTable('catalog_product_entity');
-            $entityTemporaryTableName = $this->_getTemporaryTableName($entityTableName);
-            $temporaryTableName = $this->_getTemporaryTableName($tableName);
-            $temporaryValueTableName = $temporaryTableName . $valueFieldSuffix;
-            $attributeOptionValueTableName = $this->_productIndexerHelper->getTable('eav_attribute_option_value');
-
-            $flatColumns = $this->_productIndexerHelper->getFlatColumns();
-            $defaultStoreId = Store::DEFAULT_STORE_ID;
-            $linkField = $this->getMetadataPool()
-                ->getMetadata(\Magento\Catalog\Api\Data\ProductInterface::class)
-                ->getLinkField();
-
+            $columnsChunks = array_chunk(
+                $tableColumns,
+                Action\Indexer::ATTRIBUTES_CHUNK_SIZE,
+                true
+            );
             foreach ($columnsChunks as $columnsList) {
                 $select = $this->_connection->select();
                 $selectValue = $this->_connection->select();
-                $keyColumn = array_unique([$linkField, 'entity_id']);
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
+                $entityTableName = $this->_getTemporaryTableName(
+                    $this->_productIndexerHelper->getTable('catalog_product_entity')
+                );
+                $temporaryTableName = $this->_getTemporaryTableName($tableName);
+                $temporaryValueTableName = $temporaryTableName . $valueFieldSuffix;
+                $keyColumn = array_unique([$metadata->getLinkField(), 'entity_id']);
                 $columns = array_merge($keyColumn, array_keys($columnsList));
                 $valueColumns = $keyColumn;
+                $flatColumns = $this->_productIndexerHelper->getFlatColumns();
                 $iterationNum = 1;
 
-                $select->from(['et' => $entityTemporaryTableName], $keyColumn)
-                    ->join(['e' => $entityTableName], 'e.entity_id = et.entity_id', []);
+                $select->from(['et' => $entityTableName], $keyColumn)
+                    ->join(
+                        ['e' => $this->resource->getTableName('catalog_product_entity')],
+                        'e.entity_id = et.entity_id',
+                        []
+                    );
 
                 $selectValue->from(['e' => $temporaryTableName], $keyColumn);
 
                 /** @var $attribute \Magento\Catalog\Model\ResourceModel\Eav\Attribute */
                 foreach ($columnsList as $columnName => $attribute) {
                     $countTableName = 't' . ($iterationNum++);
-                    $joinCondition = 'e.%3$s = %1$s.%3$s AND %1$s.attribute_id = %2$d AND %1$s.store_id = %4$d';
-                    $select->joinLeft(
-                        [$countTableName => $tableName],
-                        sprintf($joinCondition, $countTableName, $attribute->getId(), $linkField, $defaultStoreId),
-                        []
-                    )->joinLeft(
-                        ['s' . $countTableName => $tableName],
-                        sprintf($joinCondition, 's' . $countTableName, $attribute->getId(), $linkField, $storeId),
-                        []
+                    $joinCondition = sprintf(
+                        'e.%3$s = %1$s.%3$s' .
+                        ' AND %1$s.attribute_id = %2$d' .
+                        ' AND (%1$s.store_id = %4$d' .
+                        ' OR %1$s.store_id = 0)',
+                        $countTableName,
+                        $attribute->getId(),
+                        $metadata->getLinkField(),
+                        $storeId
                     );
 
-                    $columnValue = $this->_connection->getIfNullSql(
-                        's' . $countTableName . '.value',
-                        $countTableName . '.value'
+                    $select->joinLeft(
+                        [$countTableName => $tableName],
+                        $joinCondition,
+                        [$columnName => 'value']
                     );
-                    $select->columns([$columnName => $columnValue]);
 
                     if ($attribute->getFlatUpdateSelect($storeId) instanceof \Magento\Framework\DB\Select) {
                         $attributeCode = $attribute->getAttributeCode();
                         $columnValueName = $attributeCode . $valueFieldSuffix;
                         if (isset($flatColumns[$columnValueName])) {
-                            $valueJoinCondition = 'e.%1$s = %2$s.option_id AND %2$s.store_id = %3$d';
-                            $selectValue->joinLeft(
-                                [$countTableName => $attributeOptionValueTableName],
-                                sprintf($valueJoinCondition, $attributeCode, $countTableName, $defaultStoreId),
-                                []
-                            )->joinLeft(
-                                ['s' . $countTableName => $attributeOptionValueTableName],
-                                sprintf($valueJoinCondition, $attributeCode, 's' . $countTableName, $storeId),
-                                []
+                            $valueJoinCondition = sprintf(
+                                'e.%1$s = %2$s.option_id AND (%2$s.store_id = %3$d OR %2$s.store_id = 0)',
+                                $attributeCode,
+                                $countTableName,
+                                $storeId
                             );
-
-                            $selectValue->columns([$columnValueName => $columnValue]);
+                            $selectValue->joinLeft(
+                                [
+                                    $countTableName => $this->_productIndexerHelper->getTable(
+                                        'eav_attribute_option_value'
+                                    ),
+                                ],
+                                $valueJoinCondition,
+                                [$columnValueName => $countTableName . '.value']
+                            );
                             $valueColumns[] = $columnValueName;
                         }
                     }

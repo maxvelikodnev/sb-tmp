@@ -3,12 +3,8 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\CatalogInventory\Model\Quote\Item\QuantityValidator;
 
-/**
- * Process product qty from quote items.
- */
 class QuoteItemQtyList
 {
     /**
@@ -20,13 +16,12 @@ class QuoteItemQtyList
     protected $_checkedQuoteItems = [];
 
     /**
-     * Get product qty includes information from all quote items.
+     * Get product qty includes information from all quote items
+     * Need be used only in singleton mode
      *
-     * Need be used only in singleton mode.
-     *
-     * @param int $productId
-     * @param int $quoteItemId
-     * @param int $quoteId
+     * @param int   $productId
+     * @param int   $quoteItemId
+     * @param int   $quoteId
      * @param float $itemQty
      *
      * @return int
@@ -48,15 +43,5 @@ class QuoteItemQtyList
         $this->_checkedQuoteItems[$quoteId][$productId]['items'][] = $quoteItemId;
 
         return $qty;
-    }
-
-    /**
-     * Clear array with checked Quote items.
-     *
-     * @return void
-     */
-    public function clear(): void
-    {
-        $this->_checkedQuoteItems = [];
     }
 }

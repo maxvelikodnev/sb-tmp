@@ -6,7 +6,6 @@
 namespace Magento\Customer\Controller\Adminhtml\Index;
 
 use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Backend\App\Action\Context;
 use Magento\Newsletter\Model\SubscriberFactory;
@@ -17,7 +16,7 @@ use Magento\Eav\Model\Entity\Collection\AbstractCollection;
 /**
  * Class MassUnsubscribe
  */
-class MassUnsubscribe extends AbstractMassAction implements HttpPostActionInterface
+class MassUnsubscribe extends AbstractMassAction
 {
     /**
      * @var CustomerRepositoryInterface
@@ -65,7 +64,7 @@ class MassUnsubscribe extends AbstractMassAction implements HttpPostActionInterf
         }
 
         if ($customersUpdated) {
-            $this->messageManager->addSuccessMessage(__('A total of %1 record(s) were updated.', $customersUpdated));
+            $this->messageManager->addSuccess(__('A total of %1 record(s) were updated.', $customersUpdated));
         }
         /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);

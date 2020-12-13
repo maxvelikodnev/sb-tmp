@@ -100,7 +100,10 @@ class Price implements DimensionalIndexerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
+     * @param array $dimensions
+     * @param \Traversable $entityIds
+     * @throws \Exception
      */
     public function executeByDimensions(array $dimensions, \Traversable $entityIds)
     {
@@ -202,7 +205,8 @@ class Price implements DimensionalIndexerInterface
                 'max_price' => new \Zend_Db_Expr('SUM(' . $ifPrice . ')'),
             ]
         );
-        $this->tableMaintainer->insertFromSelect($select, $temporaryDownloadableTableName, []);
+        $query = $select->insertFromSelect($temporaryDownloadableTableName);
+        $this->getConnection()->query($query);
     }
 
     /**
@@ -255,13 +259,14 @@ class Price implements DimensionalIndexerInterface
         IndexTableStructure $temporaryPriceTable
     ) {
         $select = $this->baseFinalPrice->getQuery($dimensions, Type::TYPE_DOWNLOADABLE, iterator_to_array($entityIds));
-        $this->tableMaintainer->insertFromSelect($select, $temporaryPriceTable->getTableName(), []);
+        $query = $select->insertFromSelect($temporaryPriceTable->getTableName(), [], false);
+        $this->tableMaintainer->getConnection()->query($query);
     }
 
     /**
      * Get connection
      *
-     * @return \Magento\Framework\DB\Adapter\AdapterInterface
+     * return \Magento\Framework\DB\Adapter\AdapterInterface
      * @throws \DomainException
      */
     private function getConnection(): \Magento\Framework\DB\Adapter\AdapterInterface

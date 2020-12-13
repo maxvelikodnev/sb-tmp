@@ -6,7 +6,6 @@
 namespace Magento\Bundle\Test\Unit\Model\Product;
 
 use Magento\Bundle\Model\ResourceModel\Option\Collection;
-use Magento\CatalogRule\Model\ResourceModel\Product\CollectionProcessor;
 use Magento\Bundle\Model\ResourceModel\Selection\Collection as SelectionCollection;
 use Magento\Bundle\Model\Selection;
 use Magento\Catalog\Model\Product;
@@ -19,7 +18,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\Stdlib\ArrayUtils;
 
 /**
- * Test for bundle product type
+ * Class TypeTest
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TypeTest extends \PHPUnit\Framework\TestCase
@@ -95,11 +94,6 @@ class TypeTest extends \PHPUnit\Framework\TestCase
     private $arrayUtility;
 
     /**
-     * @var |\PHPUnit_Framework_MockObject_MockObject
-     */
-    private $catalogRuleProcessor;
-
-    /**
      * @return void
      */
     protected function setUp()
@@ -156,7 +150,9 @@ class TypeTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->catalogRuleProcessor = $this->getMockBuilder(CollectionProcessor::class)
+        $this->catalogRuleProcessor = $this->getMockBuilder(
+            \Magento\CatalogRule\Model\ResourceModel\Product\CollectionProcessor::class
+        )
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -1529,7 +1525,7 @@ class TypeTest extends \PHPUnit\Framework\TestCase
 
         $this->parentClass($group, $option, $buyRequest, $product);
 
-        $product->expects($this->any())
+        $product->expects($this->once())
             ->method('getSkipCheckRequiredOption')
             ->willReturn(true);
         $buyRequest->expects($this->once())
@@ -2407,6 +2403,9 @@ class TypeTest extends \PHPUnit\Framework\TestCase
             ->willReturnSelf();
         $group->expects($this->once())
             ->method('setProcessMode')
+            ->willReturnSelf();
+        $group->expects($this->once())
+            ->method('validateUserValue')
             ->willReturnSelf();
         $group->expects($this->once())
             ->method('prepareForCart')

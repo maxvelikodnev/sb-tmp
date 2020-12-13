@@ -130,12 +130,10 @@ class PaymentFailuresService implements PaymentFailuresInterface
         foreach ($sendTo as $recipient) {
             $transport = $this->transportBuilder
                 ->setTemplateIdentifier($template)
-                ->setTemplateOptions(
-                    [
-                        'area' => FrontNameResolver::AREA_CODE,
-                        'store' => Store::DEFAULT_STORE_ID,
-                    ]
-                )
+                ->setTemplateOptions([
+                    'area' => FrontNameResolver::AREA_CODE,
+                    'store' => Store::DEFAULT_STORE_ID,
+                ])
                 ->setTemplateVars($this->getTemplateVars($quote, $message, $checkoutType))
                 ->setFrom($this->getSendFrom($quote))
                 ->addTo($recipient['email'], $recipient['name'])
@@ -172,8 +170,6 @@ class PaymentFailuresService implements PaymentFailuresInterface
             'customerEmail' => $quote->getBillingAddress()->getEmail(),
             'billingAddress' => $quote->getBillingAddress(),
             'shippingAddress' => $quote->getShippingAddress(),
-            'billingAddressHtml' => $quote->getBillingAddress()->format('html'),
-            'shippingAddressHtml' => $quote->getShippingAddress()->format('html'),
             'shippingMethod' => $this->getConfigValue(
                 'carriers/' . $this->getShippingMethod($quote) . '/title',
                 $quote

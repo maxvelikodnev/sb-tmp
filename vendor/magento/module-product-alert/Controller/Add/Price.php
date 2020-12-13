@@ -6,22 +6,21 @@
 
 namespace Magento\ProductAlert\Controller\Add;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Customer\Model\Session as CustomerSession;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\App\Action\HttpGetActionInterface;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Controller\Result\Redirect;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\UrlInterface;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\ProductAlert\Controller\Add as AddController;
+use Magento\Framework\App\Action\Context;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * Controller for notifying about price.
  */
-class Price extends AddController implements HttpGetActionInterface
+class Price extends AddController implements HttpPostActionInterface
 {
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -29,17 +28,15 @@ class Price extends AddController implements HttpGetActionInterface
     protected $storeManager;
 
     /**
-     * @var \Magento\Catalog\Api\ProductRepositoryInterface
+     * @var  \Magento\Catalog\Api\ProductRepositoryInterface
      */
     protected $productRepository;
 
     /**
-     * Price constructor.
-     *
-     * @param Context $context
-     * @param CustomerSession $customerSession
-     * @param StoreManagerInterface $storeManager
-     * @param ProductRepositoryInterface $productRepository
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
      */
     public function __construct(
         Context $context,
@@ -57,7 +54,6 @@ class Price extends AddController implements HttpGetActionInterface
      *
      * @param string $url
      * @return bool
-     * @throws NoSuchEntityException
      */
     protected function isInternal($url)
     {
@@ -65,21 +61,20 @@ class Price extends AddController implements HttpGetActionInterface
             return false;
         }
         $currentStore = $this->storeManager->getStore();
-        return strpos($url, (string) $currentStore->getBaseUrl()) === 0
-            || strpos($url, (string) $currentStore->getBaseUrl(UrlInterface::URL_TYPE_LINK, true)) === 0;
+        return strpos($url, $currentStore->getBaseUrl()) === 0
+            || strpos($url, $currentStore->getBaseUrl(UrlInterface::URL_TYPE_LINK, true)) === 0;
     }
 
     /**
      * Method for adding info about product alert price.
      *
-     * @return \Magento\Framework\Controller\ResultInterface
-     * @throws NoSuchEntityException
+     * @return \Magento\Framework\Controller\Result\Redirect
      */
     public function execute()
     {
         $backUrl = $this->getRequest()->getParam(Action::PARAM_NAME_URL_ENCODED);
         $productId = (int)$this->getRequest()->getParam('product_id');
-        /** @var Redirect $resultRedirect */
+        /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         if (!$backUrl || !$productId) {
             $resultRedirect->setPath('/');
@@ -98,9 +93,9 @@ class Price extends AddController implements HttpGetActionInterface
                 ->setWebsiteId($store->getWebsiteId())
                 ->setStoreId($store->getId());
             $model->save();
-            $this->messageManager->addSuccessMessage(__('You saved the alert subscription.'));
+            $this->messageManager->addSuccess(__('You saved the alert subscription.'));
         } catch (NoSuchEntityException $noEntityException) {
-            $this->messageManager->addErrorMessage(__('There are not enough parameters.'));
+            $this->messageManager->addError(__('There are not enough parameters.'));
             if ($this->isInternal($backUrl)) {
                 $resultRedirect->setUrl($backUrl);
             } else {
@@ -108,7 +103,7 @@ class Price extends AddController implements HttpGetActionInterface
             }
             return $resultRedirect;
         } catch (\Exception $e) {
-            $this->messageManager->addExceptionMessage(
+            $this->messageManager->addException(
                 $e,
                 __("The alert subscription couldn't update at this time. Please try again later.")
             );

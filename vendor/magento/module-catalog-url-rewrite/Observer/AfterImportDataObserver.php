@@ -6,35 +6,22 @@
 namespace Magento\CatalogUrlRewrite\Observer;
 
 use Magento\Catalog\Model\Category;
-use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Visibility;
-use Magento\Catalog\Model\ProductFactory;
 use Magento\Catalog\Model\ResourceModel\Category\Collection as CategoryCollection;
 use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
 use Magento\CatalogImportExport\Model\Import\Product as ImportProduct;
-use Magento\CatalogUrlRewrite\Model\ObjectRegistry;
-use Magento\CatalogUrlRewrite\Model\ObjectRegistryFactory;
-use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator;
 use Magento\CatalogUrlRewrite\Model\ProductUrlRewriteGenerator;
-use Magento\CatalogUrlRewrite\Service\V1\StoreViewService;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\DataObject;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\ImportExport\Model\Import as ImportExport;
 use Magento\Store\Model\Store;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\UrlRewrite\Model\Exception\UrlAlreadyExistsException;
-use Magento\UrlRewrite\Model\MergeDataProvider;
 use Magento\UrlRewrite\Model\MergeDataProviderFactory;
 use Magento\UrlRewrite\Model\OptionProvider;
 use Magento\UrlRewrite\Model\UrlFinderInterface;
 use Magento\UrlRewrite\Model\UrlPersistInterface;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewriteFactory;
-use RuntimeException;
 
 /**
  * Class AfterImportDataObserver
@@ -50,12 +37,12 @@ class AfterImportDataObserver implements ObserverInterface
     const URL_KEY_ATTRIBUTE_CODE = 'url_key';
 
     /**
-     * @var StoreViewService
+     * @var \Magento\CatalogUrlRewrite\Service\V1\StoreViewService
      */
     protected $storeViewService;
 
     /**
-     * @var Product
+     * @var \Magento\Catalog\Model\Product
      */
     protected $product;
 
@@ -70,42 +57,42 @@ class AfterImportDataObserver implements ObserverInterface
     protected $products = [];
 
     /**
-     * @var ObjectRegistryFactory
+     * @var \Magento\CatalogUrlRewrite\Model\ObjectRegistryFactory
      */
     protected $objectRegistryFactory;
 
     /**
-     * @var ObjectRegistry
+     * @var \Magento\CatalogUrlRewrite\Model\ObjectRegistry
      */
     protected $productCategories;
 
     /**
-     * @var UrlFinderInterface
+     * @var \Magento\UrlRewrite\Model\UrlFinderInterface
      */
     protected $urlFinder;
 
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
 
     /**
-     * @var UrlPersistInterface
+     * @var \Magento\UrlRewrite\Model\UrlPersistInterface
      */
     protected $urlPersist;
 
     /**
-     * @var UrlRewriteFactory
+     * @var \Magento\UrlRewrite\Service\V1\Data\UrlRewriteFactory
      */
     protected $urlRewriteFactory;
 
     /**
-     * @var ImportProduct
+     * @var \Magento\CatalogImportExport\Model\Import\Product
      */
     protected $import;
 
     /**
-     * @var ProductFactory
+     * @var \Magento\Catalog\Model\ProductFactory
      */
     protected $catalogProductFactory;
 
@@ -115,7 +102,7 @@ class AfterImportDataObserver implements ObserverInterface
     protected $acceptableCategories;
 
     /**
-     * @var ProductUrlPathGenerator
+     * @var \Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator
      */
     protected $productUrlPathGenerator;
 
@@ -152,7 +139,7 @@ class AfterImportDataObserver implements ObserverInterface
     ];
 
     /**
-     * @var MergeDataProvider
+     * @var \Magento\UrlRewrite\Model\MergeDataProvider
      */
     private $mergeDataProviderPrototype;
 
@@ -171,37 +158,29 @@ class AfterImportDataObserver implements ObserverInterface
     private $categoriesCache = [];
 
     /**
-     * @var ScopeConfigInterface|null
-     */
-    private $scopeConfig;
-
-    /**
-     * @param ProductFactory $catalogProductFactory
-     * @param ObjectRegistryFactory $objectRegistryFactory
-     * @param ProductUrlPathGenerator $productUrlPathGenerator
-     * @param StoreViewService $storeViewService
-     * @param StoreManagerInterface $storeManager
+     * @param \Magento\Catalog\Model\ProductFactory $catalogProductFactory
+     * @param \Magento\CatalogUrlRewrite\Model\ObjectRegistryFactory $objectRegistryFactory
+     * @param \Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator $productUrlPathGenerator
+     * @param \Magento\CatalogUrlRewrite\Service\V1\StoreViewService $storeViewService
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param UrlPersistInterface $urlPersist
      * @param UrlRewriteFactory $urlRewriteFactory
      * @param UrlFinderInterface $urlFinder
-     * @param MergeDataProviderFactory|null $mergeDataProviderFactory
+     * @param \Magento\UrlRewrite\Model\MergeDataProviderFactory|null $mergeDataProviderFactory
      * @param CategoryCollectionFactory|null $categoryCollectionFactory
-     * @param ScopeConfigInterface|null $scopeConfig
-     * @throws RuntimeException
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        ProductFactory $catalogProductFactory,
-        ObjectRegistryFactory $objectRegistryFactory,
-        ProductUrlPathGenerator $productUrlPathGenerator,
-        StoreViewService $storeViewService,
-        StoreManagerInterface $storeManager,
+        \Magento\Catalog\Model\ProductFactory $catalogProductFactory,
+        \Magento\CatalogUrlRewrite\Model\ObjectRegistryFactory $objectRegistryFactory,
+        \Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator $productUrlPathGenerator,
+        \Magento\CatalogUrlRewrite\Service\V1\StoreViewService $storeViewService,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         UrlPersistInterface $urlPersist,
         UrlRewriteFactory $urlRewriteFactory,
         UrlFinderInterface $urlFinder,
         MergeDataProviderFactory $mergeDataProviderFactory = null,
-        CategoryCollectionFactory $categoryCollectionFactory = null,
-        ScopeConfigInterface $scopeConfig = null
+        CategoryCollectionFactory $categoryCollectionFactory = null
     ) {
         $this->urlPersist = $urlPersist;
         $this->catalogProductFactory = $catalogProductFactory;
@@ -217,17 +196,16 @@ class AfterImportDataObserver implements ObserverInterface
         $this->mergeDataProviderPrototype = $mergeDataProviderFactory->create();
         $this->categoryCollectionFactory = $categoryCollectionFactory ?:
             ObjectManager::getInstance()->get(CategoryCollectionFactory::class);
-        $this->scopeConfig = $scopeConfig ?:
-            ObjectManager::getInstance()->get(ScopeConfigInterface::class);
     }
 
     /**
-     * Action after data import. Save new url rewrites and remove old if exist.
+     * Action after data import.
+     *
+     * Save new url rewrites and remove old if exist.
      *
      * @param Observer $observer
+     *
      * @return void
-     * @throws LocalizedException
-     * @throws UrlAlreadyExistsException
      */
     public function execute(Observer $observer)
     {
@@ -247,15 +225,18 @@ class AfterImportDataObserver implements ObserverInterface
      * Create product model from imported data for URL rewrite purposes.
      *
      * @param array $rowData
-     * @return AfterImportDataObserver|null
-     * @throws LocalizedException
+     *
+     * @return ImportExport
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    private function _populateForUrlGeneration($rowData)
+    protected function _populateForUrlGeneration($rowData)
     {
         $newSku = $this->import->getNewSku($rowData[ImportProduct::COL_SKU]);
-        $oldSku = $this->import->getOldSku();
-        if (!$this->isNeedToPopulateForUrlGeneration($rowData, $newSku, $oldSku)) {
+        if (empty($newSku) || !isset($newSku['entity_id'])) {
+            return null;
+        }
+        if ($this->import->getRowScope($rowData) == ImportProduct::SCOPE_STORE
+            && empty($rowData[self::URL_KEY_ATTRIBUTE_CODE])) {
             return null;
         }
         $rowData['entity_id'] = $newSku['entity_id'];
@@ -289,44 +270,19 @@ class AfterImportDataObserver implements ObserverInterface
     }
 
     /**
-     * Check is need to populate data for url generation
-     *
-     * @param array $rowData
-     * @param array $newSku
-     * @param array $oldSku
-     * @return bool
-     */
-    private function isNeedToPopulateForUrlGeneration($rowData, $newSku, $oldSku): bool
-    {
-        if ((
-            (empty($newSku) || !isset($newSku['entity_id']))
-                || ($this->import->getRowScope($rowData) == ImportProduct::SCOPE_STORE
-                    && empty($rowData[self::URL_KEY_ATTRIBUTE_CODE]))
-                || (array_key_exists(strtolower($rowData[ImportProduct::COL_SKU]), $oldSku)
-                    && !isset($rowData[self::URL_KEY_ATTRIBUTE_CODE])
-                    && $this->import->getBehavior() === ImportExport::BEHAVIOR_APPEND)
-            )
-            && !isset($rowData["categories"])
-        ) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * Add store id to product data.
      *
-     * @param Product $product
+     * @param \Magento\Catalog\Model\Product $product
      * @param array $rowData
      * @return void
      */
-    private function setStoreToProduct(Product $product, array $rowData)
+    protected function setStoreToProduct(\Magento\Catalog\Model\Product $product, array $rowData)
     {
         if (!empty($rowData[ImportProduct::COL_STORE])
             && ($storeId = $this->import->getStoreIdByCode($rowData[ImportProduct::COL_STORE]))
         ) {
             $product->setStoreId($storeId);
-        } elseif (!$product->hasData(Product::STORE_ID)) {
+        } elseif (!$product->hasData(\Magento\Catalog\Model\Product::STORE_ID)) {
             $product->setStoreId(Store::DEFAULT_STORE_ID);
         }
     }
@@ -334,11 +290,11 @@ class AfterImportDataObserver implements ObserverInterface
     /**
      * Add product to import
      *
-     * @param Product $product
+     * @param \Magento\Catalog\Model\Product $product
      * @param string $storeId
      * @return $this
      */
-    private function addProductToImport($product, $storeId)
+    protected function addProductToImport($product, $storeId)
     {
         if ($product->getVisibility() == (string)Visibility::getOptionArray()[Visibility::VISIBILITY_NOT_VISIBLE]) {
             return $this;
@@ -353,10 +309,10 @@ class AfterImportDataObserver implements ObserverInterface
     /**
      * Populate global product
      *
-     * @param Product $product
+     * @param \Magento\Catalog\Model\Product $product
      * @return $this
      */
-    private function populateGlobalProduct($product)
+    protected function populateGlobalProduct($product)
     {
         foreach ($this->import->getProductWebsites($product->getSku()) as $websiteId) {
             foreach ($this->websitesToStoreIds[$websiteId] as $storeId) {
@@ -372,16 +328,13 @@ class AfterImportDataObserver implements ObserverInterface
     /**
      * Generate product url rewrites
      *
-     * @return UrlRewrite[]
-     * @throws LocalizedException
+     * @return \Magento\UrlRewrite\Service\V1\Data\UrlRewrite[]
      */
-    private function generateUrls()
+    protected function generateUrls()
     {
         $mergeDataProvider = clone $this->mergeDataProviderPrototype;
         $mergeDataProvider->merge($this->canonicalUrlRewriteGenerate());
-        if ($this->isCategoryRewritesEnabled()) {
-            $mergeDataProvider->merge($this->categoriesUrlRewriteGenerate());
-        }
+        $mergeDataProvider->merge($this->categoriesUrlRewriteGenerate());
         $mergeDataProvider->merge($this->currentUrlRewritesRegenerate());
         $this->productCategories = null;
 
@@ -397,7 +350,7 @@ class AfterImportDataObserver implements ObserverInterface
      * @param int|null $storeId
      * @return bool
      */
-    private function isGlobalScope($storeId)
+    protected function isGlobalScope($storeId)
     {
         return null === $storeId || $storeId == Store::DEFAULT_STORE_ID;
     }
@@ -407,7 +360,7 @@ class AfterImportDataObserver implements ObserverInterface
      *
      * @return UrlRewrite[]
      */
-    private function canonicalUrlRewriteGenerate()
+    protected function canonicalUrlRewriteGenerate()
     {
         $urls = [];
         foreach ($this->products as $productId => $productsByStores) {
@@ -430,9 +383,8 @@ class AfterImportDataObserver implements ObserverInterface
      * Generate list based on categories.
      *
      * @return UrlRewrite[]
-     * @throws LocalizedException
      */
-    private function categoriesUrlRewriteGenerate(): array
+    protected function categoriesUrlRewriteGenerate()
     {
         $urls = [];
         foreach ($this->products as $productId => $productsByStores) {
@@ -443,24 +395,17 @@ class AfterImportDataObserver implements ObserverInterface
                         continue;
                     }
                     $requestPath = $this->productUrlPathGenerator->getUrlPathWithSuffix($product, $storeId, $category);
-                    $urls[] = [
-                            $this->urlRewriteFactory->create()
-                            ->setEntityType(ProductUrlRewriteGenerator::ENTITY_TYPE)
-                            ->setEntityId($productId)
-                            ->setRequestPath($requestPath)
-                            ->setTargetPath($this->productUrlPathGenerator->getCanonicalUrlPath($product, $category))
-                            ->setStoreId($storeId)
-                            ->setMetadata(['category_id' => $category->getId()])
-                    ];
-                    $parentCategoryIds = $category->getAnchorsAbove();
-                    if ($parentCategoryIds) {
-                        $urls[] = $this->getParentCategoriesUrlRewrites($parentCategoryIds, $storeId, $product);
-                    }
+                    $urls[] = $this->urlRewriteFactory->create()
+                        ->setEntityType(ProductUrlRewriteGenerator::ENTITY_TYPE)
+                        ->setEntityId($productId)
+                        ->setRequestPath($requestPath)
+                        ->setTargetPath($this->productUrlPathGenerator->getCanonicalUrlPath($product, $category))
+                        ->setStoreId($storeId)
+                        ->setMetadata(['category_id' => $category->getId()]);
                 }
             }
         }
-        $result = !empty($urls) ? array_merge(...$urls) : [];
-        return $result;
+        return $urls;
     }
 
     /**
@@ -468,7 +413,7 @@ class AfterImportDataObserver implements ObserverInterface
      *
      * @return UrlRewrite[]
      */
-    private function currentUrlRewritesRegenerate()
+    protected function currentUrlRewritesRegenerate()
     {
         $currentUrlRewrites = $this->urlFinder->findAllByData(
             [
@@ -487,7 +432,7 @@ class AfterImportDataObserver implements ObserverInterface
             $url = $currentUrlRewrite->getIsAutogenerated()
                 ? $this->generateForAutogenerated($currentUrlRewrite, $category)
                 : $this->generateForCustom($currentUrlRewrite, $category);
-            $urlRewrites = $url + $urlRewrites;
+            $urlRewrites = array_merge($urlRewrites, $url);
         }
 
         $this->product = null;
@@ -502,7 +447,7 @@ class AfterImportDataObserver implements ObserverInterface
      * @param Category $category
      * @return array
      */
-    private function generateForAutogenerated($url, $category)
+    protected function generateForAutogenerated($url, $category)
     {
         $storeId = $url->getStoreId();
         $productId = $url->getEntityId();
@@ -538,7 +483,7 @@ class AfterImportDataObserver implements ObserverInterface
      * @param Category $category
      * @return array
      */
-    private function generateForCustom($url, $category)
+    protected function generateForCustom($url, $category)
     {
         $storeId = $url->getStoreId();
         $productId = $url->getEntityId();
@@ -572,7 +517,7 @@ class AfterImportDataObserver implements ObserverInterface
      * @param UrlRewrite $url
      * @return Category|null|bool
      */
-    private function retrieveCategoryFromMetadata($url)
+    protected function retrieveCategoryFromMetadata($url)
     {
         $metadata = $url->getMetadata();
         if (isset($metadata['category_id'])) {
@@ -583,12 +528,36 @@ class AfterImportDataObserver implements ObserverInterface
     }
 
     /**
+     * Check, category suited for url-rewrite generation.
+     *
+     * @param \Magento\Catalog\Model\Category $category
+     * @param int $storeId
+     * @return bool
+     */
+    protected function isCategoryProperForGenerating($category, $storeId)
+    {
+        if (isset($this->acceptableCategories[$storeId]) &&
+            isset($this->acceptableCategories[$storeId][$category->getId()])) {
+            return $this->acceptableCategories[$storeId][$category->getId()];
+        }
+        $acceptable = false;
+        if ($category->getParentId() != \Magento\Catalog\Model\Category::TREE_ROOT_ID) {
+            list(, $rootCategoryId) = $category->getParentIds();
+            $acceptable = ($rootCategoryId == $this->storeManager->getStore($storeId)->getRootCategoryId());
+        }
+        if (!isset($this->acceptableCategories[$storeId])) {
+            $this->acceptableCategories[$storeId] = [];
+        }
+        $this->acceptableCategories[$storeId][$category->getId()] = $acceptable;
+        return $acceptable;
+    }
+
+    /**
      * Get category by id considering store scope.
      *
      * @param int $categoryId
      * @param int $storeId
-     * @return Category|DataObject
-     * @throws LocalizedException
+     * @return Category|\Magento\Framework\DataObject
      */
     private function getCategoryById($categoryId, $storeId)
     {
@@ -604,47 +573,5 @@ class AfterImportDataObserver implements ObserverInterface
         }
 
         return $this->categoriesCache[$categoryId][$storeId];
-    }
-
-    /**
-     * Check config value of generate_category_product_rewrites
-     *
-     * @return bool
-     */
-    private function isCategoryRewritesEnabled()
-    {
-        return (bool)$this->scopeConfig->getValue('catalog/seo/generate_category_product_rewrites');
-    }
-
-    /**
-     * Generate url-rewrite for anchor parent-categories.
-     *
-     * @param array $categoryIds
-     * @param int $storeId
-     * @param Product $product
-     * @return array
-     * @throws LocalizedException
-     */
-    private function getParentCategoriesUrlRewrites(array $categoryIds, int $storeId, Product $product): array
-    {
-        $urls = [];
-        foreach ($categoryIds as $categoryId) {
-            $category = $this->getCategoryById($categoryId, $storeId);
-            if ($category->getParentId() == Category::TREE_ROOT_ID) {
-                continue;
-            }
-            $requestPath = $this->productUrlPathGenerator
-                ->getUrlPathWithSuffix($product, $storeId, $category);
-            $targetPath = $this->productUrlPathGenerator
-                ->getCanonicalUrlPath($product, $category);
-            $urls[] = $this->urlRewriteFactory->create()
-                ->setEntityType(ProductUrlRewriteGenerator::ENTITY_TYPE)
-                ->setEntityId($product->getId())
-                ->setRequestPath($requestPath)
-                ->setTargetPath($targetPath)
-                ->setStoreId($storeId)
-                ->setMetadata(['category_id' => $category->getId()]);
-        }
-        return $urls;
     }
 }

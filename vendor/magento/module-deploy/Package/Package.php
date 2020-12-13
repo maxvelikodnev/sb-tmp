@@ -150,8 +150,6 @@ class Package
     }
 
     /**
-     * Get area.
-     *
      * @return string
      */
     public function getArea()
@@ -160,8 +158,6 @@ class Package
     }
 
     /**
-     * Get parent.
-     *
      * @return Package
      */
     public function getParent()
@@ -170,8 +166,6 @@ class Package
     }
 
     /**
-     * Get theme.
-     *
      * @return string
      */
     public function getTheme()
@@ -180,8 +174,6 @@ class Package
     }
 
     /**
-     * Get locale.
-     *
      * @return string
      */
     public function getLocale()
@@ -212,8 +204,6 @@ class Package
     }
 
     /**
-     * Get param.
-     *
      * @param string $name
      * @return mixed|null
      */
@@ -223,8 +213,6 @@ class Package
     }
 
     /**
-     * Set param.
-     *
      * @param string $name
      * @param mixed $value
      * @return bool
@@ -332,10 +320,7 @@ class Package
      */
     public function deleteFile($fileId)
     {
-        $file = $this->files[$fileId];
-        $deployedFileId = $file->getDeployedFileId();
         unset($this->files[$fileId]);
-        unset($this->map[$deployedFileId]);
     }
 
     /**
@@ -363,8 +348,6 @@ class Package
     }
 
     /**
-     * Set parent.
-     *
      * @param Package $parent
      * @return bool
      */
@@ -385,8 +368,6 @@ class Package
     }
 
     /**
-     * Get state.
-     *
      * @return int
      */
     public function getState()
@@ -395,8 +376,6 @@ class Package
     }
 
     /**
-     * Set state.
-     *
      * @param int $state
      * @return bool
      */
@@ -407,8 +386,6 @@ class Package
     }
 
     /**
-     * Get inheritance level.
-     *
      * @return int
      */
     public function getInheritanceLevel()
@@ -445,7 +422,6 @@ class Package
     {
         $map = [];
         foreach ($this->getParentPackages() as $parentPackage) {
-            // phpcs:ignore Magento2.Performance.ForeachArrayMerge.ForeachArrayMerge
             $map = array_merge($map, $parentPackage->getMap());
         }
         return $map;
@@ -459,17 +435,15 @@ class Package
      */
     public function getParentFiles($type = null)
     {
-        $files = [[]];
+        $files = [];
         foreach ($this->getParentPackages() as $parentPackage) {
             if ($type === null) {
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge.ForeachArrayMerge
-                $files[] = $parentPackage->getFiles();
+                $files = array_merge($files, $parentPackage->getFiles());
             } else {
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge.ForeachArrayMerge
-                $files[] = $parentPackage->getFilesByType($type);
+                $files = array_merge($files, $parentPackage->getFilesByType($type));
             }
         }
-        return array_merge(...$files);
+        return $files;
     }
 
     /**
@@ -503,8 +477,6 @@ class Package
     }
 
     /**
-     * Get pre processors.
-     *
      * @return Processor\ProcessorInterface[]
      */
     public function getPreProcessors()
@@ -513,8 +485,6 @@ class Package
     }
 
     /**
-     * Get post processors.
-     *
      * @return Processor\ProcessorInterface[]
      */
     public function getPostProcessors()

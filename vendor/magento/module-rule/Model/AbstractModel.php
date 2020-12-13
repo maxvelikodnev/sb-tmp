@@ -12,7 +12,6 @@ use Magento\Framework\Api\ExtensionAttributesFactory;
  * Abstract Rule entity data model
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * phpcs:disable Magento2.Classes.AbstractApi
  * @api
  * @since 100.0.2
  */
@@ -343,7 +342,7 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
                 foreach ($value as $id => $data) {
                     $path = explode('--', $id);
                     $node = & $arr;
-                    for ($i = 0, $l = count($path); $i < $l; $i++) {
+                    for ($i = 0, $l = sizeof($path); $i < $l; $i++) {
                         if (!isset($node[$key][$path[$i]])) {
                             $node[$key][$path[$i]] = [];
                         }
@@ -484,8 +483,6 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
     }
 
     /**
-     * Get extension factory
-     *
      * @return \Magento\Framework\Api\ExtensionAttributesFactory
      * @deprecated 100.1.0
      */
@@ -496,8 +493,6 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
     }
 
     /**
-     * Get custom attribute factory
-     *
      * @return \Magento\Framework\Api\AttributeValueFactory
      * @deprecated 100.1.0
      */

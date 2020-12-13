@@ -16,7 +16,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\Stdlib\ArrayManager;
 
 /**
- * Test for class Magento\Downloadable\Ui\DataProvider\Product\Form\Modifier\Samples
+ * Class SamplesTest
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class SamplesTest extends \PHPUnit\Framework\TestCase
@@ -141,7 +141,7 @@ class SamplesTest extends \PHPUnit\Framework\TestCase
             ->method('isSingleStoreMode');
         $this->typeUploadMock->expects($this->once())
             ->method('toOptionArray');
-        $this->urlBuilderMock->expects($this->never())
+        $this->urlBuilderMock->expects($this->once())
             ->method('addSessionParam')
             ->willReturnSelf();
         $this->urlBuilderMock->expects($this->once())

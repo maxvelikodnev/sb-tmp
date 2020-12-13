@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Model\Layer;
 
@@ -73,13 +72,9 @@ class FilterListTest extends \PHPUnit\Framework\TestCase
 
         $this->objectManagerMock->expects($this->at(1))
             ->method('create')
-            ->with(
-                $expectedClass,
-                [
-                    'data' => ['attribute_model' => $this->attributeMock],
-                    'layer' => $this->layerMock
-                ]
-            )
+            ->with($expectedClass, [
+                'data' => ['attribute_model' => $this->attributeMock],
+                'layer' => $this->layerMock])
             ->will($this->returnValue('filter'));
 
         $this->attributeMock->expects($this->once())

@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace Magento\InventoryLowQuantityNotification\Model\SourceItemConfiguration;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Api\DataObjectHelper;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\InventoryApi\Api\SourceRepositoryInterface;
+use Magento\InventoryLowQuantityNotification\Model\ResourceModel\SourceItemConfiguration\GetData as GetDataModel;
 use Magento\InventoryLowQuantityNotificationApi\Api\Data\SourceItemConfigurationInterface;
+use Magento\InventoryLowQuantityNotificationApi\Api\Data\SourceItemConfigurationInterfaceFactory;
 use Magento\InventoryLowQuantityNotificationApi\Api\GetSourceItemConfigurationInterface;
 use Psr\Log\LoggerInterface;
 
@@ -22,52 +22,49 @@ use Psr\Log\LoggerInterface;
 class Get implements GetSourceItemConfigurationInterface
 {
     /**
+     * @var GetDataModel
+     */
+    private $getDataResourceModel;
+
+    /**
+     * @var GetDefaultValues
+     */
+    private $getDefaultValues;
+
+    /**
+     * @var SourceItemConfigurationInterfaceFactory
+     */
+    private $sourceItemConfigurationFactory;
+
+    /**
+     * @var DataObjectHelper
+     */
+    private $dataObjectHelper;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
 
     /**
-     * @var ProductRepositoryInterface
-     */
-    private $productRepository;
-
-    /**
-     * @var SourceRepositoryInterface
-     */
-    private $sourceRepository;
-
-    /**
-     * @var GetConfiguration
-     */
-    private $getConfiguration;
-
-    /**
-     * @param null $getDataResourceModel @deprecated
-     * @param null $getDefaultValues @deprecated
-     * @param null $sourceItemConfigurationFactory @deprecated
-     * @param null $dataObjectHelper @deprecated
+     * @param GetDataModel $getDataResourceModel
+     * @param GetDefaultValues $getDefaultValues
+     * @param SourceItemConfigurationInterfaceFactory $sourceItemConfigurationFactory
+     * @param DataObjectHelper $dataObjectHelper
      * @param LoggerInterface $logger
-     * @param ProductRepositoryInterface $productRepository
-     * @param SourceRepositoryInterface $sourceRepository
-     * @param GetConfiguration $getConfiguration
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __construct(
-        $getDataResourceModel,
-        $getDefaultValues,
-        $sourceItemConfigurationFactory,
-        $dataObjectHelper,
-        LoggerInterface $logger,
-        ProductRepositoryInterface $productRepository = null,
-        SourceRepositoryInterface $sourceRepository = null,
-        GetConfiguration $getConfiguration = null
+        GetDataModel $getDataResourceModel,
+        GetDefaultValues $getDefaultValues,
+        SourceItemConfigurationInterfaceFactory $sourceItemConfigurationFactory,
+        DataObjectHelper $dataObjectHelper,
+        LoggerInterface $logger
     ) {
+        $this->getDataResourceModel = $getDataResourceModel;
+        $this->getDefaultValues = $getDefaultValues;
+        $this->sourceItemConfigurationFactory = $sourceItemConfigurationFactory;
+        $this->dataObjectHelper = $dataObjectHelper;
         $this->logger = $logger;
-        $this->productRepository = $productRepository ??
-            ObjectManager::getInstance()->get(ProductRepositoryInterface::class);
-        $this->sourceRepository = $sourceRepository ??
-            ObjectManager::getInstance()->get(SourceRepositoryInterface::class);
-        $this->getConfiguration = $getConfiguration ?? ObjectManager::getInstance()->get(GetConfiguration::class);
     }
 
     /**
@@ -75,10 +72,12 @@ class Get implements GetSourceItemConfigurationInterface
      */
     public function execute(string $sourceCode, string $sku): SourceItemConfigurationInterface
     {
-        $this->validateInputData($sourceCode, $sku);
+        if (empty($sourceCode) || empty($sku)) {
+            throw new InputException(__('Wrong input data'));
+        }
 
         try {
-            return $this->getConfiguration->execute($sourceCode, $sku);
+            return $this->getConfiguration($sourceCode, $sku);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             throw new LocalizedException(__('Could not load Source Item Configuration.'), $e);
@@ -86,30 +85,25 @@ class Get implements GetSourceItemConfigurationInterface
     }
 
     /**
-     * Validation for the given data to make sure that sku and source code exits in the system.
-     *
      * @param string $sourceCode
      * @param string $sku
-     * @throws InputException
+     * @return SourceItemConfigurationInterface
      */
-    private function validateInputData(string $sourceCode, string $sku): void
+    private function getConfiguration(string $sourceCode, string $sku): SourceItemConfigurationInterface
     {
-        if (empty($sourceCode) || empty($sku)) {
-            throw new InputException(__('Wrong input data'));
+        $sourceItemConfigurationData = $this->getDataResourceModel->execute($sourceCode, $sku);
+
+        if (null === $sourceItemConfigurationData) {
+            $sourceItemConfigurationData = $this->getDefaultValues->execute($sourceCode, $sku);
         }
 
-        try {
-            // validate if the source exits
-            $this->sourceRepository->get($sourceCode);
-        } catch (LocalizedException $exception) {
-            throw new InputException(__('Wrong input data'));
-        }
-
-        try {
-            // validate if the product exits
-            $this->productRepository->get($sku);
-        } catch (LocalizedException $exception) {
-            throw new InputException(__('Wrong input data'));
-        }
+        /** @var SourceItemConfigurationInterface $sourceItem */
+        $sourceItemConfiguration = $this->sourceItemConfigurationFactory->create();
+        $this->dataObjectHelper->populateWithArray(
+            $sourceItemConfiguration,
+            $sourceItemConfigurationData,
+            SourceItemConfigurationInterface::class
+        );
+        return $sourceItemConfiguration;
     }
 }

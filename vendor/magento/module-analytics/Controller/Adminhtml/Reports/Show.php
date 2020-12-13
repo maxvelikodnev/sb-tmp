@@ -27,7 +27,7 @@ class Show extends Action implements HttpGetActionInterface
     /**
      * @inheritdoc
      */
-    const ADMIN_RESOURCE = 'Magento_Analytics::advanced_reporting';
+    const ADMIN_RESOURCE = 'Magento_Analytics::analytics_settings';
 
     /**
      * @param Context $context

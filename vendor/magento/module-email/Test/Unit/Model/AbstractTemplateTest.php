@@ -69,6 +69,9 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
         $this->design = $this->getMockBuilder(\Magento\Framework\View\DesignInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->registry = $this->getMockBuilder(\Magento\Framework\Registry::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->appEmulation = $this->getMockBuilder(\Magento\Store\Model\App\Emulation::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -114,8 +117,8 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
     /**
      * Return the model under test with additional methods mocked.
      *
-     * @param  array $mockedMethods
-     * @param  array $data
+     * @param array $mockedMethods
+     * @param array $data
      * @return \Magento\Email\Model\Template|\PHPUnit_Framework_MockObject_MockObject
      */
     protected function getModelMock(array $mockedMethods = [], array $data = [])
@@ -157,8 +160,7 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
     public function testGetProcessedTemplate($variables, $templateType, $storeId, $expectedVariables, $expectedResult)
     {
         $filterTemplate = $this->getMockBuilder(\Magento\Email\Model\Template\Filter::class)
-            ->setMethods(
-                [
+            ->setMethods([
                 'setUseSessionInUrl',
                 'setPlainTemplateMode',
                 'setIsChildTemplate',
@@ -168,13 +170,11 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
                 'filter',
                 'getStoreId',
                 'getInlineCssFiles',
-                'setStrictMode',
-                ]
-            )
+            ])
             ->disableOriginalConstructor()
             ->getMock();
 
-        $filterTemplate->expects($this->never())
+        $filterTemplate->expects($this->once())
             ->method('setUseSessionInUrl')
             ->with(false)
             ->will($this->returnSelf());
@@ -194,27 +194,20 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
         $filterTemplate->expects($this->any())
             ->method('getStoreId')
             ->will($this->returnValue($storeId));
-        $filterTemplate->expects($this->exactly(2))
-            ->method('setStrictMode')
-            ->withConsecutive([$this->equalTo(true)], [$this->equalTo(false)])
-            ->willReturnOnConsecutiveCalls(false, true);
 
         $expectedVariables['store'] = $this->store;
 
-        $model = $this->getModelMock(
-            [
+        $model = $this->getModelMock([
             'getDesignParams',
             'applyDesignConfig',
             'getTemplateText',
             'isPlain',
-            ]
-        );
+        ]);
         $filterTemplate->expects($this->any())
             ->method('setVariables')
             ->with(array_merge(['this' => $model], $expectedVariables));
         $model->setTemplateFilter($filterTemplate);
         $model->setTemplateType($templateType);
-        $model->setTemplateId('123');
 
         $designParams = [
             'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
@@ -248,8 +241,8 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
     public function testGetProcessedTemplateException()
     {
         $filterTemplate = $this->getMockBuilder(\Magento\Email\Model\Template\Filter::class)
-            ->setMethods(
-                [
+            ->setMethods([
+                'setUseSessionInUrl',
                 'setPlainTemplateMode',
                 'setIsChildTemplate',
                 'setDesignParams',
@@ -258,12 +251,12 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
                 'filter',
                 'getStoreId',
                 'getInlineCssFiles',
-                'setStrictMode',
-                ]
-            )
+            ])
             ->disableOriginalConstructor()
             ->getMock();
-
+        $filterTemplate->expects($this->once())
+            ->method('setUseSessionInUrl')
+            ->will($this->returnSelf());
         $filterTemplate->expects($this->once())
             ->method('setPlainTemplateMode')
             ->will($this->returnSelf());
@@ -279,19 +272,13 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
         $filterTemplate->expects($this->any())
             ->method('getStoreId')
             ->will($this->returnValue(1));
-        $filterTemplate->expects($this->exactly(2))
-            ->method('setStrictMode')
-            ->withConsecutive([$this->equalTo(false)], [$this->equalTo(true)])
-            ->willReturnOnConsecutiveCalls(true, false);
 
-        $model = $this->getModelMock(
-            [
+        $model = $this->getModelMock([
             'getDesignParams',
             'applyDesignConfig',
             'getTemplateText',
             'isPlain',
-            ]
-        );
+        ]);
 
         $designParams = [
             'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
@@ -303,7 +290,6 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
             ->will($this->returnValue($designParams));
         $model->setTemplateFilter($filterTemplate);
         $model->setTemplateType(\Magento\Framework\App\TemplateTypesInterface::TYPE_TEXT);
-        $model->setTemplateId('abc');
 
         $filterTemplate->expects($this->once())
             ->method('filter')
@@ -375,9 +361,9 @@ class AbstractTemplateTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param             array $config
+     * @param array $config
      * @expectedException \Magento\Framework\Exception\LocalizedException
-     * @dataProvider      invalidInputParametersDataProvider
+     * @dataProvider invalidInputParametersDataProvider
      */
     public function testSetDesignConfigWithInvalidInputParametersThrowsException($config)
     {

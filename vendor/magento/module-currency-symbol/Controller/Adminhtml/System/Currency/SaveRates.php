@@ -1,5 +1,6 @@
 <?php
 /**
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
@@ -8,9 +9,6 @@ namespace Magento\CurrencySymbol\Controller\Adminhtml\System\Currency;
 
 use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 
-/**
- * Class SaveRates
- */
 class SaveRates extends \Magento\CurrencySymbol\Controller\Adminhtml\System\Currency implements HttpPostActionInterface
 {
     /**
@@ -25,13 +23,12 @@ class SaveRates extends \Magento\CurrencySymbol\Controller\Adminhtml\System\Curr
             try {
                 foreach ($data as $currencyCode => $rate) {
                     foreach ($rate as $currencyTo => $value) {
-                        $value = abs(
-                            $this->_objectManager->get(\Magento\Framework\Locale\FormatInterface::class)
-                                ->getNumber($value)
-                        );
+                        $value = abs($this->_objectManager->get(
+                            \Magento\Framework\Locale\FormatInterface::class
+                        )->getNumber($value));
                         $data[$currencyCode][$currencyTo] = $value;
                         if ($value == 0) {
-                            $this->messageManager->addWarningMessage(
+                            $this->messageManager->addWarning(
                                 __('Please correct the input data for "%1 => %2" rate.', $currencyCode, $currencyTo)
                             );
                         }
@@ -39,9 +36,9 @@ class SaveRates extends \Magento\CurrencySymbol\Controller\Adminhtml\System\Curr
                 }
 
                 $this->_objectManager->create(\Magento\Directory\Model\Currency::class)->saveRates($data);
-                $this->messageManager->addSuccessMessage(__('All valid rates have been saved.'));
+                $this->messageManager->addSuccess(__('All valid rates have been saved.'));
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addError($e->getMessage());
             }
         }
 

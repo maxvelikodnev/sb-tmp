@@ -7,31 +7,28 @@
 namespace Magento\Customer\Model\ResourceModel;
 
 use Magento\Customer\Api\CustomerMetadataInterface;
-use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Api\Data\CustomerSearchResultsInterfaceFactory;
-use Magento\Customer\Model\Customer as CustomerModel;
-use Magento\Customer\Model\Customer\Attribute\CompositeValidator;
-use Magento\Customer\Model\Customer\NotificationStorage;
+use Magento\Framework\Api\ExtensibleDataObjectConverter;
+use Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\CustomerRegistry;
 use Magento\Customer\Model\Data\CustomerSecureFactory;
+use Magento\Customer\Model\Customer\NotificationStorage;
 use Magento\Customer\Model\Delegation\Data\NewOperation;
-use Magento\Customer\Model\Delegation\Storage as DelegatedStorage;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Api\DataObjectHelper;
-use Magento\Framework\Api\ExtensibleDataObjectConverter;
-use Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface;
 use Magento\Framework\Api\ImageProcessorInterface;
-use Magento\Framework\Api\Search\FilterGroup;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Api\Search\FilterGroup;
 use Magento\Framework\Event\ManagerInterface;
+use Magento\Customer\Model\Delegation\Storage as DelegatedStorage;
+use Magento\Framework\App\ObjectManager;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Customer\Model\ResourceModel\Customer\Collection;
 
 /**
- * Customer repository responsible for CRUD operations.
+ * Customer repository.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.TooManyFields)
@@ -119,11 +116,6 @@ class CustomerRepository implements CustomerRepositoryInterface
     private $delegatedStorage;
 
     /**
-     * @var CompositeValidator
-     */
-    private $compositeValidator;
-
-    /**
      * @param CustomerFactory $customerFactory
      * @param CustomerSecureFactory $customerSecureFactory
      * @param CustomerRegistry $customerRegistry
@@ -140,7 +132,6 @@ class CustomerRepository implements CustomerRepositoryInterface
      * @param CollectionProcessorInterface $collectionProcessor
      * @param NotificationStorage $notificationStorage
      * @param DelegatedStorage|null $delegatedStorage
-     * @param CompositeValidator|null $compositeValidator
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -159,8 +150,7 @@ class CustomerRepository implements CustomerRepositoryInterface
         JoinProcessorInterface $extensionAttributesJoinProcessor,
         CollectionProcessorInterface $collectionProcessor,
         NotificationStorage $notificationStorage,
-        DelegatedStorage $delegatedStorage = null,
-        CompositeValidator $compositeValidator = null
+        DelegatedStorage $delegatedStorage = null
     ) {
         $this->customerFactory = $customerFactory;
         $this->customerSecureFactory = $customerSecureFactory;
@@ -178,9 +168,6 @@ class CustomerRepository implements CustomerRepositoryInterface
         $this->collectionProcessor = $collectionProcessor;
         $this->notificationStorage = $notificationStorage;
         $this->delegatedStorage = $delegatedStorage ?? ObjectManager::getInstance()->get(DelegatedStorage::class);
-        $this->compositeValidator = $compositeValidator ?? ObjectManager::getInstance()->get(
-            CompositeValidator::class
-        );
     }
 
     /**
@@ -197,9 +184,6 @@ class CustomerRepository implements CustomerRepositoryInterface
      */
     public function save(CustomerInterface $customer, $passwordHash = null)
     {
-        foreach ($customer->getCustomAttributes() as $customAttribute) {
-            $this->compositeValidator->validate($customAttribute);
-        }
         /** @var NewOperation|null $delegatedNewOperation */
         $delegatedNewOperation = !$customer->getId() ? $this->delegatedStorage->consumeNewOperation() : null;
         $prevCustomerData = null;
@@ -219,15 +203,13 @@ class CustomerRepository implements CustomerRepositoryInterface
         $customer->setAddresses([]);
         $customerData = $this->extensibleDataObjectConverter->toNestedArray($customer, [], CustomerInterface::class);
         $customer->setAddresses($origAddresses);
-        /** @var CustomerModel $customerModel */
+        /** @var Customer $customerModel */
         $customerModel = $this->customerFactory->create(['data' => $customerData]);
         //Model's actual ID field maybe different than "id" so "id" field from $customerData may be ignored.
         $customerModel->setId($customer->getId());
         $storeId = $customerModel->getStoreId();
         if ($storeId === null) {
-            $customerModel->setStoreId(
-                $prevCustomerData ? $prevCustomerData->getStoreId() : $this->storeManager->getStore()->getId()
-            );
+            $customerModel->setStoreId($this->storeManager->getStore()->getId());
         }
         // Need to use attribute set or future updates can cause data loss
         if (!$customerModel->getAttributeSetId()) {
@@ -239,10 +221,16 @@ class CustomerRepository implements CustomerRepositoryInterface
             $customerModel->setRpToken(null);
             $customerModel->setRpTokenCreatedAt(null);
         }
-        if ($this->isDefaultAddressChanged('default_billing', $customerArr, $prevCustomerDataArr)) {
+        if (!array_key_exists('addresses', $customerArr)
+            && null !== $prevCustomerDataArr
+            && array_key_exists('default_billing', $prevCustomerDataArr)
+        ) {
             $customerModel->setDefaultBilling($prevCustomerDataArr['default_billing']);
         }
-        if ($this->isDefaultAddressChanged('default_shipping', $customerArr, $prevCustomerDataArr)) {
+        if (!array_key_exists('addresses', $customerArr)
+            && null !== $prevCustomerDataArr
+            && array_key_exists('default_shipping', $prevCustomerDataArr)
+        ) {
             $customerModel->setDefaultShipping($prevCustomerDataArr['default_shipping']);
         }
         $this->setValidationFlag($customerArr, $customerModel);
@@ -289,26 +277,8 @@ class CustomerRepository implements CustomerRepositoryInterface
                 'delegate_data' => $delegatedNewOperation ? $delegatedNewOperation->getAdditionalData() : [],
             ]
         );
-        return $savedCustomer;
-    }
 
-    /**
-     * Check if customer default address is changed.
-     *
-     * @param string $addressType
-     * @param array $currentCustomerData
-     * @param array|null $prevCustomerData
-     *
-     * @return bool
-     */
-    private function isDefaultAddressChanged(
-        string $addressType,
-        array $currentCustomerData,
-        ?array $prevCustomerData
-    ): bool {
-        return !array_key_exists('addresses', $currentCustomerData)
-            && null !== $prevCustomerData
-            && array_key_exists($addressType, $prevCustomerData);
+        return $savedCustomer;
     }
 
     /**
@@ -373,7 +343,7 @@ class CustomerRepository implements CustomerRepositoryInterface
      * Retrieve customers which match a specified criteria.
      *
      * This call returns an array of objects, but detailed information about each object’s attributes might not be
-     * included. See https://devdocs.magento.com/codelinks/attributes.html#CustomerRepositoryInterface to determine
+     * included. See http://devdocs.magento.com/codelinks/attributes.html#CustomerRepositoryInterface to determine
      * which call to use to get detailed information about all attributes for an object.
      *
      * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria

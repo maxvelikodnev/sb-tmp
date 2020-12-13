@@ -22,7 +22,6 @@
             <createData entity="EnableAdminAccountAllowCountry" stepKey="setAllowedCountries"/>
         </before>
         <after>
-            <magentoCLI stepKey="flushCache" command="cache:flush"/>
             <createData entity="DisableAdminAccountAllowCountry" stepKey="setDefaultValueForAllowCountries"/>
             <actionGroup ref="LoginAsAdmin" stepKey="loginAsAdmin"/>
             <actionGroup ref="AdminDeleteCustomerActionGroup" stepKey="deleteCustomer">

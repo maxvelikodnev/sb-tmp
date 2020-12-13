@@ -6,11 +6,6 @@
 namespace Magento\CatalogSearch\Model\Indexer\Fulltext\Plugin;
 
 use Magento\CatalogSearch\Model\Indexer\Fulltext;
-use Magento\Framework\Model\AbstractModel;
-use Magento\Catalog\Model\ResourceModel\Attribute as AttributeResourceModel;
-use Magento\Framework\Search\Request\Config;
-use Magento\Framework\Indexer\IndexerRegistry;
-use Magento\Catalog\Api\Data\EavAttributeInterface;
 
 /**
  * Catalog search indexer plugin for catalog attribute.
@@ -18,7 +13,7 @@ use Magento\Catalog\Api\Data\EavAttributeInterface;
 class Attribute extends AbstractPlugin
 {
     /**
-     * @var Config
+     * @var \Magento\Framework\Search\Request\Config
      */
     private $config;
 
@@ -38,12 +33,12 @@ class Attribute extends AbstractPlugin
     private $saveIsNew;
 
     /**
-     * @param IndexerRegistry $indexerRegistry
-     * @param Config $config
+     * @param \Magento\Framework\Indexer\IndexerRegistry $indexerRegistry
+     * @param \Magento\Framework\Search\Request\Config $config
      */
     public function __construct(
-        IndexerRegistry $indexerRegistry,
-        Config $config
+        \Magento\Framework\Indexer\IndexerRegistry $indexerRegistry,
+        \Magento\Framework\Search\Request\Config $config
     ) {
         parent::__construct($indexerRegistry);
         $this->config = $config;
@@ -52,32 +47,36 @@ class Attribute extends AbstractPlugin
     /**
      * Check if indexer invalidation is needed on attribute save (searchable flag change)
      *
-     * @param AttributeResourceModel $subject
-     * @param AbstractModel $attribute
+     * @param \Magento\Catalog\Model\ResourceModel\Attribute $subject
+     * @param \Magento\Framework\Model\AbstractModel $attribute
      *
      * @return void
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function beforeSave(
-        AttributeResourceModel $subject,
-        AbstractModel $attribute
+        \Magento\Catalog\Model\ResourceModel\Attribute $subject,
+        \Magento\Framework\Model\AbstractModel $attribute
     ) {
         $this->saveIsNew = $attribute->isObjectNew();
-        $this->saveNeedInvalidation = $this->shouldInvalidateSearchIndex($attribute);
+        $this->saveNeedInvalidation = (
+            $attribute->dataHasChangedFor('is_searchable')
+            || $attribute->dataHasChangedFor('is_filterable')
+            || $attribute->dataHasChangedFor('is_visible_in_advanced_search')
+        );
     }
 
     /**
      * Invalidate indexer on attribute save (searchable flag change)
      *
-     * @param AttributeResourceModel $subject
-     * @param AttributeResourceModel $result
+     * @param \Magento\Catalog\Model\ResourceModel\Attribute $subject
+     * @param \Magento\Catalog\Model\ResourceModel\Attribute $result
      *
-     * @return AttributeResourceModel
+     * @return \Magento\Catalog\Model\ResourceModel\Attribute
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function afterSave(
-        AttributeResourceModel $subject,
-        AttributeResourceModel $result
+        \Magento\Catalog\Model\ResourceModel\Attribute $subject,
+        \Magento\Catalog\Model\ResourceModel\Attribute $result
     ) {
         if ($this->saveNeedInvalidation) {
             $this->indexerRegistry->get(Fulltext::INDEXER_ID)->invalidate();
@@ -92,15 +91,15 @@ class Attribute extends AbstractPlugin
     /**
      * Check if indexer invalidation is needed on searchable attribute delete
      *
-     * @param AttributeResourceModel $subject
-     * @param AbstractModel $attribute
+     * @param \Magento\Catalog\Model\ResourceModel\Attribute $subject
+     * @param \Magento\Framework\Model\AbstractModel $attribute
      *
      * @return void
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function beforeDelete(
-        AttributeResourceModel $subject,
-        AbstractModel $attribute
+        \Magento\Catalog\Model\ResourceModel\Attribute $subject,
+        \Magento\Framework\Model\AbstractModel $attribute
     ) {
         $this->deleteNeedInvalidation = !$attribute->isObjectNew() && $attribute->getIsSearchable();
     }
@@ -108,45 +107,19 @@ class Attribute extends AbstractPlugin
     /**
      * Invalidate indexer on searchable attribute delete
      *
-     * @param AttributeResourceModel $subject
-     * @param AttributeResourceModel $result
+     * @param \Magento\Catalog\Model\ResourceModel\Attribute $subject
+     * @param \Magento\Catalog\Model\ResourceModel\Attribute $result
      *
-     * @return AttributeResourceModel
+     * @return \Magento\Catalog\Model\ResourceModel\Attribute
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function afterDelete(
-        AttributeResourceModel $subject,
-        AttributeResourceModel $result
+        \Magento\Catalog\Model\ResourceModel\Attribute $subject,
+        \Magento\Catalog\Model\ResourceModel\Attribute $result
     ) {
         if ($this->deleteNeedInvalidation) {
             $this->indexerRegistry->get(Fulltext::INDEXER_ID)->invalidate();
         }
         return $result;
-    }
-
-    /**
-     * Check if catalogsearch_fulltext index should be invalidated.
-     *
-     * @param AbstractModel $attribute
-     * @return bool
-     */
-    private function shouldInvalidateSearchIndex(
-        AbstractModel $attribute
-    ):bool {
-        $shouldInvalidate = false;
-        $fields = [
-            EavAttributeInterface::IS_SEARCHABLE,
-            EavAttributeInterface::IS_FILTERABLE,
-            EavAttributeInterface::IS_VISIBLE_IN_ADVANCED_SEARCH,
-        ];
-        foreach ($fields as $field) {
-            if ($this->saveIsNew && $attribute->getData($field)
-                || !$this->saveIsNew && $attribute->dataHasChangedFor($field)) {
-                $shouldInvalidate = true;
-                break;
-            }
-        }
-
-        return $shouldInvalidate;
     }
 }

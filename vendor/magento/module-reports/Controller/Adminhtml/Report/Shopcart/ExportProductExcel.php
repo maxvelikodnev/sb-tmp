@@ -4,19 +4,12 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Reports\Controller\Adminhtml\Report\Shopcart;
 
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\App\Action\HttpGetActionInterface as HttpGetActionInterface;
-use Magento\Reports\Controller\Adminhtml\Report\Shopcart\Product as ShopCartProduct;
 
-/**
- * Class \Magento\Reports\Controller\Adminhtml\Report\Shopcart\ExportProductExcel
- */
-class ExportProductExcel extends ShopCartProduct implements HttpGetActionInterface
+class ExportProductExcel extends \Magento\Reports\Controller\Adminhtml\Report\Shopcart
 {
     /**
      * Export products report to Excel XML format

@@ -63,11 +63,6 @@ class StaticField implements FieldProviderInterface
     private $fieldNameResolver;
 
     /**
-     * @var array
-     */
-    private $excludedAttributes;
-
-    /**
      * @param Config $eavConfig
      * @param FieldTypeConverterInterface $fieldTypeConverter
      * @param IndexTypeConverterInterface $indexTypeConverter
@@ -75,7 +70,6 @@ class StaticField implements FieldProviderInterface
      * @param FieldIndexResolver $fieldIndexResolver
      * @param AttributeProvider $attributeAdapterProvider
      * @param FieldName\ResolverInterface|null $fieldNameResolver
-     * @param array $excludedAttributes
      */
     public function __construct(
         Config $eavConfig,
@@ -84,8 +78,7 @@ class StaticField implements FieldProviderInterface
         FieldTypeResolver $fieldTypeResolver,
         FieldIndexResolver $fieldIndexResolver,
         AttributeProvider $attributeAdapterProvider,
-        FieldName\ResolverInterface $fieldNameResolver = null,
-        array $excludedAttributes = []
+        FieldName\ResolverInterface $fieldNameResolver = null
     ) {
         $this->eavConfig = $eavConfig;
         $this->fieldTypeConverter = $fieldTypeConverter;
@@ -95,7 +88,6 @@ class StaticField implements FieldProviderInterface
         $this->attributeAdapterProvider = $attributeAdapterProvider;
         $this->fieldNameResolver = $fieldNameResolver ?: ObjectManager::getInstance()
             ->get(FieldName\ResolverInterface::class);
-        $this->excludedAttributes = $excludedAttributes;
     }
 
     /**
@@ -111,9 +103,6 @@ class StaticField implements FieldProviderInterface
         $allAttributes = [];
 
         foreach ($attributes as $attribute) {
-            if (in_array($attribute->getAttributeCode(), $this->excludedAttributes, true)) {
-                continue;
-            }
             $attributeAdapter = $this->attributeAdapterProvider->getByAttributeCode($attribute->getAttributeCode());
             $fieldName = $this->fieldNameResolver->getFieldName($attributeAdapter);
 
@@ -139,21 +128,6 @@ class StaticField implements FieldProviderInterface
                         IndexTypeConverterInterface::INTERNAL_NO_ANALYZE_VALUE
                     )
                 ];
-            }
-
-            if ($attributeAdapter->isTextType()) {
-                $keywordFieldName = FieldTypeConverterInterface::INTERNAL_DATA_TYPE_KEYWORD;
-                $index = $this->indexTypeConverter->convert(
-                    IndexTypeConverterInterface::INTERNAL_NO_ANALYZE_VALUE
-                );
-                $allAttributes[$fieldName]['fields'][$keywordFieldName] = [
-                    'type' => $this->fieldTypeConverter->convert(
-                        FieldTypeConverterInterface::INTERNAL_DATA_TYPE_KEYWORD
-                    )
-                ];
-                if ($index) {
-                    $allAttributes[$fieldName]['fields'][$keywordFieldName]['index'] = $index;
-                }
             }
 
             if ($attributeAdapter->isComplexType()) {

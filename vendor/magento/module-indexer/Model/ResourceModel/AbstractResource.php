@@ -11,7 +11,6 @@ use Magento\Framework\DB\Select;
 /**
  * Abstract resource model. Can be used as base for indexer resources
  *
- * phpcs:disable Magento2.Classes.AbstractApi
  * @api
  * @since 100.0.2
  */
@@ -121,7 +120,8 @@ abstract class AbstractResource extends \Magento\Framework\Model\ResourceModel\D
     }
 
     /**
-     * Insert data from select statement of read adapter to destination table related with index adapter
+     * Insert data from select statement of read adapter to
+     * destination table related with index adapter
      *
      * @param Select $select
      * @param string $destTable
@@ -141,9 +141,6 @@ abstract class AbstractResource extends \Magento\Framework\Model\ResourceModel\D
 
         if ($from === $to) {
             $query = $select->insertFromSelect($destTable, $columns);
-            if ($to->getTransactionLevel() === 0) {
-                $to->query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED;');
-            }
             $to->query($query);
         } else {
             $stmt = $from->query($select);

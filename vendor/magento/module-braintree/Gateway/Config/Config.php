@@ -10,9 +10,6 @@ use Magento\Framework\Serialize\Serializer\Json;
 
 /**
  * Class Config
- *
- * @deprecated Starting from Magento 2.3.6 Braintree payment method core integration is deprecated
- * in favor of official payment integration available on the marketplace
  */
 class Config extends \Magento\Payment\Gateway\Config\Config
 {
@@ -33,6 +30,7 @@ class Config extends \Magento\Payment\Gateway\Config\Config
     const KEY_VERIFY_SPECIFIC = 'verify_specific_countries';
     const VALUE_3DSECURE_ALL = 0;
     const CODE_3DSECURE = 'three_d_secure';
+    const KEY_KOUNT_MERCHANT_ID = 'kount_id';
     const FRAUD_PROTECTION = 'fraudprotection';
 
     /**
@@ -175,7 +173,6 @@ class Config extends \Magento\Payment\Gateway\Config\Config
 
     /**
      * Gets value of configured environment.
-     *
      * Possible values: production or sandbox.
      *
      * @param int|null $storeId
@@ -184,6 +181,17 @@ class Config extends \Magento\Payment\Gateway\Config\Config
     public function getEnvironment($storeId = null)
     {
         return $this->getValue(Config::KEY_ENVIRONMENT, $storeId);
+    }
+
+    /**
+     * Gets Kount merchant ID.
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getKountMerchantId($storeId = null)
+    {
+        return $this->getValue(Config::KEY_KOUNT_MERCHANT_ID, $storeId);
     }
 
     /**
@@ -209,23 +217,11 @@ class Config extends \Magento\Payment\Gateway\Config\Config
     }
 
     /**
-     * Returns SDK url.
-     *
      * @return string
      */
     public function getSdkUrl()
     {
         return $this->getValue(Config::KEY_SDK_URL);
-    }
-
-    /**
-     * Gets Hosted Fields SDK Url
-     *
-     * @return string
-     */
-    public function getHostedFieldsSdkUrl(): string
-    {
-        return $this->getValue('hosted_fields_sdk_url');
     }
 
     /**

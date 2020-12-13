@@ -49,6 +49,4 @@
             </argument>
         </arguments>
     </type>
-    <preference for="Magento\Checkout\Api\PaymentProcessingRateLimiterInterface"
-                type="Magento\Checkout\Model\CaptchaPaymentProcessingRateLimiter" />
 </config>

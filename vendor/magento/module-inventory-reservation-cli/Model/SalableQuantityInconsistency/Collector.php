@@ -25,7 +25,7 @@ class Collector
     private $items = [];
 
     /**
-     * @var SalableQuantityInconsistencyFactory
+     * @var \Magento\InventoryReservationCli\Model\SalableQuantityInconsistencyFactory
      */
     private $salableQuantityInconsistencyFactory;
 
@@ -55,8 +55,6 @@ class Collector
     }
 
     /**
-     * Add reservation to collectors items
-     *
      * @param ReservationInterface $reservation
      */
     public function addReservation(ReservationInterface $reservation): void
@@ -76,8 +74,6 @@ class Collector
     }
 
     /**
-     * Add order to collectors items
-     *
      * @param OrderInterface $order
      */
     public function addOrder(OrderInterface $order): void
@@ -91,33 +87,10 @@ class Collector
             $this->items[$key] = $this->salableQuantityInconsistencyFactory->create();
         }
 
-        $this->items[$key]->setOrderIncrementId($order->getIncrementId());
-        $this->items[$key]->setOrderStatus($order->getStatus());
+        $this->items[$key]->setOrder($order);
     }
 
     /**
-     * Add order to collectors items
-     *
-     * @param array $orderData
-     */
-    public function addOrderData(array $orderData): void
-    {
-        $objectId = $orderData['entity_id'];
-        $websiteId = (int)$orderData['website_id'];
-        $stockId = (int)$this->stockByWebsiteIdResolver->execute((int)$websiteId)->getStockId();
-        $key = $objectId . '-' . $stockId;
-
-        if (!isset($this->items[$key])) {
-            $this->items[$key] = $this->salableQuantityInconsistencyFactory->create();
-        }
-
-        $this->items[$key]->setOrderIncrementId($orderData['increment_id']);
-        $this->items[$key]->setOrderStatus($orderData['status']);
-    }
-
-    /**
-     * Getter for items
-     *
      * @return SalableQuantityInconsistency[]
      */
     public function getItems(): array
@@ -126,8 +99,6 @@ class Collector
     }
 
     /**
-     * Setter for items
-     *
      * @param SalableQuantityInconsistency[] $items
      */
     public function setItems(array $items): void

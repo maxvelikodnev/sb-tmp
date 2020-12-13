@@ -65,7 +65,15 @@
             </div>
         </div>
         <div class="actions-toolbar" data-bind="visible: !isReviewRequired()">
-            <div data-container="paypal-button" class="primary"></div>
+            <div class="primary">
+                <button data-button="place" data-role="review-save"
+                        type="submit"
+                        data-bind="attr: {id: getButtonId(), title: $t(getButtonTitle())}, enable: (isActive()), click: payWithPayPal"
+                        class="action primary checkout"
+                        disabled>
+                    <span translate="getButtonTitle()"></span>
+                </button>
+            </div>
         </div>
     </div>
 </div>

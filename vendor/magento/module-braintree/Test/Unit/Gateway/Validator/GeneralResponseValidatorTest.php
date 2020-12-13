@@ -14,9 +14,6 @@ use Magento\Payment\Gateway\Validator\Result;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use PHPUnit_Framework_MockObject_MockObject as MockObject;
 
-/**
- * Class GeneralResponseValidatorTest
- */
 class GeneralResponseValidatorTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -64,13 +61,11 @@ class GeneralResponseValidatorTest extends \PHPUnit\Framework\TestCase
         $result = new Result($isValid, $messages);
 
         $this->resultInterfaceFactory->method('create')
-            ->with(
-                [
-                    'isValid' => $isValid,
-                    'failsDescription' => $messages,
-                    'errorCodes' => $errorCodes
-                ]
-            )
+            ->with([
+                'isValid' => $isValid,
+                'failsDescription' => $messages,
+                'errorCodes' => $errorCodes
+            ])
             ->willReturn($result);
 
         $actual = $this->responseValidator->validate($validationSubject);
@@ -87,11 +82,9 @@ class GeneralResponseValidatorTest extends \PHPUnit\Framework\TestCase
     {
         $successTransaction = new \stdClass();
         $successTransaction->success = true;
-        $successTransaction->status = 'authorized';
 
         $failureTransaction = new \stdClass();
         $failureTransaction->success = false;
-        $failureTransaction->status = 'declined';
         $failureTransaction->message = 'Transaction was failed.';
 
         $errors = [
@@ -100,10 +93,10 @@ class GeneralResponseValidatorTest extends \PHPUnit\Framework\TestCase
                     'code' => 81804,
                     'attribute' => 'base',
                     'message' => 'Cannot process transaction.'
-                ],
+                ]
             ]
         ];
-        $errorTransaction = new Error(['errors' => $errors, 'transaction' => ['status' => 'declined']]);
+        $errorTransaction = new Error(['errors' => $errors]);
 
         return [
             [

@@ -11,12 +11,7 @@ use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator;
 use Magento\CatalogUrlRewrite\Model\ProductUrlRewriteGenerator;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewriteFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ObjectManager;
 
-/**
- * Generate url rewrites for categories
- */
 class CategoriesUrlRewriteGenerator
 {
     /**
@@ -33,10 +28,8 @@ class CategoriesUrlRewriteGenerator
      * @param ProductUrlPathGenerator $productUrlPathGenerator
      * @param UrlRewriteFactory $urlRewriteFactory
      */
-    public function __construct(
-        ProductUrlPathGenerator $productUrlPathGenerator,
-        UrlRewriteFactory $urlRewriteFactory
-    ) {
+    public function __construct(ProductUrlPathGenerator $productUrlPathGenerator, UrlRewriteFactory $urlRewriteFactory)
+    {
         $this->productUrlPathGenerator = $productUrlPathGenerator;
         $this->urlRewriteFactory = $urlRewriteFactory;
     }

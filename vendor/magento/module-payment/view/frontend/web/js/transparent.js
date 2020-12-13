@@ -8,7 +8,7 @@ define([
     'jquery',
     'mage/template',
     'Magento_Ui/js/modal/alert',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'Magento_Payment/js/model/credit-card-validation/validator',
     'Magento_Checkout/js/model/full-screen-loader'
 ], function ($, mageTemplate, alert, ui, validator, fullScreenLoader) {

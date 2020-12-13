@@ -9,8 +9,6 @@ namespace Magento\Inventory\Model\StockSourceLink\Validator;
 
 use Magento\Framework\Validation\ValidationResult;
 use Magento\Framework\Validation\ValidationResultFactory;
-use Magento\Inventory\Model\Validators\NotAnEmptyString;
-use Magento\Inventory\Model\Validators\NoWhitespaceInString;
 use Magento\InventoryApi\Api\Data\StockSourceLinkInterface;
 use Magento\InventoryApi\Model\StockSourceLinkValidatorInterface;
 
@@ -25,28 +23,11 @@ class SourceCodeValidator implements StockSourceLinkValidatorInterface
     private $validationResultFactory;
 
     /**
-     * @var NotAnEmptyString
-     */
-    private $notAnEmptyString;
-
-    /**
-     * @var NoWhitespaceInString
-     */
-    private $noWhitespaceInString;
-
-    /**
      * @param ValidationResultFactory $validationResultFactory
-     * @param NotAnEmptyString $notAnEmptyString
-     * @param NoWhitespaceInString $noWhitespaceInString
      */
-    public function __construct(
-        ValidationResultFactory $validationResultFactory,
-        NotAnEmptyString $notAnEmptyString,
-        NoWhitespaceInString $noWhitespaceInString
-    ) {
+    public function __construct(ValidationResultFactory $validationResultFactory)
+    {
         $this->validationResultFactory = $validationResultFactory;
-        $this->notAnEmptyString = $notAnEmptyString;
-        $this->noWhitespaceInString = $noWhitespaceInString;
     }
 
     /**
@@ -55,11 +36,14 @@ class SourceCodeValidator implements StockSourceLinkValidatorInterface
     public function validate(StockSourceLinkInterface $link): ValidationResult
     {
         $value = (string)$link->getSourceCode();
-        $errors = [
-            $this->notAnEmptyString->execute(StockSourceLinkInterface::SOURCE_CODE, $value),
-            $this->noWhitespaceInString->execute(StockSourceLinkInterface::SOURCE_CODE, $value)
-        ];
-        $errors = !empty($errors) ? array_merge(...$errors) : $errors;
+
+        if ('' === trim($value)) {
+            $errors[] = __('"%field" can not be empty.', ['field' => StockSourceLinkInterface::SOURCE_CODE]);
+        } elseif (preg_match('/\s/', $value)) {
+            $errors[] = __('"%field" can not contain whitespaces.', ['field' => StockSourceLinkInterface::SOURCE_CODE]);
+        } else {
+            $errors = [];
+        }
 
         return $this->validationResultFactory->create(['errors' => $errors]);
     }

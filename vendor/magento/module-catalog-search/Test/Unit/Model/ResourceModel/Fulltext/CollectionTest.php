@@ -5,7 +5,6 @@
  */
 namespace Magento\CatalogSearch\Test\Unit\Model\ResourceModel\Fulltext;
 
-use Magento\Catalog\Model\ResourceModel\Product\Collection\ProductLimitationFactory;
 use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection\SearchCriteriaResolverFactory;
 use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection\SearchCriteriaResolverInterface;
 use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection\SearchResultApplierFactory;
@@ -13,12 +12,11 @@ use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection\TotalRecordsRe
 use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection\SearchResultApplierInterface;
 use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection\TotalRecordsResolverInterface;
 use Magento\CatalogSearch\Test\Unit\Model\ResourceModel\BaseCollection;
-use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Framework\Search\Adapter\Mysql\TemporaryStorageFactory;
+use PHPUnit_Framework_MockObject_MockObject as MockObject;
+use Magento\Catalog\Model\ResourceModel\Product\Collection\ProductLimitationFactory;
 
 /**
- * Test class for Fulltext Collection
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class CollectionTest extends BaseCollection
@@ -29,12 +27,12 @@ class CollectionTest extends BaseCollection
     private $objectManager;
 
     /**
-     * @var \Magento\Framework\Search\Adapter\Mysql\TemporaryStorage|MockObject
+     * @var \Magento\Framework\Search\Adapter\Mysql\TemporaryStorage|\PHPUnit_Framework_MockObject_MockObject
      */
     private $temporaryStorage;
 
     /**
-     * @var \Magento\Search\Api\SearchInterface|MockObject
+     * @var \Magento\Search\Api\SearchInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     private $search;
 
@@ -64,11 +62,6 @@ class CollectionTest extends BaseCollection
     private $filterBuilder;
 
     /**
-     * @var SearchResultApplierFactory|MockObject
-     */
-    private $searchResultApplierFactory;
-
-    /**
      * @var \Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection
      */
     private $model;
@@ -79,7 +72,7 @@ class CollectionTest extends BaseCollection
     private $filter;
 
     /**
-     * @inheritdoc
+     * setUp method for CollectionTest
      */
     protected function setUp()
     {
@@ -122,10 +115,17 @@ class CollectionTest extends BaseCollection
             ->method('create')
             ->willReturn($searchCriteriaResolver);
 
-        $this->searchResultApplierFactory = $this->getMockBuilder(SearchResultApplierFactory::class)
+        $searchResultApplier = $this->getMockBuilder(SearchResultApplierInterface::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['apply'])
+            ->getMockForAbstractClass();
+        $searchResultApplierFactory = $this->getMockBuilder(SearchResultApplierFactory::class)
             ->disableOriginalConstructor()
             ->setMethods(['create'])
             ->getMock();
+        $searchResultApplierFactory->expects($this->any())
+            ->method('create')
+            ->willReturn($searchResultApplier);
 
         $totalRecordsResolver = $this->getMockBuilder(TotalRecordsResolverInterface::class)
             ->disableOriginalConstructor()
@@ -148,7 +148,7 @@ class CollectionTest extends BaseCollection
                 'temporaryStorageFactory' => $temporaryStorageFactory,
                 'productLimitationFactory' => $productLimitationFactoryMock,
                 'searchCriteriaResolverFactory' => $searchCriteriaResolverFactory,
-                'searchResultApplierFactory' => $this->searchResultApplierFactory,
+                'searchResultApplierFactory' => $searchResultApplierFactory,
                 'totalRecordsResolverFactory' => $totalRecordsResolverFactory,
             ]
         );
@@ -161,9 +161,6 @@ class CollectionTest extends BaseCollection
         $this->model->setFilterBuilder($this->filterBuilder);
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function tearDown()
     {
         $reflectionProperty = new \ReflectionProperty(\Magento\Framework\App\ObjectManager::class, '_instance');
@@ -171,49 +168,16 @@ class CollectionTest extends BaseCollection
         $reflectionProperty->setValue(null);
     }
 
-    /**
-     * Test to Return field faceted data from faceted search result
-     */
     public function testGetFacetedDataWithEmptyAggregations()
     {
-        $pageSize = 10;
-
         $searchResult = $this->getMockBuilder(\Magento\Framework\Api\Search\SearchResultInterface::class)
             ->getMockForAbstractClass();
         $this->search->expects($this->once())
             ->method('search')
             ->willReturn($searchResult);
-
-        $searchResultApplier = $this->getMockBuilder(SearchResultApplierInterface::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['apply'])
-            ->getMockForAbstractClass();
-        $this->searchResultApplierFactory->expects($this->any())
-            ->method('create')
-            ->willReturn($searchResultApplier);
-
-        $this->model->setPageSize($pageSize);
-        $this->model->setCurPage(0);
-
-        $this->searchResultApplierFactory->expects($this->once())
-            ->method('create')
-            ->with(
-                [
-                    'collection' => $this->model,
-                    'searchResult' => $searchResult,
-                    'orders' => [],
-                    'size' => $pageSize,
-                    'currentPage' => 0,
-                ]
-            )
-            ->willReturn($searchResultApplier);
-
         $this->model->getFacetedData('field');
     }
 
-    /**
-     * Test to Apply attribute filter to facet collection
-     */
     public function testAddFieldToFilter()
     {
         $this->filter = $this->createFilter();
@@ -256,7 +220,6 @@ class CollectionTest extends BaseCollection
     protected function getFilterBuilder()
     {
         $filterBuilder = $this->createMock(\Magento\Framework\Api\FilterBuilder::class);
-
         return $filterBuilder;
     }
 
@@ -278,7 +241,6 @@ class CollectionTest extends BaseCollection
                 ->with($value)
                 ->willReturnSelf();
         }
-
         return $filterBuilder;
     }
 
@@ -290,7 +252,6 @@ class CollectionTest extends BaseCollection
         $filter = $this->getMockBuilder(\Magento\Framework\Api\Filter::class)
             ->disableOriginalConstructor()
             ->getMock();
-
         return $filter;
     }
 }

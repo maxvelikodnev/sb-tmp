@@ -97,7 +97,7 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getList($sku)
     {
@@ -107,8 +107,6 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
     }
 
     /**
-     * @inheritdoc
-     *
      * @param \Magento\Catalog\Api\Data\ProductInterface $product
      * @return array
      */
@@ -168,11 +166,9 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
     }
 
     /**
-     * @inheritdoc
-     *
+     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
-     * @throws InputException
      */
     public function save($sku, LinkInterface $link, $isGlobalScopeContent = true)
     {
@@ -180,28 +176,29 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
         if ($link->getId() !== null) {
             return $this->updateLink($product, $link, $isGlobalScopeContent);
         } else {
-            if ($product->getTypeId() !== Type::TYPE_DOWNLOADABLE) {
+            if ($product->getTypeId() !== \Magento\Downloadable\Model\Product\Type::TYPE_DOWNLOADABLE) {
                 throw new InputException(
                     __('The product needs to be the downloadable type. Verify the product and try again.')
                 );
             }
-            $this->validateLinkType($link);
-            $this->validateSampleType($link);
-            if (!$this->contentValidator->isValid($link, true, $link->hasSampleType())) {
+            $validateLinkContent = !($link->getLinkType() === 'file' && $link->getLinkFile());
+            $validateSampleContent = !($link->getSampleType() === 'file' && $link->getSampleFile());
+            if (!$this->contentValidator->isValid($link, $validateLinkContent, $validateSampleContent)) {
                 throw new InputException(__('The link information is invalid. Verify the link and try again.'));
+            }
+
+            if (!in_array($link->getLinkType(), ['url', 'file'], true)) {
+                throw new InputException(__('The link type is invalid. Verify and try again.'));
             }
             $title = $link->getTitle();
             if (empty($title)) {
                 throw new InputException(__('The link title is empty. Enter the link title and try again.'));
             }
-
             return $this->saveLink($product, $link, $isGlobalScopeContent);
         }
     }
 
     /**
-     * Construct Data structure and Save it.
-     *
      * @param \Magento\Catalog\Api\Data\ProductInterface $product
      * @param LinkInterface $link
      * @param bool $isGlobalScopeContent
@@ -223,7 +220,7 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
             'is_shareable' => $link->getIsShareable(),
         ];
 
-        if ($link->getLinkType() == 'file' && $link->getLinkFileContent() !== null) {
+        if ($link->getLinkType() == 'file' && $link->getLinkFile() === null) {
             $linkData['file'] = $this->jsonEncoder->encode(
                 [
                     $this->fileContentUploader->upload($link->getLinkFileContent(), 'link_file'),
@@ -245,7 +242,7 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
 
         if ($link->getSampleType() == 'file') {
             $linkData['sample']['type'] = 'file';
-            if ($link->getSampleFileContent() !== null) {
+            if ($link->getSampleFile() === null) {
                 $fileData = [
                     $this->fileContentUploader->upload($link->getSampleFileContent(), 'link_sample_file'),
                 ];
@@ -272,8 +269,6 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
     }
 
     /**
-     * Update existing Link.
-     *
      * @param \Magento\Catalog\Api\Data\ProductInterface $product
      * @param LinkInterface $link
      * @param bool $isGlobalScopeContent
@@ -303,10 +298,9 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
                 __("The downloadable link isn't related to the product. Verify the link and try again.")
             );
         }
-        $this->validateLinkType($link);
-        $this->validateSampleType($link);
-        $validateSampleContent = $link->hasSampleType();
-        if (!$this->contentValidator->isValid($link, true, $validateSampleContent)) {
+        $validateLinkContent = !($link->getLinkFileContent() === null);
+        $validateSampleContent = !($link->getSampleFileContent() === null);
+        if (!$this->contentValidator->isValid($link, $validateLinkContent, $validateSampleContent)) {
             throw new InputException(__('The link information is invalid. Verify the link and try again.'));
         }
         if ($isGlobalScopeContent) {
@@ -318,16 +312,20 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
                 throw new InputException(__('The link title is empty. Enter the link title and try again.'));
             }
         }
-        if (!$validateSampleContent) {
-            $this->resetLinkSampleContent($link, $existingLink);
-        }
-        $this->saveLink($product, $link, $isGlobalScopeContent);
 
+        if ($link->getLinkType() == 'file' && $link->getLinkFileContent() === null && !$link->getLinkFile()) {
+            $link->setLinkFile($existingLink->getLinkFile());
+        }
+        if ($link->getSampleType() == 'file' && $link->getSampleFileContent() === null && !$link->getSampleFile()) {
+            $link->setSampleFile($existingLink->getSampleFile());
+        }
+
+        $this->saveLink($product, $link, $isGlobalScopeContent);
         return $existingLink->getId();
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function delete($id)
     {
@@ -344,52 +342,6 @@ class LinkRepository implements \Magento\Downloadable\Api\LinkRepositoryInterfac
             throw new StateException(__('The link with "%1" ID can\'t be deleted.', $link->getId()), $exception);
         }
         return true;
-    }
-
-    /**
-     * Check that Link type exist.
-     *
-     * @param LinkInterface $link
-     * @return void
-     * @throws InputException
-     */
-    private function validateLinkType(LinkInterface $link): void
-    {
-        if (!in_array($link->getLinkType(), ['url', 'file'], true)) {
-            throw new InputException(__('The link type is invalid. Verify and try again.'));
-        }
-    }
-
-    /**
-     * Check that Link sample type exist.
-     *
-     * @param LinkInterface $link
-     * @return void
-     * @throws InputException
-     */
-    private function validateSampleType(LinkInterface $link): void
-    {
-        if ($link->hasSampleType() && !in_array($link->getSampleType(), ['url', 'file'], true)) {
-            throw new InputException(__('The link sample type is invalid. Verify and try again.'));
-        }
-    }
-
-    /**
-     * Reset Sample type and file.
-     *
-     * @param LinkInterface $link
-     * @param LinkInterface $existingLink
-     * @return void
-     */
-    private function resetLinkSampleContent(LinkInterface $link, LinkInterface $existingLink): void
-    {
-        $existingType = $existingLink->getSampleType();
-        $link->setSampleType($existingType);
-        if ($existingType === 'file') {
-            $link->setSampleFile($existingLink->getSampleFile());
-        } else {
-            $link->setSampleUrl($existingLink->getSampleUrl());
-        }
     }
 
     /**

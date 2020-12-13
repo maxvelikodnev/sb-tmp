@@ -46,7 +46,9 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     }
 
     /**
-     * @inheritdoc
+     * Constructor
+     *
+     * @return void
      */
     protected function _construct()
     {
@@ -56,7 +58,9 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     }
 
     /**
-     * @inheritdoc
+     * Prepare collection for grid
+     *
+     * @return $this
      */
     protected function _prepareCollection()
     {
@@ -67,20 +71,15 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
          */
         $collection = $this->_salesRuleCoupon->create()->addRuleToFilter($priceRule)->addGeneratedCouponsFilter();
 
-        if ($this->_isExport && $this->getMassactionBlock()->isAvailable()) {
-            $itemIds = $this->getMassactionBlock()->getSelected();
-            if (!empty($itemIds)) {
-                $collection->addFieldToFilter('coupon_id', ['in' => $itemIds]);
-            }
-        }
-
         $this->setCollection($collection);
 
         return parent::_prepareCollection();
     }
 
     /**
-     * @inheritdoc
+     * Define grid columns
+     *
+     * @return $this
      */
     protected function _prepareColumns()
     {
@@ -100,7 +99,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->addColumn(
             'used',
             [
-                'header' => __('Used'),
+                'header' => __('Uses'),
                 'index' => 'times_used',
                 'width' => '100',
                 'type' => 'options',
@@ -122,7 +121,9 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     }
 
     /**
-     * @inheritdoc
+     * Configure grid mass actions
+     *
+     * @return $this
      */
     protected function _prepareMassaction()
     {
@@ -145,7 +146,9 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     }
 
     /**
-     * @inheritdoc
+     * Get grid url
+     *
+     * @return string
      */
     public function getGridUrl()
     {

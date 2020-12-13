@@ -7,7 +7,6 @@ namespace Magento\Cms\Controller\Adminhtml\Page;
 
 use Magento\Backend\App\Action\Context;
 use Magento\Cms\Api\PageRepositoryInterface as PageRepository;
-use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Cms\Api\Data\PageInterface;
 
@@ -16,7 +15,7 @@ use Magento\Cms\Api\Data\PageInterface;
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class InlineEdit extends \Magento\Backend\App\Action implements HttpPostActionInterface
+class InlineEdit extends \Magento\Backend\App\Action
 {
     /**
      * Authorization level of a basic admin session
@@ -57,8 +56,6 @@ class InlineEdit extends \Magento\Backend\App\Action implements HttpPostActionIn
     }
 
     /**
-     * Process the request
-     *
      * @return \Magento\Framework\Controller\ResultInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -71,12 +68,10 @@ class InlineEdit extends \Magento\Backend\App\Action implements HttpPostActionIn
 
         $postItems = $this->getRequest()->getParam('items', []);
         if (!($this->getRequest()->getParam('isAjax') && count($postItems))) {
-            return $resultJson->setData(
-                [
-                    'messages' => [__('Please correct the data sent.')],
-                    'error' => true,
-                ]
-            );
+            return $resultJson->setData([
+                'messages' => [__('Please correct the data sent.')],
+                'error' => true,
+            ]);
         }
 
         foreach (array_keys($postItems) as $pageId) {
@@ -103,12 +98,10 @@ class InlineEdit extends \Magento\Backend\App\Action implements HttpPostActionIn
             }
         }
 
-        return $resultJson->setData(
-            [
-                'messages' => $messages,
-                'error' => $error
-            ]
-        );
+        return $resultJson->setData([
+            'messages' => $messages,
+            'error' => $error
+        ]);
     }
 
     /**
@@ -138,7 +131,7 @@ class InlineEdit extends \Magento\Backend\App\Action implements HttpPostActionIn
      */
     protected function validatePost(array $pageData, \Magento\Cms\Model\Page $page, &$error, array &$messages)
     {
-        if (!$this->dataProcessor->validateRequireEntry($pageData)) {
+        if (!($this->dataProcessor->validate($pageData) && $this->dataProcessor->validateRequireEntry($pageData))) {
             $error = true;
             foreach ($this->messageManager->getMessages(true)->getItems() as $error) {
                 $messages[] = $this->getErrorWithPageId($page, $error->getText());

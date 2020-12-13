@@ -6,9 +6,6 @@
 namespace Magento\Backend\Model\Menu\Item;
 
 /**
- * Class Validator
- *
- * @package Magento\Backend\Model\Menu\Item
  * @api
  * @since 100.0.2
  */
@@ -52,7 +49,7 @@ class Validator
 
         $attributeValidator = new \Zend_Validate();
         $attributeValidator->addValidator(new \Zend_Validate_StringLength(['min' => 3]));
-        $attributeValidator->addValidator(new \Zend_Validate_Regex('/^[A-Za-z0-9\/_\-]+$/'));
+        $attributeValidator->addValidator(new \Zend_Validate_Regex('/^[A-Za-z0-9\/_]+$/'));
 
         $textValidator = new \Zend_Validate_StringLength(['min' => 3, 'max' => 50]);
 
@@ -104,7 +101,6 @@ class Validator
 
     /**
      * Check that menu item contains all required data
-     *
      * @param array $data
      *
      * @throws \BadMethodCallException

@@ -21,7 +21,6 @@ class AdminCodeLimitManager implements CodeLimitManagerInterface
      */
     public function checkRequest(string $code): void
     {
-        //phpcs:ignore Squiz.PHP.NonExecutableCode.ReturnNotRequired
         return;
     }
 }

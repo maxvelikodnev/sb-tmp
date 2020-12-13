@@ -23,9 +23,6 @@ class CreateTest extends WebapiAbstract
     const SERVICE_NAME = 'inventoryApiSourceRepositoryV1';
     /**#@-*/
 
-    /**
-     * @see https://app.hiptest.com/projects/69435/test-plan/folders/529092/scenarios/1820371
-     */
     public function testCreate()
     {
         $sourceCode = 'source-code-1';
@@ -76,8 +73,6 @@ class CreateTest extends WebapiAbstract
     /**
      * @param string $sourceCode
      * @return array
-     *
-     * @see https://app.hiptest.com/projects/69435/test-plan/folders/529092/scenarios/1849396
      */
     private function getSourceDataByCode(string $sourceCode): array
     {

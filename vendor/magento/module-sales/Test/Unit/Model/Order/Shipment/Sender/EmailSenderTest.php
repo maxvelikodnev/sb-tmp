@@ -5,116 +5,96 @@
  */
 namespace Magento\Sales\Test\Unit\Model\Order\Shipment\Sender;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\DataObject;
-use Magento\Framework\Event\ManagerInterface;
-use Magento\Payment\Helper\Data;
-use Magento\Payment\Model\Info;
-use Magento\Sales\Api\Data\ShipmentCommentCreationInterface;
-use Magento\Sales\Api\Data\ShipmentInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Address;
-use Magento\Sales\Model\Order\Address\Renderer;
-use Magento\Sales\Model\Order\Email\Container\ShipmentIdentity;
-use Magento\Sales\Model\Order\Email\Container\Template;
-use Magento\Sales\Model\Order\Email\Sender;
-use Magento\Sales\Model\Order\Email\SenderBuilderFactory;
-use Magento\Sales\Model\Order\Shipment\Sender\EmailSender;
-use Magento\Sales\Model\ResourceModel\Order\Shipment;
-use Magento\Store\Model\Store;
-use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
-
 /**
  * Unit test for email notification sender for Shipment.
  *
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class EmailSenderTest extends TestCase
+class EmailSenderTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var EmailSender
+     * @var \Magento\Sales\Model\Order\Shipment\Sender\EmailSender
      */
     private $subject;
 
     /**
-     * @var Order|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order|\PHPUnit_Framework_MockObject_MockObject
      */
     private $orderMock;
 
     /**
-     * @var Store|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Store\Model\Store|\PHPUnit_Framework_MockObject_MockObject
      */
     private $storeMock;
 
     /**
-     * @var Sender|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order\Email\Sender|\PHPUnit_Framework_MockObject_MockObject
      */
     private $senderMock;
 
     /**
-     * @var LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Psr\Log\LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     private $loggerMock;
 
     /**
-     * @var ShipmentInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Api\Data\ShipmentInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     private $shipmentMock;
 
     /**
-     * @var ShipmentCommentCreationInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Api\Data\ShipmentCommentCreationInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     private $commentMock;
 
     /**
-     * @var Address|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order\Address|\PHPUnit_Framework_MockObject_MockObject
      */
     private $addressMock;
 
     /**
-     * @var ScopeConfigInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     private $globalConfigMock;
 
     /**
-     * @var ManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Event\ManagerInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     private $eventManagerMock;
 
     /**
-     * @var Info|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Payment\Model\Info|\PHPUnit_Framework_MockObject_MockObject
      */
     private $paymentInfoMock;
 
     /**
-     * @var Data|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Payment\Helper\Data|\PHPUnit_Framework_MockObject_MockObject
      */
     private $paymentHelperMock;
 
     /**
-     * @var Shipment|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\ResourceModel\Order\Shipment|\PHPUnit_Framework_MockObject_MockObject
      */
     private $shipmentResourceMock;
 
     /**
-     * @var Renderer|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order\Address\Renderer|\PHPUnit_Framework_MockObject_MockObject
      */
     private $addressRendererMock;
 
     /**
-     * @var Template|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order\Email\Container\Template|\PHPUnit_Framework_MockObject_MockObject
      */
     private $templateContainerMock;
 
     /**
-     * @var ShipmentIdentity|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order\Email\Container\ShipmentIdentity|\PHPUnit_Framework_MockObject_MockObject
      */
     private $identityContainerMock;
 
     /**
-     * @var SenderBuilderFactory|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order\Email\SenderBuilderFactory|\PHPUnit_Framework_MockObject_MockObject
      */
     private $senderBuilderFactoryMock;
 
@@ -123,11 +103,11 @@ class EmailSenderTest extends TestCase
      */
     protected function setUp()
     {
-        $this->orderMock = $this->getMockBuilder(Order::class)
+        $this->orderMock = $this->getMockBuilder(\Magento\Sales\Model\Order::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->storeMock = $this->getMockBuilder(Store::class)
+        $this->storeMock = $this->getMockBuilder(\Magento\Store\Model\Store::class)
             ->setMethods(['getStoreId'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -139,21 +119,21 @@ class EmailSenderTest extends TestCase
             ->method('getStore')
             ->willReturn($this->storeMock);
 
-        $this->senderMock = $this->getMockBuilder(Sender::class)
+        $this->senderMock = $this->getMockBuilder(\Magento\Sales\Model\Order\Email\Sender::class)
             ->disableOriginalConstructor()
             ->setMethods(['send', 'sendCopyTo'])
             ->getMock();
 
-        $this->loggerMock = $this->getMockBuilder(LoggerInterface::class)
+        $this->loggerMock = $this->getMockBuilder(\Psr\Log\LoggerInterface::class)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
-        $this->shipmentMock = $this->getMockBuilder(Order\Shipment::class)
+        $this->shipmentMock = $this->getMockBuilder(\Magento\Sales\Model\Order\Shipment::class)
             ->disableOriginalConstructor()
-            ->setMethods(['getId', 'setSendEmail', 'setEmailSent'])
+            ->setMethods(['setSendEmail', 'setEmailSent'])
             ->getMock();
 
-        $this->commentMock = $this->getMockBuilder(ShipmentCommentCreationInterface::class)
+        $this->commentMock = $this->getMockBuilder(\Magento\Sales\Api\Data\ShipmentCommentCreationInterface::class)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
@@ -161,7 +141,7 @@ class EmailSenderTest extends TestCase
             ->method('getComment')
             ->willReturn('Comment text');
 
-        $this->addressMock = $this->getMockBuilder(Address::class)
+        $this->addressMock = $this->getMockBuilder(\Magento\Sales\Model\Order\Address::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -172,15 +152,15 @@ class EmailSenderTest extends TestCase
             ->method('getShippingAddress')
             ->willReturn($this->addressMock);
 
-        $this->globalConfigMock = $this->getMockBuilder(ScopeConfigInterface::class)
+        $this->globalConfigMock = $this->getMockBuilder(\Magento\Framework\App\Config\ScopeConfigInterface::class)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
-        $this->eventManagerMock = $this->getMockBuilder(ManagerInterface::class)
+        $this->eventManagerMock = $this->getMockBuilder(\Magento\Framework\Event\ManagerInterface::class)
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
-        $this->paymentInfoMock = $this->getMockBuilder(Info::class)
+        $this->paymentInfoMock = $this->getMockBuilder(\Magento\Payment\Model\Info::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -188,7 +168,7 @@ class EmailSenderTest extends TestCase
             ->method('getPayment')
             ->willReturn($this->paymentInfoMock);
 
-        $this->paymentHelperMock = $this->getMockBuilder(Data::class)
+        $this->paymentHelperMock = $this->getMockBuilder(\Magento\Payment\Helper\Data::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -197,11 +177,11 @@ class EmailSenderTest extends TestCase
             ->with($this->paymentInfoMock, 1)
             ->willReturn('Payment Info Block');
 
-        $this->shipmentResourceMock = $this->getMockBuilder(Shipment::class)
+        $this->shipmentResourceMock = $this->getMockBuilder(\Magento\Sales\Model\ResourceModel\Order\Shipment::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->addressRendererMock = $this->getMockBuilder(Renderer::class)
+        $this->addressRendererMock = $this->getMockBuilder(\Magento\Sales\Model\Order\Address\Renderer::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -210,12 +190,12 @@ class EmailSenderTest extends TestCase
             ->with($this->addressMock, 'html')
             ->willReturn('Formatted address');
 
-        $this->templateContainerMock = $this->getMockBuilder(Template::class)
+        $this->templateContainerMock = $this->getMockBuilder(\Magento\Sales\Model\Order\Email\Container\Template::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $this->identityContainerMock = $this->getMockBuilder(
-            ShipmentIdentity::class
+            \Magento\Sales\Model\Order\Email\Container\ShipmentIdentity::class
         )
         ->disableOriginalConstructor()
         ->getMock();
@@ -225,13 +205,13 @@ class EmailSenderTest extends TestCase
             ->willReturn($this->storeMock);
 
         $this->senderBuilderFactoryMock = $this->getMockBuilder(
-            SenderBuilderFactory::class
+            \Magento\Sales\Model\Order\Email\SenderBuilderFactory::class
         )
         ->disableOriginalConstructor()
         ->setMethods(['create'])
         ->getMock();
 
-        $this->subject = new EmailSender(
+        $this->subject = new \Magento\Sales\Model\Order\Shipment\Sender\EmailSender(
             $this->templateContainerMock,
             $this->identityContainerMock,
             $this->senderBuilderFactoryMock,
@@ -249,44 +229,24 @@ class EmailSenderTest extends TestCase
      * @param bool $forceSyncMode
      * @param bool $isComment
      * @param bool $emailSendingResult
-     * @param array $orderData
      *
      * @dataProvider sendDataProvider
      *
      * @return void
      *
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     * @throws \Exception
      */
-    public function testSend($configValue, $forceSyncMode, $isComment, $emailSendingResult, $orderData)
+    public function testSend($configValue, $forceSyncMode, $isComment, $emailSendingResult)
     {
         $this->globalConfigMock->expects($this->once())
             ->method('getValue')
             ->with('sales_email/general/async_sending')
             ->willReturn($configValue);
 
-        $this->orderMock->expects($this->any())
-            ->method('getId')
-            ->willReturn($orderData['order_id']);
-        $this->orderMock->expects($this->any())
-            ->method('getCustomerName')
-            ->willReturn($orderData['customer_name']);
-        $this->orderMock->expects($this->any())
-            ->method('getIsNotVirtual')
-            ->willReturn($orderData['is_not_virtual']);
-        $this->orderMock->expects($this->any())
-            ->method('getEmailCustomerNote')
-            ->willReturn($orderData['email_customer_note']);
-        $this->orderMock->expects($this->any())
-            ->method('getFrontendStatusLabel')
-            ->willReturn($orderData['frontend_status_label']);
         if (!$isComment) {
             $this->commentMock = null;
         }
 
-        $this->shipmentMock->expects($this->any())
-            ->method('getId')
-            ->willReturn($orderData['shipment_id']);
         $this->shipmentMock->expects($this->once())
             ->method('setSendEmail')
             ->with($emailSendingResult);
@@ -294,23 +254,15 @@ class EmailSenderTest extends TestCase
         if (!$configValue || $forceSyncMode) {
             $transport = [
                 'order' => $this->orderMock,
-                'order_id' => $orderData['order_id'],
                 'shipment' => $this->shipmentMock,
-                'shipment_id' => $orderData['shipment_id'],
                 'comment' => $isComment ? 'Comment text' : '',
                 'billing' => $this->addressMock,
                 'payment_html' => 'Payment Info Block',
                 'store' => $this->storeMock,
                 'formattedShippingAddress' => 'Formatted address',
                 'formattedBillingAddress' => 'Formatted address',
-                'order_data' => [
-                    'customer_name' => $orderData['customer_name'],
-                    'is_not_virtual' => $orderData['is_not_virtual'],
-                    'email_customer_note' => $orderData['email_customer_note'],
-                    'frontend_status_label' => $orderData['frontend_status_label']
-                ]
             ];
-            $transport = new DataObject($transport);
+            $transport = new \Magento\Framework\DataObject($transport);
 
             $this->eventManagerMock->expects($this->once())
                 ->method('dispatch')
@@ -332,10 +284,6 @@ class EmailSenderTest extends TestCase
                 ->willReturn($emailSendingResult);
 
             if ($emailSendingResult) {
-                $this->identityContainerMock->expects($this->once())
-                    ->method('getCopyMethod')
-                    ->willReturn('copy');
-
                 $this->senderBuilderFactoryMock->expects($this->once())
                     ->method('create')
                     ->willReturn($this->senderMock);
@@ -401,67 +349,15 @@ class EmailSenderTest extends TestCase
 
     /**
      * @return array
-     *
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function sendDataProvider()
     {
         return [
-            'Successful sync sending with comment' => [
-                0, false, true, true,
-                [
-                    'order_id' => 1,
-                    'shipment_id' => 1,
-                    'customer_name' => 'test customer',
-                    'is_not_virtual' => true,
-                    'email_customer_note' => 1,
-                    'frontend_status_label' => 'email_sent'
-                ]
-            ],
-            'Successful sync sending without comment' => [
-                0, false, false, true,
-                [
-                    'order_id' => 2,
-                    'shipment_id' => 2,
-                    'customer_name' => 'test customer 1',
-                    'is_not_virtual' => true,
-                    'email_customer_note' => 1,
-                    'frontend_status_label' => 'email_sent'
-                ]
-            ],
-            'Failed sync sending with comment' => [
-                0, false, true, false,
-                [
-                    'order_id' => 3,
-                    'shipment_id' => 3,
-                    'customer_name' => 'test customer 2',
-                    'is_not_virtual' => true,
-                    'email_customer_note' => 1,
-                    'frontend_status_label' => 'send_email'
-                ]
-            ],
-            'Successful forced sync sending with comment' => [
-                1, true, true, true,
-                [
-                    'order_id' => 4,
-                    'shipment_id' => 4,
-                    'customer_name' => 'test customer 3',
-                    'is_not_virtual' => true,
-                    'email_customer_note' => 1,
-                    'frontend_status_label' => 'email_sent'
-                ]
-            ],
-            'Async sending' => [
-                1, false, false, false,
-                [
-                    'order_id' => 5,
-                    'shipment_id' => 5,
-                    'customer_name' => 'test customer 4',
-                    'is_not_virtual' => true,
-                    'email_customer_note' => 1,
-                    'frontend_status_label' => 'send_email'
-                ]
-            ],
+            'Successful sync sending with comment' => [0, false, true, true],
+            'Successful sync sending without comment' => [0, false, false, true],
+            'Failed sync sending with comment' => [0, false, true, false],
+            'Successful forced sync sending with comment' => [1, true, true, true],
+            'Async sending' => [1, false, false, false],
         ];
     }
 }

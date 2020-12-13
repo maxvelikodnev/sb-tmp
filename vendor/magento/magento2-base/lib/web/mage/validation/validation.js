@@ -3,11 +3,19 @@
  * See COPYING.txt for license details.
  */
 
-define([
-    'jquery',
-    'mage/validation',
-    'mage/translate'
-], function ($) {
+(function (factory) {
+    'use strict';
+
+    if (typeof define === 'function' && define.amd) {
+        define([
+            'jquery',
+            'mage/validation',
+            'mage/translate'
+        ], factory);
+    } else {
+        factory(jQuery);
+    }
+}(function ($) {
     'use strict';
 
     $.each({
@@ -44,15 +52,13 @@ define([
                     container;
 
                 if (element.type === 'checkbox') {
-                    $('[name="' + element.name + '"]').each(
-                        function () {
-                            if ($(this).is(':checked')) {
-                                checkedCount += 1;
+                    $('[name="' + element.name + '"]').each(function () {
+                        if ($(this).is(':checked')) {
+                            checkedCount += 1;
 
-                                return false;
-                            }
+                            return false;
                         }
-                    );
+                    });
                 }
                 container = '#' + params;
 
@@ -167,4 +173,4 @@ define([
         rule.unshift(i);
         $.validator.addMethod.apply($.validator, rule);
     });
-});
+}));

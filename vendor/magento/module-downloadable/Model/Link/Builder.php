@@ -69,8 +69,6 @@ class Builder
     }
 
     /**
-     * Set Data.
-     *
      * @param array $data
      * @return $this
      * @since 100.1.0
@@ -82,8 +80,6 @@ class Builder
     }
 
     /**
-     * Build correct data structure.
-     *
      * @param \Magento\Downloadable\Api\Data\LinkInterface $link
      * @return \Magento\Downloadable\Api\Data\LinkInterface
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -138,8 +134,6 @@ class Builder
     }
 
     /**
-     * Reset data.
-     *
      * @return void
      */
     private function resetData()
@@ -148,8 +142,6 @@ class Builder
     }
 
     /**
-     * Get existing component or create new.
-     *
      * @return Link
      */
     private function getComponent()
@@ -161,8 +153,6 @@ class Builder
     }
 
     /**
-     * Build correct sample structure.
-     *
      * @param \Magento\Downloadable\Api\Data\LinkInterface $link
      * @param array $sample
      * @return \Magento\Downloadable\Api\Data\LinkInterface
@@ -184,8 +174,7 @@ class Builder
                 ),
                 \Magento\Downloadable\Api\Data\LinkInterface::class
             );
-            if ($link->getSampleType() === \Magento\Downloadable\Helper\Download::LINK_TYPE_FILE
-                && isset($sample['file'])) {
+            if ($link->getSampleType() === \Magento\Downloadable\Helper\Download::LINK_TYPE_FILE) {
                 $linkSampleFileName = $this->downloadableFile->moveFileFromTmp(
                     $this->getComponent()->getBaseSampleTmpPath(),
                     $this->getComponent()->getBaseSamplePath(),

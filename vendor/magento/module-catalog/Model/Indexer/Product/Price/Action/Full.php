@@ -279,7 +279,6 @@ class Full extends AbstractAction
         $select = $connection->select();
         $select->distinct(true);
         $select->from(['e' => $entityMetadata->getEntityTable()], $entityMetadata->getIdentifierField());
-        $select->where('type_id = ?', $typeId);
 
         return $this->batchQueryGenerator->generate(
             $this->getProductMetaData()->getIdentifierField(),
@@ -425,7 +424,7 @@ class Full extends AbstractAction
         $mainTablesByDimension = [];
 
         foreach ($this->dimensionCollectionFactory->create() as $dimensions) {
-            $mainTablesByDimension[] = $this->dimensionTableMaintainer->getMainTableByDimensions($dimensions);
+            $mainTablesByDimension[] = $this->dimensionTableMaintainer->getMainTable($dimensions);
 
             //Move data from indexers with old realisation
             $this->moveDataFromReplicaTableToReplicaTables($dimensions);

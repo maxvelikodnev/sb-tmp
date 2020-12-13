@@ -4,6 +4,8 @@
  * See COPYING.txt for license details.
  */
 
+// @codingStandardsIgnoreFile
+
 /* @var $block \Magento\ConfigurableProduct\Block\Product\Configurable\AttributeSelector */
 ?>
 <script>
@@ -46,12 +48,12 @@
 
         $form
             .modal({
-                title: '<?= $block->escapeJs(__('Choose Affected Attribute Set')) ?>',
+                title: '<?= /* @escapeNotVerified */ __('Choose Affected Attribute Set') ?>',
                 closed: function () {
                     resetValidation();
                 },
                 buttons: [{
-                    text: '<?= $block->escapeJs(__('Confirm')) ?>',
+                    text: '<?= /* @escapeNotVerified */ __('Confirm') ?>',
                     attr: {
                         'data-action': 'confirm'
                     },
@@ -75,12 +77,12 @@
 
                         $.ajax({
                             type: 'POST',
-                            url: '<?= $block->escapeUrl($block->getAttributeSetCreationUrl()) ?>',
+                            url: '<?= /* @escapeNotVerified */ $block->getAttributeSetCreationUrl() ?>',
                             data: {
                                 gotoEdit: 1,
                                 attribute_set_name: $form.find('input[name=new-attribute-set-name]').val(),
                                 skeleton_set: $('#attribute_set_id').val(),
-                                form_key: '<?= $block->escapeJs($block->getFormKey()) ?>',
+                                form_key: '<?= /* @escapeNotVerified */ $block->getFormKey() ?>',
                                 return_session_messages_only: 1
                             },
                             dataType: 'json',
@@ -99,8 +101,8 @@
                         return false;
                     }
                 },{
-                    text: '<?= $block->escapeJs(__('Cancel')) ?>',
-                    id: '<?= $block->escapeJs($block->getJsId('close-button')) ?>',
+                    text: '<?= /* @escapeNotVerified */ __('Cancel') ?>',
+                    id: '<?= /* @escapeNotVerified */ $block->getJsId('close-button') ?>',
                     'class': 'action-close',
                     click: function() {
                         $form.modal('closeModal');

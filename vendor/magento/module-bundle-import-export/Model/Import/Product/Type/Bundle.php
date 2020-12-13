@@ -1,10 +1,11 @@
 <?php
+
 /**
+ * Import entity of bundle product type
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\BundleImportExport\Model\Import\Product\Type;
 
 use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as AttributeCollectionFactory;
@@ -18,15 +19,13 @@ use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Import entity of bundle product type
+ * Class Bundle
  *
+ * @package Magento\BundleImportExport\Model\Import\Product\Type
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class Bundle extends \Magento\CatalogImportExport\Model\Import\Product\Type\AbstractType
 {
-    /**
-     * phpcs:disable Magento2.Commenting.ConstantsPHPDocFormatting
-     */
 
     /**
      * Delimiter before product option value.
@@ -62,10 +61,6 @@ class Bundle extends \Magento\CatalogImportExport\Model\Import\Product\Type\Abst
      * Selection price type percent.
      */
     const SELECTION_PRICE_TYPE_PERCENT = 1;
-
-    /**
-     * phpcs:enable Magento2.Commenting.ConstantsPHPDocFormatting
-     */
 
     /**
      * Array of cached options.
@@ -621,7 +616,6 @@ class Bundle extends \Magento\CatalogImportExport\Model\Import\Product\Type\Abst
                     if ($assoc['position'] == $this->_cachedOptions[$entityId][$key]['index']
                         && $assoc['parent_id'] == $entityId) {
                         $option['parent_id'] = $entityId;
-                        //phpcs:ignore Magento2.Performance.ForeachArrayMerge
                         $optionValues = array_merge(
                             $optionValues,
                             $this->populateOptionValueTemplate($option, $optionId)
@@ -681,7 +675,10 @@ class Bundle extends \Magento\CatalogImportExport\Model\Import\Product\Type\Abst
             $childIds = [];
             foreach ($options as $option) {
                 foreach ($option['selections'] as $selection) {
-                    if (isset($this->_cachedSkuToProducts[$selection['sku']])) {
+                    if (!isset($selection['parent_product_id'])) {
+                        if (!isset($this->_cachedSkuToProducts[$selection['sku']])) {
+                            continue;
+                        }
                         $childIds[] = $this->_cachedSkuToProducts[$selection['sku']];
                     }
                 }
@@ -720,8 +717,6 @@ class Bundle extends \Magento\CatalogImportExport\Model\Import\Product\Type\Abst
                 }
             }
         }
-
-        return $this;
     }
 
     /**
@@ -791,7 +786,7 @@ class Bundle extends \Magento\CatalogImportExport\Model\Import\Product\Type\Abst
         if (!isset($this->storeCodeToId[$storeCode])) {
             /** @var $store \Magento\Store\Model\Store */
             foreach ($this->storeManager->getStores() as $store) {
-                $this->storeCodeToId[$store->getCode()] = (int)$store->getId();
+                $this->storeCodeToId[$store->getCode()] = $store->getId();
             }
         }
 

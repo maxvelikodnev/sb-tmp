@@ -12,7 +12,6 @@
 
         <annotations>
             <features value="ConfigurableProduct"/>
-            <stories value="Cancel order"/>
             <title value="Product qunatity return after order cancel"/>
             <description value="Check Product qunatity return after order cancel"/>
             <severity value="CRITICAL"/>
@@ -71,7 +70,6 @@
         </actionGroup>
 
         <click selector="{{AdminOrdersGridSection.firstRow}}" stepKey="clickOrderRow"/>
-        <waitForPageLoad stepKey="waitForOrderPageToLoad"/>
         <click selector="{{AdminOrderDetailsMainActionsSection.invoice}}" stepKey="clickInvoiceButton"/>
         <waitForPageLoad stepKey="waitForNewInvoicePageLoad"/>
         <fillField selector="{{AdminInvoiceItemsSection.qtyToInvoiceColumn}}" userInput="1" stepKey="ChangeQtyToInvoice"/>

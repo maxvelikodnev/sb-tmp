@@ -6,9 +6,6 @@
 
 namespace Magento\Config\Test\Unit\Model\Config\Source\Email;
 
-/**
- * Test class for Template.
- */
 class TemplateTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -79,21 +76,9 @@ class TemplateTest extends \PHPUnit\Framework\TestCase
             $this->returnValue('Template New')
         );
         $expectedResult = [
-            [
-                'value' => 'template_new',
-                'label' => 'Template New (Default)',
-                '__disableTmpl' => true
-            ],
-            [
-                'value' => 'template_one',
-                'label' => 'Template One',
-                '__disableTmpl' => true
-            ],
-            [
-                'value' => 'template_two',
-                'label' => 'Template Two',
-                '__disableTmpl' => true
-            ],
+            ['value' => 'template_new', 'label' => 'Template New (Default)'],
+            ['value' => 'template_one', 'label' => 'Template One'],
+            ['value' => 'template_two', 'label' => 'Template Two'],
         ];
         $this->_model->setPath('template/new');
         $this->assertEquals($expectedResult, $this->_model->toOptionArray());

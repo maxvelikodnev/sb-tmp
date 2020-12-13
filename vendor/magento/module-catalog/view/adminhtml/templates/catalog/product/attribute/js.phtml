@@ -4,17 +4,17 @@
  * See COPYING.txt for license details.
  */
 
-// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// @codingStandardsIgnoreFile
+
 ?>
 <script>
 require([
     "jquery",
     'Magento_Ui/js/modal/alert',
     'Magento_Ui/js/modal/prompt',
-    'uiRegistry',
     "collapsable",
     "prototype"
-], function(jQuery, alert, prompt, registry){
+], function(jQuery, alert, prompt){
 
 function toggleApplyVisibility(select) {
     if ($(select).value == 1) {
@@ -40,21 +40,16 @@ function getFrontTab() {
 
 function checkOptionsPanelVisibility(){
     if($('manage-options-panel')){
-        var panelId = 'manage-options-panel',
-            panel = $(panelId),
-            panelFieldSet = panel.up('.fieldset'),
+        var panel = $('manage-options-panel').up('.fieldset'),
             activePanelClass = 'selected-type-options';
 
         if($('frontend_input') && ($('frontend_input').value=='select' || $('frontend_input').value=='multiselect')){
-            panelFieldSet.show();
-            jQuery(panel).addClass(activePanelClass);
-            registry.get(panelId, function () {
-                jQuery('#' + panelId).trigger('render');
-            });
+            panel.show();
+            panel.addClass(activePanelClass);
         }
         else {
-            panelFieldSet.hide();
-            jQuery(panel).removeClass(activePanelClass);
+            panel.hide();
+            panel.removeClass(activePanelClass);
         }
     }
 }
@@ -202,22 +197,22 @@ function switchDefaultValueField()
             setRowVisibility('frontend_class', false);
         break;
 
-        <?php foreach ($this->helper(Magento\Catalog\Helper\Data::class)->getAttributeHiddenFields() as $type => $fields) :?>
-            case '<?= $block->escapeJs($type) ?>':
+        <?php foreach ($this->helper('Magento\Catalog\Helper\Data')->getAttributeHiddenFields() as $type => $fields): ?>
+            case '<?= /* @escapeNotVerified */ $type ?>':
                 var isFrontTabHidden = false;
-                <?php foreach ($fields as $one) :?>
-                    <?php if ($one == '_front_fieldset') :?>
+                <?php foreach ($fields as $one): ?>
+                    <?php if ($one == '_front_fieldset'): ?>
                         getFrontTab().hide();
                         isFrontTabHidden = true;
-                    <?php elseif ($one == '_default_value') :?>
+                    <?php elseif ($one == '_default_value'): ?>
                         defaultValueTextVisibility =
                         defaultValueTextareaVisibility =
                         defaultValueDateVisibility =
                         defaultValueYesnoVisibility = false;
-                    <?php elseif ($one == '_scope') :?>
+                    <?php elseif ($one == '_scope'): ?>
                         scopeVisibility = false;
-                    <?php else :?>
-                        setRowVisibility('<?= $block->escapeJs($one) ?>', false);
+                    <?php else: ?>
+                        setRowVisibility('<?= /* @escapeNotVerified */ $one ?>', false);
                     <?php endif; ?>
                 <?php endforeach; ?>
 

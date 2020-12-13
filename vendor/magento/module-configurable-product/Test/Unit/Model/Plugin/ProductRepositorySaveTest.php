@@ -18,8 +18,7 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit_Framework_MockObject_MockObject as MockObject;
 
 /**
- * Test for ProductRepositorySave plugin
- *
+ * Class ProductRepositorySaveTest
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
@@ -108,10 +107,7 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    /**
-     * Validating the result after saving a configurable product
-     */
-    public function testBeforeSaveWhenProductIsSimple()
+    public function testAfterSaveWhenProductIsSimple()
     {
         $this->product->expects(static::once())
             ->method('getTypeId')
@@ -120,21 +116,18 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
             ->method('getExtensionAttributes');
 
         $this->assertEquals(
-            $this->product,
-            $this->plugin->beforeSave($this->productRepository, $this->product)[0]
+            $this->result,
+            $this->plugin->afterSave($this->productRepository, $this->result, $this->product)
         );
     }
 
-    /**
-     * Test saving a configurable product without attribute options
-     */
-    public function testBeforeSaveWithoutOptions()
+    public function testAfterSaveWithoutOptions()
     {
         $this->product->expects(static::once())
             ->method('getTypeId')
             ->willReturn(Configurable::TYPE_CODE);
 
-        $this->product->expects(static::once())
+        $this->result->expects(static::once())
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributes);
 
@@ -149,25 +142,23 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
             ->method('get');
 
         $this->assertEquals(
-            $this->product,
-            $this->plugin->beforeSave($this->productRepository, $this->product)[0]
+            $this->result,
+            $this->plugin->afterSave($this->productRepository, $this->result, $this->product)
         );
     }
 
     /**
-     * Test saving a configurable product with same set of attribute values
-     *
      * @expectedException \Magento\Framework\Exception\InputException
      * @expectedExceptionMessage Products "5" and "4" have the same set of attribute values.
      */
-    public function testBeforeSaveWithLinks()
+    public function testAfterSaveWithLinks()
     {
         $links = [4, 5];
         $this->product->expects(static::once())
             ->method('getTypeId')
             ->willReturn(Configurable::TYPE_CODE);
 
-        $this->product->expects(static::once())
+        $this->result->expects(static::once())
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributes);
         $this->extensionAttributes->expects(static::once())
@@ -182,7 +173,7 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
 
         $product = $this->getMockBuilder(Product::class)
             ->disableOriginalConstructor()
-            ->setMethods(['load', 'getData', '__wakeup', 'getId'])
+            ->setMethods(['load', 'getData', '__wakeup'])
             ->getMock();
 
         $this->productFactory->expects(static::exactly(2))
@@ -192,21 +183,17 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
         $product->expects(static::exactly(2))
             ->method('load')
             ->willReturnSelf();
-        $product->method('getId')
-            ->willReturn(4, 5);
         $product->expects(static::never())
             ->method('getData');
 
-        $this->plugin->beforeSave($this->productRepository, $this->product);
+        $this->plugin->afterSave($this->productRepository, $this->result, $this->product);
     }
 
     /**
-     * Test saving a configurable product with missing attribute
-     *
      * @expectedException \Magento\Framework\Exception\InputException
      * @expectedExceptionMessage Product with id "4" does not contain required attribute "color".
      */
-    public function testBeforeSaveWithLinksWithMissingAttribute()
+    public function testAfterSaveWithLinksWithMissingAttribute()
     {
         $simpleProductId = 4;
         $links = [$simpleProductId, 5];
@@ -221,7 +208,7 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
             ->method('getTypeId')
             ->willReturn(Configurable::TYPE_CODE);
 
-        $this->product->expects(static::once())
+        $this->result->expects(static::once())
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributes);
         $this->extensionAttributes->expects(static::once())
@@ -241,7 +228,7 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
 
         $product = $this->getMockBuilder(Product::class)
             ->disableOriginalConstructor()
-            ->setMethods(['load', 'getData', '__wakeup', 'getId'])
+            ->setMethods(['load', 'getData', '__wakeup'])
             ->getMock();
 
         $this->productFactory->expects(static::once())
@@ -256,18 +243,14 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
             ->with($attributeCode)
             ->willReturn(false);
 
-        $product->method('getId')
-            ->willReturn($simpleProductId, 5);
-        $this->plugin->beforeSave($this->productRepository, $this->product);
+        $this->plugin->afterSave($this->productRepository, $this->result, $this->product);
     }
 
     /**
-     * Test saving a configurable product with duplicate attributes
-     *
      * @expectedException \Magento\Framework\Exception\InputException
      * @expectedExceptionMessage Products "5" and "4" have the same set of attribute values.
      */
-    public function testBeforeSaveWithLinksWithDuplicateAttributes()
+    public function testAfterSaveWithLinksWithDuplicateAttributes()
     {
         $links = [4, 5];
         $attributeCode = 'color';
@@ -281,7 +264,7 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
             ->method('getTypeId')
             ->willReturn(Configurable::TYPE_CODE);
 
-        $this->product->expects(static::once())
+        $this->result->expects(static::once())
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributes);
         $this->extensionAttributes->expects(static::once())
@@ -301,7 +284,7 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
 
         $product = $this->getMockBuilder(Product::class)
             ->disableOriginalConstructor()
-            ->setMethods(['load', 'getData', '__wakeup', 'getId'])
+            ->setMethods(['load', 'getData', '__wakeup'])
             ->getMock();
 
         $this->productFactory->expects(static::exactly(2))
@@ -315,8 +298,6 @@ class ProductRepositorySaveTest extends \PHPUnit\Framework\TestCase
             ->with($attributeCode)
             ->willReturn($attributeId);
 
-        $product->method('getId')
-            ->willReturn(4, 5);
-        $this->plugin->beforeSave($this->productRepository, $this->product);
+        $this->plugin->afterSave($this->productRepository, $this->result, $this->product);
     }
 }

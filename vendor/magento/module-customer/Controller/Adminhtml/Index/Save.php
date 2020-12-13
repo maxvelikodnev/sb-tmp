@@ -320,13 +320,12 @@ class Save extends \Magento\Customer\Controller\Adminhtml\Index implements HttpP
                     ['customer' => $customer, 'request' => $this->getRequest()]
                 );
 
-                if (isset($customerData['sendemail_store_id']) && $customerData['sendemail_store_id'] !== false) {
+                if (isset($customerData['sendemail_store_id'])) {
                     $customer->setStoreId($customerData['sendemail_store_id']);
                 }
 
                 // Save customer
                 if ($customerId) {
-                    $this->customerAccountManagement->validateCustomerStoreIdByWebsiteId($customer);
                     $this->_customerRepository->save($customer);
 
                     $this->getEmailNotification()->credentialsChanged($customer, $currentCustomer->getEmail());
@@ -355,14 +354,8 @@ class Save extends \Magento\Customer\Controller\Adminhtml\Index implements HttpP
                 $this->_getSession()->unsCustomerFormData();
                 // Done Saving customer, finish save action
                 $this->_coreRegistry->register(RegistryConstants::CURRENT_CUSTOMER_ID, $customerId);
-                $this->messageManager->addSuccessMessage(__('You saved the customer.'));
+                $this->messageManager->addSuccess(__('You saved the customer.'));
                 $returnToEdit = (bool)$this->getRequest()->getParam('back', false);
-            } catch (NoSuchEntityException $exception) {
-                $this->messageManager->addExceptionMessage(
-                    $exception,
-                    __('Something went wrong while saving the customer.')
-                );
-                $returnToEdit = false;
             } catch (\Magento\Framework\Validator\Exception $exception) {
                 $messages = $exception->getMessages();
                 if (empty($messages)) {
@@ -385,10 +378,7 @@ class Save extends \Magento\Customer\Controller\Adminhtml\Index implements HttpP
                 $this->_getSession()->setCustomerFormData($this->retrieveFormattedFormData());
                 $returnToEdit = true;
             } catch (\Exception $exception) {
-                $this->messageManager->addExceptionMessage(
-                    $exception,
-                    __('Something went wrong while saving the customer.')
-                );
+                $this->messageManager->addException($exception, __('Something went wrong while saving the customer.'));
                 $this->_getSession()->setCustomerFormData($this->retrieveFormattedFormData());
                 $returnToEdit = true;
             }

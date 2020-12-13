@@ -1,22 +1,17 @@
 <?php
 /**
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-declare(strict_types=1);
-
 namespace Magento\Sales\Controller\Adminhtml\Invoice\AbstractInvoice;
 
 use Magento\Backend\App\Action\Context;
-use Magento\Backend\Model\View\Result\ForwardFactory;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Registry;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
+use Magento\Sales\Model\Order\InvoiceRepository;
 
-/**
- * Class View
- */
 abstract class View extends \Magento\Backend\App\Action
 {
     /**
@@ -32,7 +27,7 @@ abstract class View extends \Magento\Backend\App\Action
     protected $registry;
 
     /**
-     * @var ForwardFactory
+     * @var \Magento\Backend\Model\View\Result\ForwardFactory
      */
     protected $resultForwardFactory;
 
@@ -44,20 +39,16 @@ abstract class View extends \Magento\Backend\App\Action
     /**
      * @param Context $context
      * @param Registry $registry
-     * @param ForwardFactory $resultForwardFactory
-     * @param InvoiceRepositoryInterface $invoiceRepository
+     * @param \Magento\Backend\Model\View\Result\ForwardFactory $resultForwardFactory
      */
     public function __construct(
         Context $context,
         Registry $registry,
-        ForwardFactory $resultForwardFactory,
-        InvoiceRepositoryInterface $invoiceRepository = null
+        \Magento\Backend\Model\View\Result\ForwardFactory $resultForwardFactory
     ) {
-        parent::__construct($context);
         $this->registry = $registry;
+        parent::__construct($context);
         $this->resultForwardFactory = $resultForwardFactory;
-        $this->invoiceRepository = $invoiceRepository ?:
-            ObjectManager::getInstance()->get(InvoiceRepositoryInterface::class);
     }
 
     /**
@@ -79,14 +70,13 @@ abstract class View extends \Magento\Backend\App\Action
     }
 
     /**
-     * Get invoice using invoice Id from request params
-     *
      * @return \Magento\Sales\Model\Order\Invoice|bool
      */
     protected function getInvoice()
     {
         try {
-            $invoice = $this->invoiceRepository->get($this->getRequest()->getParam('invoice_id'));
+            $invoice = $this->getInvoiceRepository()
+                ->get($this->getRequest()->getParam('invoice_id'));
             $this->registry->register('current_invoice', $invoice);
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('Invoice capturing error'));
@@ -94,5 +84,20 @@ abstract class View extends \Magento\Backend\App\Action
         }
 
         return $invoice;
+    }
+
+    /**
+     * @return InvoiceRepository
+     *
+     * @deprecated 100.1.0
+     */
+    private function getInvoiceRepository()
+    {
+        if ($this->invoiceRepository === null) {
+            $this->invoiceRepository = ObjectManager::getInstance()
+                ->get(InvoiceRepositoryInterface::class);
+        }
+
+        return $this->invoiceRepository;
     }
 }

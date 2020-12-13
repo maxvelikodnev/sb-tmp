@@ -8,7 +8,7 @@
  */
 define([
     'jquery',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'mage/cookies'
 ], function ($) {
     'use strict';
@@ -30,7 +30,6 @@ define([
 
                 if ($.mage.cookies.get(this.options.cookieName)) {
                     this.element.hide();
-                    $(document).trigger('user:allowed:save:cookie');
                 } else {
                     window.location.href = this.options.noCookiesUrl;
                 }

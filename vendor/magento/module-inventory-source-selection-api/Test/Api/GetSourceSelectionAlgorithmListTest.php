@@ -10,9 +10,6 @@ namespace Magento\InventorySourceSelectionApi\Test\Api;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\TestFramework\TestCase\WebapiAbstract;
 
-/**
- * @see https://app.hiptest.com/projects/69435/test-plan/folders/530616/scenarios/1824146
- */
 class GetSourceSelectionAlgorithmListTest extends WebapiAbstract
 {
     /**#@+

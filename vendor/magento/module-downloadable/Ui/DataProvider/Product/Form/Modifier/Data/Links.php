@@ -13,10 +13,9 @@ use Magento\Downloadable\Helper\File as DownloadableFile;
 use Magento\Framework\UrlInterface;
 use Magento\Downloadable\Model\Link as LinkModel;
 use Magento\Downloadable\Api\Data\LinkInterface;
-use Magento\Framework\Exception\ValidatorException;
 
 /**
- * Grid class to add links
+ * Class Links
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Links
@@ -156,13 +155,13 @@ class Links
         $sampleFile = $link->getSampleFile();
         if ($sampleFile) {
             $file = $this->downloadableFile->getFilePath($this->linkModel->getBaseSamplePath(), $sampleFile);
-            if ($this->isLinkFileValid($file)) {
+            if ($this->downloadableFile->ensureFileInFilesystem($file)) {
                 $linkData['sample']['file'][0] = [
                     'file' => $sampleFile,
                     'name' => $this->downloadableFile->getFileFromPathFile($sampleFile),
                     'size' => $this->downloadableFile->getFileSize($file),
                     'status' => 'old',
-                    'url' => $this->urlBuilder->getUrl(
+                    'url' => $this->urlBuilder->addSessionParam()->getUrl(
                         'adminhtml/downloadable_product_edit/link',
                         ['id' => $link->getId(), 'type' => 'sample', '_secure' => true]
                     ),
@@ -185,13 +184,13 @@ class Links
         $linkFile = $link->getLinkFile();
         if ($linkFile) {
             $file = $this->downloadableFile->getFilePath($this->linkModel->getBasePath(), $linkFile);
-            if ($this->isLinkFileValid($file)) {
+            if ($this->downloadableFile->ensureFileInFilesystem($file)) {
                 $linkData['file'][0] = [
                     'file' => $linkFile,
                     'name' => $this->downloadableFile->getFileFromPathFile($linkFile),
                     'size' => $this->downloadableFile->getFileSize($file),
                     'status' => 'old',
-                    'url' => $this->urlBuilder->getUrl(
+                    'url' => $this->urlBuilder->addSessionParam()->getUrl(
                         'adminhtml/downloadable_product_edit/link',
                         ['id' => $link->getId(), 'type' => 'link', '_secure' => true]
                     ),
@@ -200,21 +199,6 @@ class Links
         }
 
         return $linkData;
-    }
-
-    /**
-     * Check that Links File or Sample is valid.
-     *
-     * @param string $file
-     * @return bool
-     */
-    private function isLinkFileValid(string $file): bool
-    {
-        try {
-            return $this->downloadableFile->ensureFileInFilesystem($file);
-        } catch (ValidatorException $e) {
-            return false;
-        }
     }
 
     /**

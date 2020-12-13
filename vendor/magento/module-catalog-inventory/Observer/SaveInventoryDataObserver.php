@@ -13,8 +13,6 @@ use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\CatalogInventory\Model\StockItemValidator;
 use Magento\Framework\Event\Observer as EventObserver;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * Saves stock data from a product to the Stock Item
@@ -40,11 +38,6 @@ class SaveInventoryDataObserver implements ObserverInterface
      * @var StockItemValidator
      */
     private $stockItemValidator;
-
-    /**
-     * @var ParentItemProcessorInterface[]
-     */
-    private $parentItemProcessorPool;
 
     /**
      * @var array
@@ -84,18 +77,15 @@ class SaveInventoryDataObserver implements ObserverInterface
      * @param StockConfigurationInterface $stockConfiguration
      * @param StockRegistryInterface $stockRegistry
      * @param StockItemValidator $stockItemValidator
-     * @param ParentItemProcessorInterface[] $parentItemProcessorPool
      */
     public function __construct(
         StockConfigurationInterface $stockConfiguration,
         StockRegistryInterface $stockRegistry,
-        StockItemValidator $stockItemValidator = null,
-        array $parentItemProcessorPool = []
+        StockItemValidator $stockItemValidator = null
     ) {
         $this->stockConfiguration = $stockConfiguration;
         $this->stockRegistry = $stockRegistry;
         $this->stockItemValidator = $stockItemValidator ?: ObjectManager::getInstance()->get(StockItemValidator::class);
-        $this->parentItemProcessorPool = $parentItemProcessorPool;
     }
 
     /**
@@ -106,15 +96,10 @@ class SaveInventoryDataObserver implements ObserverInterface
      *
      * @param EventObserver $observer
      * @return void
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
     public function execute(EventObserver $observer)
     {
-        /** @var Product $product */
         $product = $observer->getEvent()->getProduct();
-
-        /** @var Item $stockItem */
         $stockItem = $this->getStockItemToBeUpdated($product);
 
         if ($product->getStockData() !== null) {
@@ -123,7 +108,6 @@ class SaveInventoryDataObserver implements ObserverInterface
         }
         $this->stockItemValidator->validate($product, $stockItem);
         $this->stockRegistry->updateStockItemBySku($product->getSku(), $stockItem);
-        $this->processParents($product);
     }
 
     /**
@@ -171,18 +155,5 @@ class SaveInventoryDataObserver implements ObserverInterface
                 - $originalQty;
         }
         return $stockData;
-    }
-
-    /**
-     * Process stock data for parent products
-     *
-     * @param Product $product
-     * @return void
-     */
-    private function processParents(Product $product)
-    {
-        foreach ($this->parentItemProcessorPool as $processor) {
-            $processor->process($product);
-        }
     }
 }

@@ -6,7 +6,7 @@
 define([
     'jquery',
     'Magento_Ui/js/modal/alert',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'mage/translate',
     'mage/mage',
     'mage/validation'
@@ -26,6 +26,7 @@ define([
             agreementSelector: 'div.checkout-agreements input',
             isAjax: false,
             updateShippingMethodSubmitSelector: '#update-shipping-method-submit',
+            reviewSubmitSelector: '#review-submit',
             shippingMethodUpdateUrl: null,
             updateOrderSubmitUrl: null,
             canEditShippingMethod: false
@@ -56,7 +57,8 @@ define([
                         this.options.updateContainerSelector
                     )
                 ).find(this.options.updateOrderSelector).on('click', $.proxy(this._updateOrderHandler, this)).end()
-                .find(this.options.updateShippingMethodSubmitSelector).hide().end();
+                .find(this.options.updateShippingMethodSubmitSelector).hide().end()
+                .find(this.options.reviewSubmitSelector).hide();
             this._shippingTobilling();
 
             if ($(this.options.shippingSubmitFormSelector).length && this.options.canEditShippingMethod) {

@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- /**
-  * Copyright © Magento, Inc. All rights reserved.
-  * See COPYING.txt for license details.
-  */
--->
+
 <tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
     <test name="LoggedInCustomerCreatedOrderWithSimpleProductOnTestStockFromHomepage">
         <annotations>
             <stories value="Logged In Customer created Order with Simple product on Test stock from Homepage"/>
-            <title value="Logged In Customer created Order with Simple product on Test stock from Homepage."/>
+            <title value="Logged In Customer created Order with Simple product on Test stock from Homepage"/>
             <description value="/scenarios/1408755"/>
-            <testCaseId value="https://app.hiptest.com/projects/69435/test-plan/folders/419534/scenarios/1408755"/>
+            <testCaseId value="MSI-2055"/>
             <severity value="BLOCKER"/>
             <group value="msi"/>
             <group value="multi_mode"/>
@@ -37,11 +32,6 @@
             <waitForPageLoad stepKey="waitForDashboardLoad"/>
         </before>
         <after>
-            <!--Assign Default Stock to Default Website.-->
-            <actionGroup ref="AssignWebsiteToStockActionGroup" stepKey="assignMainWebsiteToDefaultStock">
-                <argument name="stockName" value="{{_defaultStock.name}}"/>
-                <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
-            </actionGroup>
             <actionGroup ref="DisableSourceActionGroup" stepKey="disableThirdCreatedSource">
                 <argument name="sourceCode" value="$$createSource.source[source_code]$$"/>
             </actionGroup>
@@ -102,9 +92,12 @@
 
         <!-- Admin area check ordered quantity -->
         <comment userInput="Admin - Check ordered quantity" stepKey="AdminCheckOrderedQuantity"/>
-        <actionGroup ref="OpenOrderByIdActionGroup" stepKey="openOrder">
-            <argument name="orderId" value="{$grabOrderNumber}"/>
-        </actionGroup>
+        <amOnPage url="{{AdminOrdersPage.url}}" stepKey="navigateToOrderListPage"/>
+        <waitForLoadingMaskToDisappear stepKey="waitOrderListPageLoad"/>
+        <fillField selector="{{AdminOrdersGridSection.search}}" userInput="{$grabOrderNumber}" stepKey="searchOrder"/>
+        <click selector="{{AdminOrdersGridSection.submitSearch}}" stepKey="submitSearchCheckOrderAfterCustomerSubmits"/>
+        <waitForLoadingMaskToDisappear stepKey="waitFilteredOrderListPageLoad"/>
+        <click selector="{{AdminOrdersGridSection.firstRow}}" stepKey="navigateToOrderViewPage"/>
         <waitForElementVisible selector="{{AdminOrderItemsOrderedSection.itemQty('1')}}" stepKey="waitForViewOrderedQuantity"/>
         <see selector="{{AdminOrderItemsOrderedSection.itemQty('1')}}" userInput="Ordered 5" stepKey="orderedQuantity"/>
 

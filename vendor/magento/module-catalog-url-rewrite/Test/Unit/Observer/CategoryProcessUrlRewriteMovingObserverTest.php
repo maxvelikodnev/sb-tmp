@@ -98,15 +98,12 @@ class CategoryProcessUrlRewriteMovingObserverTest extends \PHPUnit\Framework\Tes
             ->disableOriginalConstructor()
             ->setMethods(['getCategory'])
             ->getMock();
-        $categoryMock = $this->createPartialMock(
-            Category::class,
-            [
-                'dataHasChangedFor',
-                'getEntityId',
-                'getStoreId',
-                'setData'
-            ]
-        );
+        $categoryMock = $this->createPartialMock(Category::class, [
+            'dataHasChangedFor',
+            'getEntityId',
+            'getStoreId',
+            'setData'
+        ]);
 
         $categoryMock->expects($this->once())->method('dataHasChangedFor')->with('parent_id')
             ->willReturn(true);
@@ -114,7 +111,6 @@ class CategoryProcessUrlRewriteMovingObserverTest extends \PHPUnit\Framework\Tes
         $observerMock->expects($this->once())->method('getEvent')->willReturn($eventMock);
         $this->scopeConfigMock->expects($this->once())->method('isSetFlag')
             ->with(UrlKeyRenderer::XML_PATH_SEO_SAVE_HISTORY)->willReturn(true);
-        $this->scopeConfigMock->method('getValue')->willReturn(true);
         $this->categoryUrlRewriteGeneratorMock->expects($this->once())->method('generate')
             ->with($categoryMock, true)->willReturn(['category-url-rewrite']);
         $this->urlRewriteHandlerMock->expects($this->once())->method('generateProductUrlRewrites')

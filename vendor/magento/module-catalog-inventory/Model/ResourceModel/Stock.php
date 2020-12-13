@@ -125,18 +125,9 @@ class Stock extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb impleme
             return [];
         }
         $itemTable = $this->getTable('cataloginventory_stock_item');
-
-        //get indexed entries for row level lock instead of table lock
-        $itemIds = [];
-        $preSelect = $this->getConnection()->select()->from($itemTable, 'item_id')
-            ->where('website_id = ?', $websiteId)
-            ->where('product_id IN(?)', $productIds);
-        foreach ($this->getConnection()->query($preSelect)->fetchAll() as $item) {
-            $itemIds[] = (int)$item['item_id'];
-        }
-
         $select = $this->getConnection()->select()->from(['si' => $itemTable])
-            ->where('item_id IN (?)', $itemIds)
+            ->where('website_id = ?', $websiteId)
+            ->where('product_id IN(?)', $productIds)
             ->forUpdate(true);
 
         $productTable = $this->getTable('catalog_product_entity');
@@ -156,12 +147,12 @@ class Stock extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb impleme
         foreach ($this->getConnection()->fetchAll($selectProducts) as $p) {
             $items[$p['product_id']]['type_id'] = $p['type_id'];
         }
-
+        
         return $items;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function correctItemsQty(array $items, $websiteId, $operator)
     {

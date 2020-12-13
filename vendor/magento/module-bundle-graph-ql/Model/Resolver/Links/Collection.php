@@ -117,8 +117,7 @@ class Collection
                 'price' => $link->getSelectionPriceValue(),
                 'position' => $link->getPosition(),
                 'id' => $link->getSelectionId(),
-                'qty' => (float)$link->getSelectionQty(),
-                'quantity' => (float)$link->getSelectionQty(),
+                'qty' => (int)$link->getSelectionQty(),
                 'is_default' => (bool)$link->getIsDefault(),
                 'price_type' => $this->enumLookup->getEnumValueFromField(
                     'PriceTypeEnum',

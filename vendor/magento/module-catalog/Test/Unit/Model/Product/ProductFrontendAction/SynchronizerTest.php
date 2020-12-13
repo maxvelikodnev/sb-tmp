@@ -82,15 +82,15 @@ class SynchronizerTest extends \PHPUnit\Framework\TestCase
     {
         $typeId = 'recently_compared_product';
         $productsData = [
-            'website-1-1' => [
+            1 => [
                 'added_at' => 12,
                 'product_id' => 1,
             ],
-            'website-1-2' => [
+            2 => [
                 'added_at' => 13,
                 'product_id' => '2',
             ],
-            'website-2-3' => [
+            3 => [
                 'added_at' => 14,
                 'product_id' => 3,
             ]

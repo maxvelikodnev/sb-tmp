@@ -9,14 +9,13 @@ namespace Magento\CatalogSearch\Model\Search\FilterMapper;
 use Magento\CatalogSearch\Model\Search\SelectContainer\SelectContainer;
 use Magento\CatalogSearch\Model\Adapter\Mysql\Filter\AliasResolver;
 use Magento\CatalogInventory\Model\Stock;
-use Magento\Framework\App\ObjectManager;
 
 /**
+ * Class FilterMapper
  * This class applies filters to Select based on SelectContainer configuration
  *
- * @deprecated 101.0.0 MySQL search engine is not recommended.
+ * @deprecated 101.0.0
  * @see \Magento\ElasticSearch
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class FilterMapper
 {
@@ -44,10 +43,6 @@ class FilterMapper
      * @var StockStatusFilter
      */
     private $stockStatusFilter;
-    /**
-     * @var CustomAttributeStockStatusFilter
-     */
-    private $customAttributeStockStatusFilter;
 
     /**
      * @param AliasResolver $aliasResolver
@@ -55,27 +50,24 @@ class FilterMapper
      * @param FilterStrategyInterface $filterStrategy
      * @param VisibilityFilter $visibilityFilter
      * @param StockStatusFilter $stockStatusFilter
-     * @param CustomAttributeStockStatusFilter|null $customAttributeStockStatusFilter
      */
     public function __construct(
         AliasResolver $aliasResolver,
         CustomAttributeFilter $customAttributeFilter,
         FilterStrategyInterface $filterStrategy,
         VisibilityFilter $visibilityFilter,
-        StockStatusFilter $stockStatusFilter,
-        ?CustomAttributeStockStatusFilter $customAttributeStockStatusFilter = null
+        StockStatusFilter $stockStatusFilter
     ) {
         $this->aliasResolver = $aliasResolver;
         $this->customAttributeFilter = $customAttributeFilter;
         $this->filterStrategy = $filterStrategy;
         $this->visibilityFilter = $visibilityFilter;
         $this->stockStatusFilter = $stockStatusFilter;
-        $this->customAttributeStockStatusFilter = $customAttributeStockStatusFilter
-            ?? ObjectManager::getInstance()->get(CustomAttributeStockStatusFilter::class);
     }
 
     /**
-     * Applies filters to Select query in SelectContainer based on SelectContainer configuration
+     * Applies filters to Select query in SelectContainer
+     * based on SelectContainer configuration
      *
      * @param SelectContainer $selectContainer
      * @return SelectContainer
@@ -87,21 +79,21 @@ class FilterMapper
     {
         $select = $selectContainer->getSelect();
 
+        if ($selectContainer->hasCustomAttributesFilters()) {
+            $select = $this->customAttributeFilter->apply($select, ...$selectContainer->getCustomAttributesFilters());
+        }
+
+        $filterType = StockStatusFilter::FILTER_JUST_ENTITY;
+        if ($selectContainer->hasCustomAttributesFilters()) {
+            $filterType = StockStatusFilter::FILTER_ENTITY_AND_SUB_PRODUCTS;
+        }
+
         $select = $this->stockStatusFilter->apply(
             $select,
             Stock::STOCK_IN_STOCK,
-            StockStatusFilter::FILTER_JUST_ENTITY,
+            $filterType,
             $selectContainer->isShowOutOfStockEnabled()
         );
-
-        if ($selectContainer->hasCustomAttributesFilters()) {
-            $select = $this->customAttributeFilter->apply($select, ...$selectContainer->getCustomAttributesFilters());
-            $select = $this->customAttributeStockStatusFilter->apply(
-                $select,
-                $selectContainer->isShowOutOfStockEnabled() ? null : Stock::STOCK_IN_STOCK,
-                ...$selectContainer->getCustomAttributesFilters()
-            );
-        }
 
         $appliedFilters = [];
 

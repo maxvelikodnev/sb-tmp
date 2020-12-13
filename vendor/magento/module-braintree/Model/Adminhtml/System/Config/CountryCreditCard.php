@@ -17,9 +17,6 @@ use Magento\Framework\Serialize\Serializer\Json;
 
 /**
  * Class CountryCreditCard
- *
- * @deprecated Starting from Magento 2.3.6 Braintree payment method core integration is deprecated
- * in favor of official payment integration available on the marketplace
  */
 class CountryCreditCard extends Value
 {

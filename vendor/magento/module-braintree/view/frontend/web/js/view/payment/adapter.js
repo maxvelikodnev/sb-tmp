@@ -6,42 +6,81 @@
 /*global define*/
 define([
     'jquery',
-    'braintreeClient'
-], function ($, braintreeClient) {
+    'braintree',
+    'Magento_Ui/js/model/messageList',
+    'mage/translate'
+], function ($, braintree, globalMessageList, $t) {
     'use strict';
 
     return {
         apiClient: null,
+        config: {},
         checkout: null,
-        code: 'braintree',
 
         /**
-         * Returns Braintree API client
+         * Get Braintree api client
          * @returns {Object}
          */
         getApiClient: function () {
-            return braintreeClient.create({
-                authorization: this.getClientToken()
+            if (!this.apiClient) {
+                this.apiClient = new braintree.api.Client({
+                    clientToken: this.getClientToken()
+                });
+            }
+
+            return this.apiClient;
+        },
+
+        /**
+         * Set configuration
+         * @param {Object} config
+         */
+        setConfig: function (config) {
+            this.config = config;
+        },
+
+        /**
+         * Setup Braintree SDK
+         */
+        setup: function () {
+            if (!this.getClientToken()) {
+                this.showError($t('Sorry, but something went wrong.'));
+            }
+
+            braintree.setup(this.getClientToken(), 'custom', this.config);
+        },
+
+        /**
+         * Get payment name
+         * @returns {String}
+         */
+        getCode: function () {
+            return 'braintree';
+        },
+
+        /**
+         * Get client token
+         * @returns {String|*}
+         */
+        getClientToken: function () {
+
+            return window.checkoutConfig.payment[this.getCode()].clientToken;
+        },
+
+        /**
+         * Show error message
+         *
+         * @param {String} errorMessage
+         */
+        showError: function (errorMessage) {
+            globalMessageList.addErrorMessage({
+                message: errorMessage
             });
         },
 
         /**
-         * Returns payment code
-         *
-         * @returns {String}
+         * May be triggered on Braintree SDK setup
          */
-        getCode: function () {
-            return this.code;
-        },
-
-        /**
-         * Returns client token
-         *
-         * @returns {String}
-         * @private
-         */
-        getClientToken: function () {
-            return window.checkoutConfig.payment[this.code].clientToken;
-        }
+        onReady: function () {}
     };
 });

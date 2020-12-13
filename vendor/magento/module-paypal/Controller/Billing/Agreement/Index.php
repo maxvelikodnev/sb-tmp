@@ -6,12 +6,7 @@
  */
 namespace Magento\Paypal\Controller\Billing\Agreement;
 
-use Magento\Framework\App\Action\HttpGetActionInterface as HttpGetActionInterface;
-
-/**
- * Index Controller.
- */
-class Index extends \Magento\Paypal\Controller\Billing\Agreement implements HttpGetActionInterface
+class Index extends \Magento\Paypal\Controller\Billing\Agreement
 {
     /**
      * View billing agreements
@@ -21,7 +16,7 @@ class Index extends \Magento\Paypal\Controller\Billing\Agreement implements Http
     public function execute()
     {
         $this->_view->loadLayout();
-        $this->_view->getPage()->getConfig()->getTitle()->set(__('Billing Agreements'));
+        $this->_view->getPage()->getConfig()->getTitle()->prepend(__('Billing Agreements'));
         $this->_view->renderLayout();
     }
 }

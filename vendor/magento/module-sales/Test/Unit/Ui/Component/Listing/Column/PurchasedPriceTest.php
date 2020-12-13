@@ -3,11 +3,9 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Sales\Test\Unit\Ui\Component\Listing\Column;
 
-use Magento\Directory\Model\Currency;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Sales\Ui\Component\Listing\Column\Price;
 
@@ -22,9 +20,9 @@ class PurchasedPriceTest extends \PHPUnit\Framework\TestCase
     protected $model;
 
     /**
-     * @var Currency|\PHPUnit_Framework_MockObject_MockObject
+     * @var PriceCurrencyInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $currencyMock;
+    protected $priceFormatterMock;
 
     protected function setUp()
     {
@@ -35,13 +33,12 @@ class PurchasedPriceTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $contextMock->expects($this->never())->method('getProcessor')->willReturn($processor);
-        $this->currencyMock = $this->getMockBuilder(\Magento\Directory\Model\Currency::class)
-            ->setMethods(['load', 'format'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->priceFormatterMock = $this->getMockForAbstractClass(
+            \Magento\Framework\Pricing\PriceCurrencyInterface::class
+        );
         $this->model = $objectManager->getObject(
             \Magento\Sales\Ui\Component\Listing\Column\PurchasedPrice::class,
-            ['currency' => $this->currencyMock, 'context' => $contextMock]
+            ['priceFormatter' => $this->priceFormatterMock, 'context' => $contextMock]
         );
     }
 
@@ -61,14 +58,9 @@ class PurchasedPriceTest extends \PHPUnit\Framework\TestCase
             ]
         ];
 
-        $this->currencyMock->expects($this->once())
-            ->method('load')
-            ->with($dataSource['data']['items'][0]['order_currency_code'])
-            ->willReturnSelf();
-
-        $this->currencyMock->expects($this->once())
+        $this->priceFormatterMock->expects($this->once())
             ->method('format')
-            ->with($oldItemValue, [], false)
+            ->with($oldItemValue, false, null, null, 'US')
             ->willReturn($newItemValue);
 
         $this->model->setData('name', $itemName);

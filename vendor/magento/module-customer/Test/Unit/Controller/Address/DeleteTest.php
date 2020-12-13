@@ -146,7 +146,7 @@ class DeleteTest extends \PHPUnit\Framework\TestCase
             ->method('deleteById')
             ->with($addressId);
         $this->messageManager->expects($this->once())
-            ->method('addSuccessMessage')
+            ->method('addSuccess')
             ->with(__('You deleted the address.'));
         $this->resultRedirect->expects($this->once())
             ->method('setPath')
@@ -183,7 +183,7 @@ class DeleteTest extends \PHPUnit\Framework\TestCase
             ->willReturn(34);
         $exception = new \Exception('Exception');
         $this->messageManager->expects($this->once())
-            ->method('addErrorMessage')
+            ->method('addError')
             ->with(__('We can\'t delete the address right now.'))
             ->willThrowException($exception);
         $this->messageManager->expects($this->once())

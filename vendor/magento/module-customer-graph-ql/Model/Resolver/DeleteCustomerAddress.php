@@ -9,18 +9,22 @@ namespace Magento\CustomerGraphQl\Model\Resolver;
 
 use Magento\CustomerGraphQl\Model\Customer\Address\DeleteCustomerAddress as DeleteCustomerAddressModel;
 use Magento\CustomerGraphQl\Model\Customer\Address\GetCustomerAddress;
-use Magento\Framework\GraphQl\Exception\GraphQlAuthorizationException;
+use Magento\CustomerGraphQl\Model\Customer\GetCustomer;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
-use Magento\GraphQl\Model\Query\ContextInterface;
 
 /**
  * Customers address delete, used for GraphQL request processing.
  */
 class DeleteCustomerAddress implements ResolverInterface
 {
+    /**
+     * @var GetCustomer
+     */
+    private $getCustomer;
+
     /**
      * @var GetCustomerAddress
      */
@@ -32,13 +36,16 @@ class DeleteCustomerAddress implements ResolverInterface
     private $deleteCustomerAddress;
 
     /**
+     * @param GetCustomer $getCustomer
      * @param GetCustomerAddress $getCustomerAddress
      * @param DeleteCustomerAddressModel $deleteCustomerAddress
      */
     public function __construct(
+        GetCustomer $getCustomer,
         GetCustomerAddress $getCustomerAddress,
         DeleteCustomerAddressModel $deleteCustomerAddress
     ) {
+        $this->getCustomer = $getCustomer;
         $this->getCustomerAddress = $getCustomerAddress;
         $this->deleteCustomerAddress = $deleteCustomerAddress;
     }
@@ -53,12 +60,13 @@ class DeleteCustomerAddress implements ResolverInterface
         array $value = null,
         array $args = null
     ) {
-        /** @var ContextInterface $context */
-        if (false === $context->getExtensionAttributes()->getIsCustomer()) {
-            throw new GraphQlAuthorizationException(__('The current customer isn\'t authorized.'));
+        if (!isset($args['id']) || empty($args['id'])) {
+            throw new GraphQlInputException(__('Address "id" value should be specified'));
         }
 
-        $address = $this->getCustomerAddress->execute((int)$args['id'], $context->getUserId());
+        $customer = $this->getCustomer->execute($context);
+        $address = $this->getCustomerAddress->execute((int)$args['id'], (int)$customer->getId());
+
         $this->deleteCustomerAddress->execute($address);
         return true;
     }

@@ -12,12 +12,10 @@ use Magento\CatalogUrlRewrite\Model\Map\DatabaseMapPool;
 use Magento\CatalogUrlRewrite\Model\Map\DataCategoryUrlRewriteDatabaseMap;
 use Magento\CatalogUrlRewrite\Model\Map\DataProductUrlRewriteDatabaseMap;
 use Magento\CatalogUrlRewrite\Model\UrlRewriteBunchReplacer;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Store\Model\ResourceModel\Group\CollectionFactory;
 use Magento\Store\Model\ResourceModel\Group\Collection as StoreGroupCollection;
 use Magento\Framework\App\ObjectManager;
-use Magento\Store\Model\ScopeInterface;
 
 /**
  * Generates Category Url Rewrites after save and Products Url Rewrites assigned to the category that's being saved
@@ -55,16 +53,10 @@ class CategoryProcessUrlRewriteSavingObserver implements ObserverInterface
     private $storeGroupFactory;
 
     /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-
-    /**
      * @param CategoryUrlRewriteGenerator $categoryUrlRewriteGenerator
      * @param UrlRewriteHandler $urlRewriteHandler
      * @param UrlRewriteBunchReplacer $urlRewriteBunchReplacer
      * @param DatabaseMapPool $databaseMapPool
-     * @param ScopeConfigInterface $scopeConfig
      * @param string[] $dataUrlRewriteClassNames
      * @param CollectionFactory|null $storeGroupFactory
      */
@@ -73,7 +65,6 @@ class CategoryProcessUrlRewriteSavingObserver implements ObserverInterface
         UrlRewriteHandler $urlRewriteHandler,
         UrlRewriteBunchReplacer $urlRewriteBunchReplacer,
         DatabaseMapPool $databaseMapPool,
-        ScopeConfigInterface $scopeConfig,
         $dataUrlRewriteClassNames = [
             DataCategoryUrlRewriteDatabaseMap::class,
             DataProductUrlRewriteDatabaseMap::class
@@ -87,7 +78,6 @@ class CategoryProcessUrlRewriteSavingObserver implements ObserverInterface
         $this->dataUrlRewriteClassNames = $dataUrlRewriteClassNames;
         $this->storeGroupFactory = $storeGroupFactory
             ?: ObjectManager::getInstance()->get(CollectionFactory::class);
-        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -115,15 +105,13 @@ class CategoryProcessUrlRewriteSavingObserver implements ObserverInterface
                 $categoryUrlRewriteResult = $this->categoryUrlRewriteGenerator->generate($category);
                 $this->urlRewriteBunchReplacer->doBunchReplace($categoryUrlRewriteResult);
             }
-            if ($this->isCategoryRewritesEnabled()) {
-                if ($this->isChangedOnlyProduct($category)) {
-                    $productUrlRewriteResult =
-                        $this->urlRewriteHandler->updateProductUrlRewritesForChangedProduct($category);
-                    $this->urlRewriteBunchReplacer->doBunchReplace($productUrlRewriteResult);
-                } else {
-                    $productUrlRewriteResult = $this->urlRewriteHandler->generateProductUrlRewrites($category);
-                    $this->urlRewriteBunchReplacer->doBunchReplace($productUrlRewriteResult);
-                }
+            if ($this->isChangedOnlyProduct($category)) {
+                $productUrlRewriteResult =
+                    $this->urlRewriteHandler->updateProductUrlRewritesForChangedProduct($category);
+                $this->urlRewriteBunchReplacer->doBunchReplace($productUrlRewriteResult);
+            } else {
+                $productUrlRewriteResult = $this->urlRewriteHandler->generateProductUrlRewrites($category);
+                $this->urlRewriteBunchReplacer->doBunchReplace($productUrlRewriteResult);
             }
             $mapsGenerated = true;
         }
@@ -200,15 +188,5 @@ class CategoryProcessUrlRewriteSavingObserver implements ObserverInterface
         foreach ($this->dataUrlRewriteClassNames as $className) {
             $this->databaseMapPool->resetMap($className, $category->getEntityId());
         }
-    }
-
-    /**
-     * Check config value of generate_category_product_rewrites
-     *
-     * @return bool
-     */
-    private function isCategoryRewritesEnabled()
-    {
-        return (bool)$this->scopeConfig->getValue('catalog/seo/generate_category_product_rewrites');
     }
 }

@@ -3,8 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\CatalogSearch\Model\Search;
 
 use Magento\Catalog\Api\Data\EavAttributeInterface;
@@ -80,7 +78,6 @@ class RequestGenerator
     {
         $request = [];
         foreach ($this->getSearchableAttributes() as $attribute) {
-            /** @var $attribute Attribute */
             if ($attribute->getData($attributeType)) {
                 if (!in_array($attribute->getAttributeCode(), ['price', 'category_ids'], true)) {
                     $queryName = $attribute->getAttributeCode() . '_query';
@@ -105,7 +102,8 @@ class RequestGenerator
                     $request['aggregations'][$bucketName] = $generator->getAggregationData($attribute, $bucketName);
                 }
             }
-            if (!$attribute->getIsSearchable() || in_array($attribute->getAttributeCode(), ['price'], true)) {
+            /** @var $attribute Attribute */
+            if (!$attribute->getIsSearchable() || in_array($attribute->getAttributeCode(), ['price', 'sku'], true)) {
                 // Some fields have their own specific handlers
                 continue;
             }

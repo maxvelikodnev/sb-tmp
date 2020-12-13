@@ -59,9 +59,8 @@ class Download extends ExportController implements HttpGetActionInterface
      */
     public function execute()
     {
-        $fileName = $this->getRequest()->getParam('filename');
-        if (empty($fileName) || preg_match('/\.\.(\\\|\/)/', $fileName) !== 0) {
-            throw new LocalizedException(__('Please provide valid export file name'));
+        if (empty($fileName = $this->getRequest()->getParam('filename'))) {
+            throw new LocalizedException(__('Please provide export file name'));
         }
         try {
             $path = 'export/' . $fileName;

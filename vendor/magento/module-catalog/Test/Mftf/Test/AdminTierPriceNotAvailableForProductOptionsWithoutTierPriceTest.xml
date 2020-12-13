@@ -11,7 +11,6 @@
     <test name="AdminTierPriceNotAvailableForProductOptionsWithoutTierPriceTest">
         <annotations>
             <features value="Catalog"/>
-            <stories value="Tier price"/>
             <title value="Check that 'tier price' block not available for simple product from options without 'tier price'"/>
             <description value="Check that 'tier price' block not available for simple product from options without 'tier price'"/>
             <severity value="MAJOR"/>
@@ -83,9 +82,6 @@
             <deleteData createDataKey="createConfigProductAttribute" stepKey="deleteConfigProductAttribute"/>
 
             <actionGroup ref="logout" stepKey="logoutOfAdmin"/>
-
-            <!-- Reindex invalidated indices after product attribute has been created/deleted -->
-            <actionGroup ref="CliRunReindexUsingCronJobsActionGroup" stepKey="reindexInvalidatedIndices"/>
         </after>
 
         <!--Go to storefront product page an check price box css-->

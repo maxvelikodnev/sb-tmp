@@ -6,27 +6,22 @@
  */
 namespace Magento\Newsletter\Controller\Adminhtml\Subscriber;
 
-use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Newsletter\Controller\Adminhtml\Subscriber;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Newsletter\Model\SubscriberFactory;
+use Magento\Framework\App\ObjectManager;
 
-/**
- * Subscriber mass delete controller.
- */
-class MassDelete extends Subscriber implements HttpPostActionInterface
+class MassDelete extends Subscriber
 {
     /**
      * @var SubscriberFactory
      */
     private $subscriberFactory;
-
+    
     /**
      * @param Context $context
      * @param FileFactory $fileFactory
-     * @param SubscriberFactory|null $subscriberFactory
      */
     public function __construct(
         Context $context,
@@ -36,7 +31,7 @@ class MassDelete extends Subscriber implements HttpPostActionInterface
         $this->subscriberFactory = $subscriberFactory ?: ObjectManager::getInstance()->get(SubscriberFactory::class);
         parent::__construct($context, $fileFactory);
     }
-
+    
     /**
      * Delete one or more subscribers action
      *

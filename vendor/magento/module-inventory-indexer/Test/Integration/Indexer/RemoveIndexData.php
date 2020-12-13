@@ -10,8 +10,8 @@ namespace Magento\InventoryIndexer\Test\Integration\Indexer;
 use Magento\Framework\App\ResourceConnection;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\Alias;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
+use Magento\InventoryIndexer\Indexer\IndexStructure;
 use Magento\InventoryIndexer\Indexer\InventoryIndexer;
-use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameResolverInterface;
 
 class RemoveIndexData
 {
@@ -21,29 +21,20 @@ class RemoveIndexData
     private $indexNameBuilder;
 
     /**
-     * @var ResourceConnection
+     * @var IndexStructure
      */
-    private $resourceConnection;
+    private $indexStructure;
 
     /**
-     * @var
-     */
-    private $indexNameResolver;
-
-    /**
-     * RemoveIndexData constructor.
      * @param IndexNameBuilder $indexNameBuilder
-     * @param ResourceConnection $resourceConnection
-     * @param IndexNameResolverInterface $indexNameResolver
+     * @param IndexStructure $indexStructure
      */
     public function __construct(
         IndexNameBuilder $indexNameBuilder,
-        ResourceConnection $resourceConnection,
-        IndexNameResolverInterface $indexNameResolver
+        IndexStructure $indexStructure
     ) {
         $this->indexNameBuilder = $indexNameBuilder;
-        $this->resourceConnection = $resourceConnection;
-        $this->indexNameResolver = $indexNameResolver;
+        $this->indexStructure = $indexStructure;
     }
 
     /**
@@ -58,10 +49,7 @@ class RemoveIndexData
                 ->addDimension('stock_', (string)$stockId)
                 ->setAlias(Alias::ALIAS_MAIN)
                 ->build();
-
-            $connection = $this->resourceConnection->getConnection(ResourceConnection::DEFAULT_CONNECTION);
-            $tableName = $this->indexNameResolver->resolveName($indexName);
-            $connection->truncateTable($this->resourceConnection->getTableName($tableName));
+            $this->indexStructure->delete($indexName, ResourceConnection::DEFAULT_CONNECTION);
         }
     }
 }

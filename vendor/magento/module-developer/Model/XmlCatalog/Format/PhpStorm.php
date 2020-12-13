@@ -18,8 +18,6 @@ use Magento\Framework\Filesystem\File\WriteFactory;
  */
 class PhpStorm implements FormatInterface
 {
-    private const PROJECT_PATH_IDENTIFIER = '$PROJECT_DIR$';
-
     /**
      * @var ReadInterface
      */
@@ -97,7 +95,7 @@ class PhpStorm implements FormatInterface
         foreach ($dictionary as $urn => $xsdPath) {
             $node = $dom->createElement('resource');
             $node->setAttribute('url', $urn);
-            $node->setAttribute('location', $this->getFileLocationInProject($xsdPath));
+            $node->setAttribute('location', $xsdPath);
             $componentNode->appendChild($node);
         }
         $dom->formatOutput = true;
@@ -130,16 +128,5 @@ class PhpStorm implements FormatInterface
         $rootComponentNode->setAttribute('name', 'ProjectRootManager');
         $projectNode->appendChild($rootComponentNode);
         return $projectNode;
-    }
-
-    /**
-     * Resolve xsdpath to xml project path
-     *
-     * @param string $xsdPath
-     * @return string
-     */
-    private function getFileLocationInProject(string $xsdPath): string
-    {
-        return self::PROJECT_PATH_IDENTIFIER . DIRECTORY_SEPARATOR . $this->currentDirRead->getRelativePath($xsdPath);
     }
 }

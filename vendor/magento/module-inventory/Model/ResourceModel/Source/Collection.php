@@ -26,12 +26,6 @@ use Psr\Log\LoggerInterface;
  */
 class Collection extends AbstractCollection
 {
-
-    /**
-     * @var string
-     */
-    protected $_idFieldName = 'source_code';
-
     /**
      * @var SourceCarrierLinkManagementInterface
      */

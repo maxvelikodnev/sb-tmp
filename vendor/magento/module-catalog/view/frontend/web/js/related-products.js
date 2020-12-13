@@ -5,7 +5,7 @@
 
 define([
     'jquery',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'mage/translate'
 ], function ($) {
     'use strict';
@@ -17,7 +17,7 @@ define([
             relatedProductsField: '#related-products-field', // Hidden input field that stores related products.
             selectAllMessage: $.mage.__('select all'),
             unselectAllMessage: $.mage.__('unselect all'),
-            selectAllLink: '[data-role="select-all"]',
+            selectAllLink: '[role="button"]',
             elementsSelector: '.item.product'
         },
 
@@ -26,8 +26,8 @@ define([
          * @private
          */
         _create: function () {
-            $(this.options.selectAllLink, this.element).on('click', $.proxy(this._selectAllRelated, this));
-            $(this.options.relatedCheckbox, this.element).on('click', $.proxy(this._addRelatedToProduct, this));
+            $(this.options.selectAllLink).on('click', $.proxy(this._selectAllRelated, this));
+            $(this.options.relatedCheckbox).on('click', $.proxy(this._addRelatedToProduct, this));
             this._showRelatedProducts(
                 this.element.find(this.options.elementsSelector),
                 this.element.data('limit'),

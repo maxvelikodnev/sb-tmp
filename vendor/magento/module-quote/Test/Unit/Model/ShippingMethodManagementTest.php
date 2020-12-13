@@ -7,7 +7,6 @@
 
 namespace Magento\Quote\Test\Unit\Model;
 
-use Magento\Framework\Api\ExtensibleDataInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Api\Data\ShippingMethodInterface;
 use Magento\Quote\Model\Cart\ShippingMethodConverter;
@@ -32,12 +31,12 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
     protected $model;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $shippingMethodMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $methodDataFactoryMock;
 
@@ -96,9 +95,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
      */
     private $quoteAddressResource;
 
-    /**
-     * @inheritdoc
-     */
     protected function setUp()
     {
         $this->objectManager = new ObjectManager($this);
@@ -200,9 +196,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($this->model->get($cartId));
     }
 
-    /**
-     * Test to returns selected shipping method for a specified quote
-     */
     public function testGetMethod()
     {
         $cartId = 666;
@@ -235,9 +228,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
         $this->model->get($cartId);
     }
 
-    /**
-     * Test to returns selected shipping method for a specified quote if method isn't set
-     */
     public function testGetMethodIfMethodIsNotSet()
     {
         $cartId = 666;
@@ -255,9 +245,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($this->model->get($cartId));
     }
 
-    /**
-     * Test to get lists applicable shipping methods for a specified quote
-     */
     public function testGetListForVirtualCart()
     {
         $cartId = 834;
@@ -269,9 +256,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([], $this->model->getList($cartId));
     }
 
-    /**
-     * Test to get lists applicable shipping methods for a specified quote
-     */
     public function testGetListForEmptyCart()
     {
         $cartId = 834;
@@ -305,9 +289,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
         $this->model->getList($cartId);
     }
 
-    /**
-     * Test to get lists applicable shipping methods for a specified quote
-     */
     public function testGetList()
     {
         $cartId = 834;
@@ -460,9 +441,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
         $this->model->set($cartId, $carrierCode, $methodCode);
     }
 
-    /**
-     * Test to sets the carrier and shipping methods codes for a specified cart
-     */
     public function testSetMethod()
     {
         $cartId = 12;
@@ -494,9 +472,6 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
     {
         $cartId = 1;
 
-        $addressExtAttr = [
-            'discounts' => 100
-        ];
         $addressData = [
             'region' => 'California',
             'region_id' => 23,
@@ -534,9 +509,7 @@ class ShippingMethodManagementTest extends \PHPUnit\Framework\TestCase
 
         $this->dataProcessor->expects(static::any())
             ->method('buildOutputDataArray')
-            ->willReturn($addressData + [ExtensibleDataInterface::EXTENSION_ATTRIBUTES_KEY => $addressExtAttr]);
-
-        $this->shippingAddress->expects($this->once())->method('addData')->with($addressData);
+            ->willReturn($addressData);
 
         $this->shippingAddress->expects(static::once())
             ->method('setCollectShippingRates')

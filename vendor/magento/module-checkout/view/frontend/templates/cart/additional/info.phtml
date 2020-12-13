@@ -4,6 +4,8 @@
  * See COPYING.txt for license details.
  */
 
+// @codingStandardsIgnoreFile
+
 ?>
 <?php
 /**
@@ -14,7 +16,6 @@
 <?php
 $name = $block->getNameInLayout();
 foreach ($block->getChildNames($name) as $childName) {
-    // phpcs:ignore Magento2.Security.LanguageConstruct.DirectOutput
     echo $block->getChildBlock($childName)->setItem($block->getItem())->toHtml();
 }
 ?>

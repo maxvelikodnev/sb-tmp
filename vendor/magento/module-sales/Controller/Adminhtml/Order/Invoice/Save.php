@@ -16,7 +16,6 @@ use Magento\Sales\Model\Order\Email\Sender\ShipmentSender;
 use Magento\Sales\Model\Order\ShipmentFactory;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Service\InvoiceService;
-use Magento\Sales\Helper\Data as SalesData;
 
 /**
  * Save invoice controller.
@@ -58,18 +57,12 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
     private $invoiceService;
 
     /**
-     * @var SalesData
-     */
-    private $salesData;
-
-    /**
      * @param Action\Context $context
      * @param Registry $registry
      * @param InvoiceSender $invoiceSender
      * @param ShipmentSender $shipmentSender
      * @param ShipmentFactory $shipmentFactory
      * @param InvoiceService $invoiceService
-     * @param SalesData $salesData
      */
     public function __construct(
         Action\Context $context,
@@ -77,8 +70,7 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
         InvoiceSender $invoiceSender,
         ShipmentSender $shipmentSender,
         ShipmentFactory $shipmentFactory,
-        InvoiceService $invoiceService,
-        SalesData $salesData = null
+        InvoiceService $invoiceService
     ) {
         $this->registry = $registry;
         $this->invoiceSender = $invoiceSender;
@@ -86,7 +78,6 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
         $this->shipmentFactory = $shipmentFactory;
         $this->invoiceService = $invoiceService;
         parent::__construct($context);
-        $this->salesData = $salesData ?? $this->_objectManager->get(SalesData::class);
     }
 
     /**
@@ -98,18 +89,13 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
     protected function _prepareShipment($invoice)
     {
         $invoiceData = $this->getRequest()->getParam('invoice');
-        $itemArr = [];
-        if (!isset($invoiceData['items']) || empty($invoiceData['items'])) {
-            $orderItems = $invoice->getOrder()->getItems();
-            foreach ($orderItems as $item) {
-                $itemArr[$item->getId()] = (int)$item->getQtyOrdered();
-            }
-        }
+
         $shipment = $this->shipmentFactory->create(
             $invoice->getOrder(),
-            isset($invoiceData['items']) ? $invoiceData['items'] : $itemArr,
+            isset($invoiceData['items']) ? $invoiceData['items'] : [],
             $this->getRequest()->getPost('tracking')
         );
+
         if (!$shipment->getTotalQty()) {
             return false;
         }
@@ -213,7 +199,7 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
 
             // send invoice/shipment emails
             try {
-                if (!empty($data['send_email']) || $this->salesData->canSendNewInvoiceEmail()) {
+                if (!empty($data['send_email'])) {
                     $this->invoiceSender->send($invoice);
                 }
             } catch (\Exception $e) {
@@ -222,7 +208,7 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
             }
             if ($shipment) {
                 try {
-                    if (!empty($data['send_email']) || $this->salesData->canSendNewShipmentEmail()) {
+                    if (!empty($data['send_email'])) {
                         $this->shipmentSender->send($shipment);
                     }
                 } catch (\Exception $e) {

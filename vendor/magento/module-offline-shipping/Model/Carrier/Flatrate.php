@@ -69,8 +69,6 @@ class Flatrate extends AbstractCarrier implements CarrierInterface
     }
 
     /**
-     * Collect and get rates
-     *
      * @param RateRequest $request
      * @return Result|bool
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -99,8 +97,6 @@ class Flatrate extends AbstractCarrier implements CarrierInterface
     }
 
     /**
-     * Get count of free boxes
-     *
      * @param RateRequest $request
      * @return int
      */
@@ -124,18 +120,14 @@ class Flatrate extends AbstractCarrier implements CarrierInterface
     }
 
     /**
-     * Get allowed shipping methods
-     *
      * @return array
      */
     public function getAllowedMethods()
     {
-        return [$this->_code => $this->getConfigData('name')];
+        return ['flatrate' => $this->getConfigData('name')];
     }
 
     /**
-     * Returns shipping price
-     *
      * @param RateRequest $request
      * @param int $freeBoxes
      * @return bool|float
@@ -162,8 +154,6 @@ class Flatrate extends AbstractCarrier implements CarrierInterface
     }
 
     /**
-     * Creates result method
-     *
      * @param int|float $shippingPrice
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
@@ -184,8 +174,6 @@ class Flatrate extends AbstractCarrier implements CarrierInterface
     }
 
     /**
-     * Returns free boxes count of children
-     *
      * @param mixed $item
      * @return mixed
      */

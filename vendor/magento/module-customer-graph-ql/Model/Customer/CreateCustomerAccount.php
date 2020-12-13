@@ -13,8 +13,7 @@ use Magento\Customer\Api\Data\CustomerInterfaceFactory;
 use Magento\Framework\Api\DataObjectHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
-use Magento\Framework\Reflection\DataObjectProcessor;
-use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Create new customer account
@@ -37,58 +36,47 @@ class CreateCustomerAccount
     private $accountManagement;
 
     /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
      * @var ChangeSubscriptionStatus
      */
     private $changeSubscriptionStatus;
 
     /**
-     * @var ValidateCustomerData
-     */
-    private $validateCustomerData;
-
-    /**
-     * @var DataObjectProcessor
-     */
-    private $dataObjectProcessor;
-
-    /**
-     * CreateCustomerAccount constructor.
-     *
      * @param DataObjectHelper $dataObjectHelper
      * @param CustomerInterfaceFactory $customerFactory
+     * @param StoreManagerInterface $storeManager
      * @param AccountManagementInterface $accountManagement
      * @param ChangeSubscriptionStatus $changeSubscriptionStatus
-     * @param DataObjectProcessor $dataObjectProcessor
-     * @param ValidateCustomerData $validateCustomerData
      */
     public function __construct(
         DataObjectHelper $dataObjectHelper,
         CustomerInterfaceFactory $customerFactory,
+        StoreManagerInterface $storeManager,
         AccountManagementInterface $accountManagement,
-        ChangeSubscriptionStatus $changeSubscriptionStatus,
-        DataObjectProcessor $dataObjectProcessor,
-        ValidateCustomerData $validateCustomerData
+        ChangeSubscriptionStatus $changeSubscriptionStatus
     ) {
         $this->dataObjectHelper = $dataObjectHelper;
         $this->customerFactory = $customerFactory;
         $this->accountManagement = $accountManagement;
+        $this->storeManager = $storeManager;
         $this->changeSubscriptionStatus = $changeSubscriptionStatus;
-        $this->validateCustomerData = $validateCustomerData;
-        $this->dataObjectProcessor = $dataObjectProcessor;
     }
 
     /**
      * Creates new customer account
      *
      * @param array $data
-     * @param StoreInterface $store
      * @return CustomerInterface
      * @throws GraphQlInputException
      */
-    public function execute(array $data, StoreInterface $store): CustomerInterface
+    public function execute(array $data): CustomerInterface
     {
         try {
-            $customer = $this->createAccount($data, $store);
+            $customer = $this->createAccount($data);
         } catch (LocalizedException $e) {
             throw new GraphQlInputException(__($e->getMessage()));
         }
@@ -103,27 +91,18 @@ class CreateCustomerAccount
      * Create account
      *
      * @param array $data
-     * @param StoreInterface $store
      * @return CustomerInterface
      * @throws LocalizedException
      */
-    private function createAccount(array $data, StoreInterface $store): CustomerInterface
+    private function createAccount(array $data): CustomerInterface
     {
         $customerDataObject = $this->customerFactory->create();
-        /**
-         * Add required attributes for customer entity
-         */
-        $requiredDataAttributes = $this->dataObjectProcessor->buildOutputDataArray(
-            $customerDataObject,
-            CustomerInterface::class
-        );
-        $data = array_merge($requiredDataAttributes, $data);
-        $this->validateCustomerData->execute($data);
         $this->dataObjectHelper->populateWithArray(
             $customerDataObject,
             $data,
             CustomerInterface::class
         );
+        $store = $this->storeManager->getStore();
         $customerDataObject->setWebsiteId($store->getWebsiteId());
         $customerDataObject->setStoreId($store->getId());
 

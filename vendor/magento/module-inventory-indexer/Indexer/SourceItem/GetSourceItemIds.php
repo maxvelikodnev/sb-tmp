@@ -30,29 +30,26 @@ class GetSourceItemIds
     }
 
     /**
-     * Retrieve source items ids.
-     *
      * @param SourceItemInterface[] $sourceItems
      * @return array
      */
     public function execute(array $sourceItems): array
     {
         $connection = $this->resourceConnection->getConnection();
-        $skusBySourceCode = [];
-        $sourceItemIds = [[]];
+        $select = $connection->select()
+            ->from(
+                $this->resourceConnection->getTableName(SourceItemResourceModel::TABLE_NAME_SOURCE_ITEM),
+                [SourceItemResourceModel::ID_FIELD_NAME]
+            );
         foreach ($sourceItems as $sourceItem) {
-            $skusBySourceCode[$sourceItem->getSourceCode()][] = $sourceItem->getSku();
+            $sku = $connection->quote($sourceItem->getSku());
+            $sourceCode = $connection->quote($sourceItem->getSourceCode());
+            $select->orWhere(
+                SourceItemInterface::SKU . " = {$sku} AND " .
+                SourceItemInterface::SOURCE_CODE ." = {$sourceCode}"
+            );
         }
-        foreach ($skusBySourceCode as $sourceCode => $skus) {
-            $select = $connection->select()
-                ->from(
-                    $this->resourceConnection->getTableName(SourceItemResourceModel::TABLE_NAME_SOURCE_ITEM),
-                    [SourceItemResourceModel::ID_FIELD_NAME]
-                )->where('sku IN (?)', $skus)->where('source_code = ?', $sourceCode);
-            $sourceItemIds[] = $connection->fetchCol($select);
-        }
-        $sourceItemIds = array_merge(...$sourceItemIds);
 
-        return $sourceItemIds;
+        return $connection->fetchCol($select, SourceItemResourceModel::ID_FIELD_NAME);
     }
 }

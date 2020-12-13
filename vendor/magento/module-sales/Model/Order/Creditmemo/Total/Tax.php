@@ -41,7 +41,7 @@ class Tax extends AbstractTotal
             $baseOrderItemTax = (double)$orderItem->getBaseTaxInvoiced();
             $orderItemQty = (double)$orderItem->getQtyInvoiced();
 
-            if ($orderItemQty) {
+            if ($orderItemTax && $orderItemQty) {
                 /**
                  * Check item tax amount
                  */

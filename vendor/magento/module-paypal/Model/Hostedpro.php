@@ -140,7 +140,6 @@ class Hostedpro extends Direct
 
     /**
      * Return available CC types for gateway based on merchant country.
-     *
      * We do not have to check the availability of card types.
      *
      * @return true
@@ -151,9 +150,8 @@ class Hostedpro extends Direct
     }
 
     /**
-     * Return merchant country code from config
-     *
-     * Use default country if it not specified in General settings
+     * Return merchant country code from config,
+     * use default country if it not specified in General settings
      *
      * @return string
      */
@@ -276,9 +274,7 @@ class Hostedpro extends Direct
      */
     public function getReturnUrl($storeId = null)
     {
-        $payment = $this->getInfoInstance();
-        $urlRoute = $payment->getAdditionalInformation('return_url') ?? 'paypal/hostedpro/return';
-        return $this->getUrl($urlRoute, $storeId);
+        return $this->getUrl('paypal/hostedpro/return', $storeId);
     }
 
     /**
@@ -300,9 +296,7 @@ class Hostedpro extends Direct
      */
     public function getCancelUrl($storeId = null)
     {
-        $payment = $this->getInfoInstance();
-        $urlRoute = $payment->getAdditionalInformation('cancel_url') ?? 'paypal/hostedpro/cancel';
-        return $this->getUrl($urlRoute, $storeId);
+        return $this->getUrl('paypal/hostedpro/cancel', $storeId);
     }
 
     /**

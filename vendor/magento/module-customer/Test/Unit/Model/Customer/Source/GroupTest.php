@@ -12,9 +12,6 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteria;
 use Magento\Customer\Api\Data\GroupSearchResultsInterface;
 
-/**
- * Group test.
- */
 class GroupTest extends \PHPUnit\Framework\TestCase
 {
     /**

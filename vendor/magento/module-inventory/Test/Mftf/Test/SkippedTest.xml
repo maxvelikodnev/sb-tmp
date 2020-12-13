@@ -33,6 +33,15 @@
         </annotations>
     </test>
 
+    <!-- MSI-1319 -->
+    <test name="AdminCreateOrderWithGroupedProductDefaultStockTest">
+        <annotations>
+            <skip>
+                <issueId value="MSI-1759"/>
+            </skip>
+        </annotations>
+    </test>
+
     <!-- MAGETWO-87435 -->
     <test name="EndToEndB2CGuestUserTest">
         <annotations>
@@ -41,16 +50,14 @@
             </skip>
         </annotations>
     </test>
-
-    <!-- MAGETWO-87435 -->
-    <test name="EndToEndB2CGuestUserMysqlTest">
+    <!-- MAGETWO-87653 -->
+    <test name="EndToEndB2CLoggedInUserTest">
         <annotations>
             <skip>
                 <issueId value="MSI-1631"/>
             </skip>
         </annotations>
     </test>
-
     <!-- MC-138 -->
     <test name="AdvanceCatalogSearchConfigurableByNameTest">
         <annotations>
@@ -80,15 +87,6 @@
         <annotations>
             <skip>
                 <issueId value="MSI-1631"/>
-            </skip>
-        </annotations>
-    </test>
-
-    <!-- MC-18595 -->
-    <test name="AdminCreateDownloadableProductWithInvalidDomainLinkUrlTest">
-        <annotations>
-            <skip>
-                <issueId value="MSI-2423" />
             </skip>
         </annotations>
     </test>

@@ -113,8 +113,6 @@ class CollectTotalsObserver implements ObserverInterface
 
             $customerCountryCode = $customerAddress->getCountryId();
             $customerVatNumber = $customerAddress->getVatId();
-            $address->setCountryId($customerCountryCode);
-            $address->setVatId($customerVatNumber);
         }
 
         $groupId = null;

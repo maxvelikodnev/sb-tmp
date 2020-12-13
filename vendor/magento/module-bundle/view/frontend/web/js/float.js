@@ -9,7 +9,7 @@
  */
 define([
     'jquery',
-    'jquery-ui-modules/widget'
+    'jquery/ui'
 ], function ($) {
     'use strict';
 

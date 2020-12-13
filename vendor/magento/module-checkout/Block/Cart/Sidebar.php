@@ -84,8 +84,7 @@ class Sidebar extends AbstractCart
             'minicartMaxItemsVisible' => $this->getMiniCartMaxItemsCount(),
             'websiteId' => $this->_storeManager->getStore()->getWebsiteId(),
             'maxItemsToDisplay' => $this->getMaxItemsToDisplay(),
-            'storeId' => $this->_storeManager->getStore()->getId(),
-            'storeGroupId' => $this->_storeManager->getStore()->getStoreGroupId()
+            'storeId' => $this->_storeManager->getStore()->getId()
         ];
     }
 

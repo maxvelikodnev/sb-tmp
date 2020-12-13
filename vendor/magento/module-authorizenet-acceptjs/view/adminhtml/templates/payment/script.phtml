@@ -9,16 +9,12 @@
 <script>
     //<![CDATA[
     require(
-        [
-            'Magento_AuthorizenetAcceptjs/js/authorizenet',
-            'jquery',
-            'domReady!'
-        ], function(AuthorizenetAcceptjs, $) {
+        ['Magento_AuthorizenetAcceptjs/js/payment-form'],
+        function(Authorizenet) {
             var config = <?= /* @noEscape */ $block->getPaymentConfig() ?>,
-                form = $('#payment_form_<?= /* @noEscape */ $block->escapeJs($block->escapeHtml($block->getMethodCode())) ?>');
+                form = "#payment_form_<?= $block->escapeJs($block->escapeHtml($block->getMethodCode())) ?>";
 
-            config.active = form.length > 0 && !form.is(':hidden');
-            new AuthorizenetAcceptjs(config);
+            new Authorizenet(config, form);
         });
     //]]>
 </script>

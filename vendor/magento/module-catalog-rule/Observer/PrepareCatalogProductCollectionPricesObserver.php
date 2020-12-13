@@ -7,23 +7,19 @@
 /**
  * Catalog Price rules observer model
  */
-declare(strict_types=1);
-
 namespace Magento\CatalogRule\Observer;
 
 use Magento\Catalog\Model\Product;
-use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
+use Magento\CatalogRule\Model\Rule;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Customer\Model\Session as CustomerModelSession;
+use Magento\Framework\Event\Observer as EventObserver;
 use Magento\Customer\Api\GroupManagementInterface;
 use Magento\Framework\Event\ObserverInterface;
 
 /**
- * Observer for applying catalog rules on product collection
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
 class PrepareCatalogProductCollectionPricesObserver implements ObserverInterface
 {
@@ -89,7 +85,7 @@ class PrepareCatalogProductCollectionPricesObserver implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        /** @var ProductCollection $collection */
+        /* @var $collection ProductCollection */
         $collection = $observer->getEvent()->getCollection();
         $store = $this->storeManager->getStore($observer->getEvent()->getStoreId());
         $websiteId = $store->getWebsiteId();

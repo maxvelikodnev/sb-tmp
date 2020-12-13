@@ -53,7 +53,7 @@ class EntityIdToId implements ResolverInterface
         $product = $value['model'];
 
         $productId = $product->getData(
-            $this->metadataPool->getMetadata(ProductInterface::class)->getIdentifierField()
+            $this->metadataPool->getMetadata(ProductInterface::class)->getLinkField()
         );
 
         return $productId;

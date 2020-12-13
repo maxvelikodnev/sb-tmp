@@ -213,29 +213,31 @@ class Image extends AbstractHelper implements ArgumentInterface
 
         // Set 'keep frame' flag
         $frame = $this->getFrame();
-        $this->_getModel()->setKeepFrame($frame);
+        if (!empty($frame)) {
+            $this->_getModel()->setKeepFrame($frame);
+        }
 
         // Set 'constrain only' flag
         $constrain = $this->getAttribute('constrain');
-        if (null !== $constrain) {
+        if (!empty($constrain)) {
             $this->_getModel()->setConstrainOnly($constrain);
         }
 
         // Set 'keep aspect ratio' flag
         $aspectRatio = $this->getAttribute('aspect_ratio');
-        if (null !== $aspectRatio) {
+        if (!empty($aspectRatio)) {
             $this->_getModel()->setKeepAspectRatio($aspectRatio);
         }
 
         // Set 'transparency' flag
         $transparency = $this->getAttribute('transparency');
-        if (null !== $transparency) {
+        if (!empty($transparency)) {
             $this->_getModel()->setKeepTransparency($transparency);
         }
 
         // Set background color
         $background = $this->getAttribute('background');
-        if (null !== $background) {
+        if (!empty($background)) {
             $this->_getModel()->setBackgroundColor($background);
         }
 

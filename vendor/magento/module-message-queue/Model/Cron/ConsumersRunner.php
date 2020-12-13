@@ -13,13 +13,18 @@ use Magento\Framework\MessageQueue\Consumer\ConfigInterface as ConsumerConfigInt
 use Magento\Framework\App\DeploymentConfig;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\PhpExecutableFinder;
-use Magento\Framework\Lock\LockManagerInterface;
+use Magento\MessageQueue\Model\Cron\ConsumersRunner\PidConsumerManager;
 
 /**
  * Class for running consumers processes by cron
  */
 class ConsumersRunner
 {
+    /**
+     * Extension of PID file
+     */
+    const PID_FILE_EXT = '.pid';
+
     /**
      * Shell command line wrapper for executing command in background
      *
@@ -49,6 +54,13 @@ class ConsumersRunner
     private $phpExecutableFinder;
 
     /**
+     * The class for checking status of process by PID
+     *
+     * @var PidConsumerManager
+     */
+    private $pidConsumerManager;
+
+    /**
      * @var ConnectionTypeResolver
      */
     private $mqConnectionTypeResolver;
@@ -59,19 +71,12 @@ class ConsumersRunner
     private $logger;
 
     /**
-     * Lock Manager
-     *
-     * @var LockManagerInterface
-     */
-    private $lockManager;
-
-    /**
      * @param PhpExecutableFinder $phpExecutableFinder The executable finder specifically designed
      *        for the PHP executable
      * @param ConsumerConfigInterface $consumerConfig The consumer config provider
      * @param DeploymentConfig $deploymentConfig The application deployment configuration
      * @param ShellInterface $shellBackground The shell command line wrapper for executing command in background
-     * @param LockManagerInterface $lockManager The lock manager
+     * @param PidConsumerManager $pidConsumerManager The class for checking status of process by PID
      * @param ConnectionTypeResolver $mqConnectionTypeResolver Consumer connection resolver
      * @param LoggerInterface $logger Logger
      */
@@ -80,7 +85,7 @@ class ConsumersRunner
         ConsumerConfigInterface $consumerConfig,
         DeploymentConfig $deploymentConfig,
         ShellInterface $shellBackground,
-        LockManagerInterface $lockManager,
+        PidConsumerManager $pidConsumerManager,
         ConnectionTypeResolver $mqConnectionTypeResolver = null,
         LoggerInterface $logger = null
     ) {
@@ -88,7 +93,7 @@ class ConsumersRunner
         $this->consumerConfig = $consumerConfig;
         $this->deploymentConfig = $deploymentConfig;
         $this->shellBackground = $shellBackground;
-        $this->lockManager = $lockManager;
+        $this->pidConsumerManager = $pidConsumerManager;
         $this->mqConnectionTypeResolver = $mqConnectionTypeResolver
             ?: ObjectManager::getInstance()->get(ConnectionTypeResolver::class);
         $this->logger = $logger
@@ -115,9 +120,11 @@ class ConsumersRunner
                 continue;
             }
 
+            $consumerName = $consumer->getName();
+
             $arguments = [
-                $consumer->getName(),
-                '--single-thread'
+                $consumerName,
+                '--pid-file-path=' . $this->getPidFilePath($consumerName),
             ];
 
             if ($maxMessages) {
@@ -147,7 +154,7 @@ class ConsumersRunner
             return false;
         }
 
-        if ($this->lockManager->isLocked(md5($consumerName))) { //phpcs:ignore
+        if ($this->pidConsumerManager->isRun($this->getPidFilePath($consumerName))) {
             return false;
         }
 
@@ -155,17 +162,28 @@ class ConsumersRunner
         try {
             $this->mqConnectionTypeResolver->getConnectionType($connectionName);
         } catch (\LogicException $e) {
-            $this->logger->info(
-                sprintf(
-                    'Consumer "%s" skipped as required connection "%s" is not configured. %s',
-                    $consumerName,
-                    $connectionName,
-                    $e->getMessage()
-                )
-            );
+            $this->logger->info(sprintf(
+                'Consumer "%s" skipped as required connection "%s" is not configured. %s',
+                $consumerName,
+                $connectionName,
+                $e->getMessage()
+            ));
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Returns default path to file with PID by consumers name
+     *
+     * @param string $consumerName The consumers name
+     * @return string The path to file with PID
+     */
+    private function getPidFilePath($consumerName)
+    {
+        $sanitizedHostname = preg_replace('/[^a-z0-9]/i', '', gethostname());
+
+        return $consumerName . '-' . $sanitizedHostname . static::PID_FILE_EXT;
     }
 }

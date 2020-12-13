@@ -93,8 +93,6 @@ class MsrpPrice extends FinalPrice implements MsrpPriceInterface
     }
 
     /**
-     * Check if is minimal price is less than the msrp.
-     *
      * @param Product $product
      * @return bool|float
      */

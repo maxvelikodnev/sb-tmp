@@ -153,32 +153,24 @@ class AfterImportDataObserverTest extends \PHPUnit\Framework\TestCase
      */
     protected function setUp()
     {
-        $this->importProduct = $this->createPartialMock(
-            \Magento\CatalogImportExport\Model\Import\Product::class,
-            [
+        $this->importProduct = $this->createPartialMock(\Magento\CatalogImportExport\Model\Import\Product::class, [
                 'getNewSku',
                 'getProductCategories',
                 'getProductWebsites',
                 'getStoreIdByCode',
                 'getCategoryProcessor',
-            ]
-        );
-        $this->catalogProductFactory = $this->createPartialMock(
-            \Magento\Catalog\Model\ProductFactory::class,
-            [
+            ]);
+        $this->catalogProductFactory = $this->createPartialMock(\Magento\Catalog\Model\ProductFactory::class, [
                 'create',
-            ]
-        );
+            ]);
         $this->storeManager = $this
             ->getMockBuilder(
                 \Magento\Store\Model\StoreManagerInterface::class
             )
             ->disableOriginalConstructor()
-            ->setMethods(
-                [
-                    'getWebsite',
-                ]
-            )
+            ->setMethods([
+                'getWebsite',
+            ])
             ->getMockForAbstractClass();
         $this->event = $this->createPartialMock(\Magento\Framework\Event::class, ['getAdapter', 'getBunch']);
         $this->event->expects($this->any())->method('getAdapter')->willReturn($this->importProduct);
@@ -210,11 +202,9 @@ class AfterImportDataObserverTest extends \PHPUnit\Framework\TestCase
         );
         $this->urlFinder = $this
             ->getMockBuilder(\Magento\UrlRewrite\Model\UrlFinderInterface::class)
-            ->setMethods(
-                [
-                    'findAllByData',
-                ]
-            )
+            ->setMethods([
+                'findAllByData',
+            ])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
@@ -279,12 +269,9 @@ class AfterImportDataObserverTest extends \PHPUnit\Framework\TestCase
         $newSku = [['entity_id' => 'value'], ['entity_id' => 'value3']];
         $websiteId = 'websiteId value';
         $productsCount = count($this->products);
-        $websiteMock = $this->createPartialMock(
-            \Magento\Store\Model\Website::class,
-            [
+        $websiteMock = $this->createPartialMock(\Magento\Store\Model\Website::class, [
                 'getStoreIds',
-            ]
-        );
+            ]);
         $storeIds = [1, Store::DEFAULT_STORE_ID];
         $websiteMock
             ->expects($this->once())
@@ -328,16 +315,13 @@ class AfterImportDataObserverTest extends \PHPUnit\Framework\TestCase
             ->expects($this->exactly(1))
             ->method('getStoreIdByCode')
             ->will($this->returnValueMap($map));
-        $product = $this->createPartialMock(
-            \Magento\Catalog\Model\Product::class,
-            [
+        $product = $this->createPartialMock(\Magento\Catalog\Model\Product::class, [
                 'getId',
                 'setId',
                 'getSku',
                 'setStoreId',
                 'getStoreId',
-            ]
-        );
+            ]);
         $product
             ->expects($this->exactly($productsCount))
             ->method('setId')
@@ -357,21 +341,17 @@ class AfterImportDataObserverTest extends \PHPUnit\Framework\TestCase
         $product
             ->expects($this->exactly($productsCount))
             ->method('getSku')
-            ->will(
-                $this->onConsecutiveCalls(
-                    $this->products[0]['sku'],
-                    $this->products[1]['sku']
-                )
-            );
+            ->will($this->onConsecutiveCalls(
+                $this->products[0]['sku'],
+                $this->products[1]['sku']
+            ));
         $product
             ->expects($this->exactly($productsCount))
             ->method('getStoreId')
-            ->will(
-                $this->onConsecutiveCalls(
-                    $this->products[0][ImportProduct::COL_STORE],
-                    $this->products[1][ImportProduct::COL_STORE]
-                )
-            );
+            ->will($this->onConsecutiveCalls(
+                $this->products[0][ImportProduct::COL_STORE],
+                $this->products[1][ImportProduct::COL_STORE]
+            ));
         $product
             ->expects($this->exactly($productsCount))
             ->method('setStoreId')
@@ -560,10 +540,7 @@ class AfterImportDataObserverTest extends \PHPUnit\Framework\TestCase
             ->expects($this->any())
             ->method('getId')
             ->will($this->returnValue($this->categoryId));
-        $category
-            ->expects($this->any())
-            ->method('getAnchorsAbove')
-            ->willReturn([]);
+
         $categoryCollection = $this->getMockBuilder(CategoryCollection::class)
             ->disableOriginalConstructor()
             ->getMock();

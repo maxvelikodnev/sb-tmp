@@ -45,10 +45,19 @@ class ManageStockCondition implements IsProductSalableInterface
     {
         $stockItemConfiguration = $this->getStockItemConfiguration->execute($sku, $stockId);
 
-        if ($stockItemConfiguration->isUseConfigManageStock()) {
-            return $this->configuration->getManageStock() !== 1;
+        $globalManageStock = $this->configuration->getManageStock();
+        $manageStock = false;
+        if ((
+                $stockItemConfiguration->isUseConfigManageStock() == 1 &&
+                $globalManageStock == 1
+            ) || (
+                $stockItemConfiguration->isUseConfigManageStock() == 0 &&
+                $stockItemConfiguration->isManageStock() == 1
+            )
+        ) {
+            $manageStock = true;
         }
 
-        return !$stockItemConfiguration->isManageStock();
+        return !$manageStock;
     }
 }

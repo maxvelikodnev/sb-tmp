@@ -13,34 +13,19 @@ namespace Magento\InventoryAdminUi\Model\Source;
 class SourceRegionDataProcessor
 {
     /**
-     * Processes source region data
-     *
      * @param array $data
      * @return array
      */
     public function execute(array $data): array
     {
-        if ($this->isFieldEmpty('region_id', $data)) {
+        if (!isset($data['region_id']) || '' === $data['region_id']) {
             $data['region_id'] = null;
         }
 
-        if ($this->isFieldEmpty('region', $data)) {
+        if (null !== $data['region_id'] || !isset($data['region']) || '' === trim($data['region'])) {
             $data['region'] = null;
         }
 
         return $data;
-    }
-
-    /**
-     * Checks whether field has post value and this value doesn't empty
-     *
-     * @param string $fieldName
-     * @param array $data
-     *
-     * @return bool
-     */
-    private function isFieldEmpty(string $fieldName, array $data): bool
-    {
-        return !isset($data[$fieldName]) || '' === $data[$fieldName];
     }
 }

@@ -3,54 +3,50 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Checkout\Model\Layout;
 
-use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Framework\View\LayoutInterface;
 use Magento\PageCache\Model\DepersonalizeChecker;
 
 /**
- * Depersonalize customer data.
- *
- * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
+ * Class DepersonalizePlugin
  */
 class DepersonalizePlugin
 {
     /**
      * @var DepersonalizeChecker
      */
-    private $depersonalizeChecker;
+    protected $depersonalizeChecker;
 
     /**
-     * @var CheckoutSession
+     * @var \Magento\Checkout\Model\Session
      */
-    private $checkoutSession;
+    protected $checkoutSession;
 
     /**
      * @param DepersonalizeChecker $depersonalizeChecker
-     * @param CheckoutSession $checkoutSession
+     * @param \Magento\Checkout\Model\Session $checkoutSession
      * @codeCoverageIgnore
      */
     public function __construct(
         DepersonalizeChecker $depersonalizeChecker,
-        CheckoutSession $checkoutSession
+        \Magento\Checkout\Model\Session $checkoutSession
     ) {
-        $this->depersonalizeChecker = $depersonalizeChecker;
         $this->checkoutSession = $checkoutSession;
+        $this->depersonalizeChecker = $depersonalizeChecker;
     }
 
     /**
-     * Change sensitive customer data if the depersonalization is needed.
+     * After generate Xml
      *
-     * @param LayoutInterface $subject
-     * @return void
+     * @param \Magento\Framework\View\LayoutInterface $subject
+     * @param \Magento\Framework\View\LayoutInterface $result
+     * @return \Magento\Framework\View\LayoutInterface
      */
-    public function afterGenerateElements(LayoutInterface $subject)
+    public function afterGenerateXml(\Magento\Framework\View\LayoutInterface $subject, $result)
     {
         if ($this->depersonalizeChecker->checkIfDepersonalize($subject)) {
             $this->checkoutSession->clearStorage();
         }
+        return $result;
     }
 }

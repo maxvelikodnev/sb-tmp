@@ -11,6 +11,7 @@ use Magento\Framework\DataObject;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Paypal\Model\Payflow\Service\Response\Handler\HandlerInterface;
+use Magento\Framework\Session\Generic;
 use Magento\Paypal\Model\Payflowpro;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Paypal\Model\Payflow\Transparent;
@@ -19,12 +20,16 @@ use Magento\Quote\Model\Quote\Payment;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 
 /**
- * Process PayPal transaction response.
- *
+ * Class Transaction
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Transaction
 {
+    /**
+     * @var Generic
+     */
+    protected $sessionTransparent;
+
     /**
      * @var CartRepositoryInterface
      */
@@ -56,6 +61,7 @@ class Transaction
     private $dateTimeFactory;
 
     /**
+     * @param Generic $sessionTransparent
      * @param CartRepositoryInterface $quoteRepository
      * @param Transparent $transparent
      * @param PaymentMethodManagementInterface $paymentManagement
@@ -64,6 +70,7 @@ class Transaction
      * @param DateTimeFactory $dateTimeFactory
      */
     public function __construct(
+        Generic $sessionTransparent,
         CartRepositoryInterface $quoteRepository,
         Transparent $transparent,
         PaymentMethodManagementInterface $paymentManagement,
@@ -71,6 +78,7 @@ class Transaction
         Logger $logger,
         DateTimeFactory $dateTimeFactory
     ) {
+        $this->sessionTransparent = $sessionTransparent;
         $this->quoteRepository = $quoteRepository;
         $this->transparent = $transparent;
         $this->paymentManagement = $paymentManagement;
@@ -91,7 +99,7 @@ class Transaction
         $response = $this->transparent->mapGatewayResponse((array) $gatewayTransactionResponse, $response);
 
         $this->logger->debug(
-            ['PayPal PayflowPro response:' => (array)$gatewayTransactionResponse],
+            (array) $gatewayTransactionResponse,
             (array) $this->transparent->getDebugReplacePrivateDataKeys(),
             (bool) $this->transparent->getDebugFlag()
         );
@@ -103,13 +111,13 @@ class Transaction
      * Saves payment information in quote.
      *
      * @param DataObject $response
-     * @param int $cartId
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function savePaymentInQuote($response, $cartId)
+    public function savePaymentInQuote($response)
     {
-        $quote = $this->quoteRepository->get($cartId);
+        $quote = $this->quoteRepository->get($this->sessionTransparent->getQuoteId());
+
         $payment = $this->paymentManagement->get($quote->getId());
         if (!$payment instanceof Payment) {
             throw new \InvalidArgumentException("Variable must contain instance of \\Quote\\Payment.");
@@ -117,7 +125,6 @@ class Transaction
 
         $payment->setData(OrderPaymentInterface::CC_TYPE, $response->getData(OrderPaymentInterface::CC_TYPE));
         $payment->setAdditionalInformation(Payflowpro::PNREF, $response->getData(Payflowpro::PNREF));
-        $payment->setAdditionalInformation('result_code', $response->getData('result'));
 
         $expDate = $response->getData('expdate');
         $expMonth = $this->getCcExpMonth($expDate);

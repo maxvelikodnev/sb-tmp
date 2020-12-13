@@ -3,46 +3,39 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\PageCache\Model\Layout;
 
-use Magento\Framework\Event\Manager as EventManager;
-use Magento\Framework\Message\Session as MessageSession;
-use Magento\Framework\View\LayoutInterface;
 use Magento\PageCache\Model\DepersonalizeChecker;
 
 /**
- * Depersonalize customer data.
- *
- * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
+ * Class DepersonalizePlugin
  */
 class DepersonalizePlugin
 {
     /**
      * @var DepersonalizeChecker
      */
-    private $depersonalizeChecker;
+    protected $depersonalizeChecker;
 
     /**
-     * @var EventManager
+     * @var \Magento\Framework\Event\Manager
      */
-    private $eventManager;
+    protected $eventManager;
 
     /**
-     * @var MessageSession
+     * @var \Magento\Framework\Message\Session
      */
-    private $messageSession;
+    protected $messageSession;
 
     /**
      * @param DepersonalizeChecker $depersonalizeChecker
-     * @param EventManager $eventManager
-     * @param MessageSession $messageSession
+     * @param \Magento\Framework\Event\Manager $eventManager
+     * @param \Magento\Framework\Message\Session $messageSession
      */
     public function __construct(
         DepersonalizeChecker $depersonalizeChecker,
-        EventManager $eventManager,
-        MessageSession $messageSession
+        \Magento\Framework\Event\Manager $eventManager,
+        \Magento\Framework\Message\Session $messageSession
     ) {
         $this->depersonalizeChecker = $depersonalizeChecker;
         $this->eventManager = $eventManager;
@@ -50,18 +43,19 @@ class DepersonalizePlugin
     }
 
     /**
-     * Change sensitive customer data if the depersonalization is needed
+     * After generate Xml
      *
-     * @param LayoutInterface $subject
-     * @return void
+     * @param \Magento\Framework\View\LayoutInterface $subject
+     * @param \Magento\Framework\View\LayoutInterface $result
+     * @return \Magento\Framework\View\LayoutInterface
      */
-    public function afterGenerateElements(LayoutInterface $subject)
+    public function afterGenerateXml(\Magento\Framework\View\LayoutInterface $subject, $result)
     {
         if ($this->depersonalizeChecker->checkIfDepersonalize($subject)) {
             $this->eventManager->dispatch('depersonalize_clear_session');
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction
             session_write_close();
             $this->messageSession->clearStorage();
         }
+        return $result;
     }
 }

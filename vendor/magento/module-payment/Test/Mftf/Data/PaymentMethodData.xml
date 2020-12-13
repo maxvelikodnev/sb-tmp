@@ -11,8 +11,4 @@
     <entity name="PaymentMethodCheckMoneyOrder" type="payment_method">
         <data key="method">checkmo</data>
     </entity>
-
-    <entity name="CashOnDeliveryPaymentMethodDefault" type="cashondelivery_payment_method">
-        <requiredEntity type="active">CashOnDeliveryEnableConfigData</requiredEntity>
-    </entity>
 </entities>

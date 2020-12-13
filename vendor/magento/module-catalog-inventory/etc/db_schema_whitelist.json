@@ -43,7 +43,6 @@
         },
         "index": {
             "CATALOGINVENTORY_STOCK_ITEM_WEBSITE_ID": true,
-            "CATALOGINVENTORY_STOCK_ITEM_WEBSITE_ID_PRODUCT_ID": true,
             "CATALOGINVENTORY_STOCK_ITEM_STOCK_ID": true
         },
         "constraint": {

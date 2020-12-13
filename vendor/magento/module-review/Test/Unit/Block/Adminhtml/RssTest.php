@@ -8,9 +8,6 @@ namespace Magento\Review\Test\Unit\Block\Adminhtml;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 
-/**
- * Test RSS adminhtml block
- */
 class RssTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -38,9 +35,6 @@ class RssTest extends \PHPUnit\Framework\TestCase
      */
     protected $urlBuilder;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp()
     {
         $this->storeManagerInterface = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
@@ -57,22 +51,18 @@ class RssTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    /**
-     * @return void
-     */
     public function testGetRssData()
     {
-        $rssUrl = '';
         $rssData = [
             'title' => 'Pending product review(s)',
             'description' => 'Pending product review(s)',
-            'link' => $rssUrl,
+            'link' => 'http://rss.magento.com',
             'charset' => 'UTF-8',
             'entries' => [
                     'title' => 'Product: "Product Name" reviewed by: Product Nick',
                     'link' => 'http://product.magento.com',
                     'description' => [
-                            'rss_url' => $rssUrl,
+                            'rss_url' => 'http://rss.magento.com',
                             'name' => 'Product Name',
                             'summary' => 'Product Title',
                             'review' => 'Product Detail',
@@ -81,9 +71,8 @@ class RssTest extends \PHPUnit\Framework\TestCase
                         ],
                 ],
         ];
-        $productModel = $this->createPartialMock(
-            \Magento\Catalog\Model\ResourceModel\Product::class,
-            [
+        $rssUrl = 'http://rss.magento.com';
+        $productModel = $this->createPartialMock(\Magento\Catalog\Model\ResourceModel\Product::class, [
                 'getStoreId',
                 'getId',
                 'getReviewId',
@@ -92,8 +81,7 @@ class RssTest extends \PHPUnit\Framework\TestCase
                 'getTitle',
                 'getNickname',
                 'getProductUrl'
-            ]
-        );
+            ]);
         $storeModel = $this->createMock(\Magento\Store\Model\Store::class);
         $this->storeManagerInterface->expects($this->once())->method('getStore')->will($this->returnValue($storeModel));
         $storeModel->expects($this->once())->method('getName')
@@ -130,25 +118,16 @@ class RssTest extends \PHPUnit\Framework\TestCase
         $this->assertContains($rssData['entries']['description']['store'], $data['entries'][0]['description']);
     }
 
-    /**
-     * @return void
-     */
     public function testGetCacheLifetime()
     {
         $this->assertEquals(0, $this->block->getCacheLifetime());
     }
 
-    /**
-     * @return void
-     */
     public function testIsAllowed()
     {
         $this->assertEquals(true, $this->block->isAllowed());
     }
 
-    /**
-     * @return void
-     */
     public function testGetFeeds()
     {
         $this->assertEquals([], $this->block->getFeeds());

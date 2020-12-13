@@ -3,6 +3,7 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 ?>
 
 <div class="reports-content">
@@ -31,7 +32,7 @@ require([
         }
 
         if (jQuery('#filter_form').valid()) {
-            setLocation('<?= $block->escapeJs($block->escapeUrl($block->getFilterUrl())) ?>filter/'+
+            setLocation('<?= /* @escapeNotVerified */ $block->getFilterUrl() ?>filter/'+
                 Base64.encode(Form.serializeElements(elements))+'/'
             );
         }

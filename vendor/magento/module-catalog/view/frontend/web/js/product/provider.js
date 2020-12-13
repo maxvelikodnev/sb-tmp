@@ -138,17 +138,12 @@ define([
         filterIds: function (ids) {
             var _ids = {},
                 currentTime = new Date().getTime() / 1000,
-                currentProductIds = productResolver($('#product_addtocart_form')),
-                productCurrentScope = this.data.productCurrentScope,
-                scopeId = productCurrentScope === 'store' ? window.checkout.storeId :
-                productCurrentScope === 'group' ? window.checkout.storeGroupId :
-                    window.checkout.websiteId;
+                currentProductIds = productResolver($('#product_addtocart_form'));
 
-            _.each(ids, function (id, key) {
+            _.each(ids, function (id) {
                 if (
-                    currentTime - ids[key]['added_at'] < ~~this.idsStorage.lifetime &&
-                    !_.contains(currentProductIds, ids[key]['product_id']) &&
-                    (!id.hasOwnProperty('scope_id') || ids[key]['scope_id'] === scopeId)
+                    currentTime - id['added_at'] < ~~this.idsStorage.lifetime &&
+                    !_.contains(currentProductIds, id['product_id'])
                 ) {
                     _ids[id['product_id']] = id;
 

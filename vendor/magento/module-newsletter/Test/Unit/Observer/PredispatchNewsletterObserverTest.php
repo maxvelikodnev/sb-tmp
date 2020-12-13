@@ -13,7 +13,6 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\UrlInterface;
-use Magento\Newsletter\Model\Config;
 use Magento\Newsletter\Observer\PredispatchNewsletterObserver;
 use Magento\Store\Model\ScopeInterface;
 use PHPUnit\Framework\TestCase;
@@ -54,28 +53,29 @@ class PredispatchNewsletterObserverTest extends TestCase
     private $objectManager;
 
     /**
-     * @var Config
-     */
-    private $newsletterConfig;
-
-    /**
      * @inheritdoc
      */
     protected function setUp() : void
     {
-        $this->configMock = $this->createMock(ScopeConfigInterface::class);
-        $this->urlMock = $this->createMock(UrlInterface::class);
+        $this->configMock = $this->getMockBuilder(ScopeConfigInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->urlMock = $this->getMockBuilder(UrlInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->responseMock = $this->getMockBuilder(ResponseInterface::class)
             ->disableOriginalConstructor()
             ->setMethods(['setRedirect'])
             ->getMockForAbstractClass();
-        $this->redirectMock = $this->createMock(RedirectInterface::class);
-        $this->newsletterConfig = $this->createMock(Config::class);
+        $this->redirectMock = $this->getMockBuilder(RedirectInterface::class)
+            ->getMock();
         $this->objectManager = new ObjectManager($this);
-        $this->mockObject = new PredispatchNewsletterObserver(
-            $this->configMock,
-            $this->urlMock,
-            $this->newsletterConfig
+        $this->mockObject = $this->objectManager->getObject(
+            PredispatchNewsletterObserver::class,
+            [
+                'scopeConfig' => $this->configMock,
+                'url' => $this->urlMock
+            ]
         );
     }
 
@@ -89,9 +89,8 @@ class PredispatchNewsletterObserverTest extends TestCase
             ->setMethods(['getResponse', 'getData', 'setRedirect'])
             ->getMockForAbstractClass();
 
-        $this->newsletterConfig->expects($this->once())
-            ->method('isActive')
-            ->with(ScopeInterface::SCOPE_STORE)
+        $this->configMock->method('getValue')
+            ->with(PredispatchNewsletterObserver::XML_PATH_NEWSLETTER_ACTIVE, ScopeInterface::SCOPE_STORE)
             ->willReturn(true);
         $observerMock->expects($this->never())
             ->method('getData')
@@ -115,13 +114,14 @@ class PredispatchNewsletterObserverTest extends TestCase
             ->setMethods(['getControllerAction', 'getResponse'])
             ->getMockForAbstractClass();
 
-        $this->newsletterConfig->expects($this->once())
-            ->method('isActive')
-            ->with(ScopeInterface::SCOPE_STORE)
+        $this->configMock->expects($this->at(0))
+            ->method('getValue')
+            ->with(PredispatchNewsletterObserver::XML_PATH_NEWSLETTER_ACTIVE, ScopeInterface::SCOPE_STORE)
             ->willReturn(false);
 
         $expectedRedirectUrl = 'https://test.com/index';
-        $this->configMock->expects($this->once())
+
+        $this->configMock->expects($this->at(1))
             ->method('getValue')
             ->with('web/default/no_route', ScopeInterface::SCOPE_STORE)
             ->willReturn($expectedRedirectUrl);

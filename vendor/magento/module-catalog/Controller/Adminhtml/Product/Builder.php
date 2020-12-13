@@ -115,9 +115,6 @@ class Builder
         $store = $this->storeFactory->create();
         $store->load($storeId);
 
-        $this->registry->unregister('product');
-        $this->registry->unregister('current_product');
-        $this->registry->unregister('current_store');
         $this->registry->register('product', $product);
         $this->registry->register('current_product', $product);
         $this->registry->register('current_store', $store);

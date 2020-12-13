@@ -145,7 +145,7 @@ class CheckUserLoginObserverTest extends \PHPUnit\Framework\TestCase
             ->with($customerId);
 
         $this->messageManagerMock->expects($this->once())
-            ->method('addErrorMessage')
+            ->method('addError')
             ->with(__('Incorrect CAPTCHA'));
 
         $this->actionFlagMock->expects($this->once())

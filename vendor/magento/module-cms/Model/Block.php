@@ -12,8 +12,8 @@ use Magento\Framework\Model\AbstractModel;
 /**
  * CMS block model
  *
- * @method Block setStoreId(int $storeId)
- * @method int getStoreId()
+ * @method Block setStoreId(array $storeId)
+ * @method array getStoreId()
  */
 class Block extends AbstractModel implements BlockInterface, IdentityInterface
 {
@@ -41,8 +41,6 @@ class Block extends AbstractModel implements BlockInterface, IdentityInterface
     protected $_eventPrefix = 'cms_block';
 
     /**
-     * Construct.
-     *
      * @return void
      */
     protected function _construct()
@@ -63,7 +61,7 @@ class Block extends AbstractModel implements BlockInterface, IdentityInterface
         }
 
         $needle = 'block_id="' . $this->getId() . '"';
-        if (false == strstr($this->getContent(), (string) $needle)) {
+        if (false == strstr($this->getContent(), $needle)) {
             return parent::beforeSave();
         }
         throw new \Magento\Framework\Exception\LocalizedException(

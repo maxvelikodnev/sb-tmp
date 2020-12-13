@@ -10,7 +10,6 @@
     <test name="AdminUrlForProductRewrittenCorrectlyTest">
         <annotations>
             <features value="CatalogUrlRewrite"/>
-            <stories value="Url rewrites"/>
             <title value="Check that URL for product rewritten correctly"/>
             <description value="Check that URL for product rewritten correctly"/>
             <severity value="MAJOR"/>

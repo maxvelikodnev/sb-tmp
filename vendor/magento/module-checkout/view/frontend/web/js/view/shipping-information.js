@@ -28,20 +28,9 @@ define([
          * @return {String}
          */
         getShippingMethodTitle: function () {
-            var shippingMethod = quote.shippingMethod(),
-                shippingMethodTitle = '';
+            var shippingMethod = quote.shippingMethod();
 
-            if (!shippingMethod) {
-                return '';
-            }
-
-            shippingMethodTitle = shippingMethod['carrier_title'];
-
-            if (typeof shippingMethod['method_title'] !== 'undefined') {
-                shippingMethodTitle += ' - ' + shippingMethod['method_title'];
-            }
-
-            return shippingMethodTitle;
+            return shippingMethod ? shippingMethod['carrier_title'] + ' - ' + shippingMethod['method_title'] : '';
         },
 
         /**

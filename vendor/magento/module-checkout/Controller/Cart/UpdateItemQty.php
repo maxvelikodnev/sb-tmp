@@ -8,25 +8,16 @@ declare(strict_types=1);
 namespace Magento\Checkout\Controller\Cart;
 
 use Magento\Checkout\Model\Cart\RequestQuantityProcessor;
-use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NotFoundException;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Quote\Model\Quote\Item;
 use Psr\Log\LoggerInterface;
 
-/**
- * UpdateItemQty ajax request
- *
- * @package Magento\Checkout\Controller\Cart
- */
-class UpdateItemQty extends Action implements HttpPostActionInterface
+class UpdateItemQty extends \Magento\Framework\App\Action\Action
 {
-
     /**
      * @var RequestQuantityProcessor
      */
@@ -53,16 +44,13 @@ class UpdateItemQty extends Action implements HttpPostActionInterface
     private $logger;
 
     /**
-     * UpdateItemQty constructor
-     *
-     * @param Context $context
+     * @param Context $context,
      * @param RequestQuantityProcessor $quantityProcessor
      * @param FormKeyValidator $formKeyValidator
      * @param CheckoutSession $checkoutSession
      * @param Json $json
      * @param LoggerInterface $logger
      */
-
     public function __construct(
         Context $context,
         RequestQuantityProcessor $quantityProcessor,
@@ -80,26 +68,30 @@ class UpdateItemQty extends Action implements HttpPostActionInterface
     }
 
     /**
-     * Controller execute method
-     *
      * @return void
      */
     public function execute()
     {
         try {
-            $this->validateRequest();
-            $this->validateFormKey();
+            if (!$this->formKeyValidator->validate($this->getRequest())) {
+                throw new LocalizedException(
+                    __('Something went wrong while saving the page. Please refresh the page and try again.')
+                );
+            }
 
             $cartData = $this->getRequest()->getParam('cart');
-
-            $this->validateCartData($cartData);
+            if (!is_array($cartData)) {
+                throw new LocalizedException(
+                    __('Something went wrong while saving the page. Please refresh the page and try again.')
+                );
+            }
 
             $cartData = $this->quantityProcessor->process($cartData);
             $quote = $this->checkoutSession->getQuote();
 
             foreach ($cartData as $itemId => $itemInfo) {
                 $item = $quote->getItemById($itemId);
-                $qty = isset($itemInfo['qty']) ? (double) $itemInfo['qty'] : 0;
+                $qty = isset($itemInfo['qty']) ? (double)$itemInfo['qty'] : 0;
                 if ($item) {
                     $this->updateItemQuantity($item, $qty);
                 }
@@ -119,13 +111,11 @@ class UpdateItemQty extends Action implements HttpPostActionInterface
      *
      * @param Item $item
      * @param float $qty
-     * @return void
      * @throws LocalizedException
      */
     private function updateItemQuantity(Item $item, float $qty)
     {
         if ($qty > 0) {
-            $item->clearMessage();
             $item->setQty($qty);
 
             if ($item->getHasError()) {
@@ -155,7 +145,9 @@ class UpdateItemQty extends Action implements HttpPostActionInterface
      */
     private function getResponseData(string $error = ''): array
     {
-        $response = ['success' => true];
+        $response = [
+            'success' => true,
+        ];
 
         if (!empty($error)) {
             $response = [
@@ -165,49 +157,5 @@ class UpdateItemQty extends Action implements HttpPostActionInterface
         }
 
         return $response;
-    }
-
-    /**
-     * Validates the Request HTTP method
-     *
-     * @return void
-     * @throws NotFoundException
-     */
-    private function validateRequest()
-    {
-        if ($this->getRequest()->isPost() === false) {
-            throw new NotFoundException(__('Page Not Found'));
-        }
-    }
-
-    /**
-     * Validates form key
-     *
-     * @return void
-     * @throws LocalizedException
-     */
-    private function validateFormKey()
-    {
-        if (!$this->formKeyValidator->validate($this->getRequest())) {
-            throw new LocalizedException(
-                __('Something went wrong while saving the page. Please refresh the page and try again.')
-            );
-        }
-    }
-
-    /**
-     * Validates cart data
-     *
-     * @param array|null $cartData
-     * @return void
-     * @throws LocalizedException
-     */
-    private function validateCartData($cartData = null)
-    {
-        if (!is_array($cartData)) {
-            throw new LocalizedException(
-                __('Something went wrong while saving the page. Please refresh the page and try again.')
-            );
-        }
     }
 }

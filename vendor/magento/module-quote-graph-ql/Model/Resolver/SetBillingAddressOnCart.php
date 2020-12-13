@@ -13,7 +13,6 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\QuoteGraphQl\Model\Cart\SetBillingAddressOnCart as SetBillingAddressOnCartModel;
-use Magento\QuoteGraphQl\Model\Cart\CheckCartCheckoutAllowance;
 
 /**
  * Mutation resolver for setting billing address for shopping cart
@@ -31,23 +30,15 @@ class SetBillingAddressOnCart implements ResolverInterface
     private $setBillingAddressOnCart;
 
     /**
-     * @var CheckCartCheckoutAllowance
-     */
-    private $checkCartCheckoutAllowance;
-
-    /**
      * @param GetCartForUser $getCartForUser
      * @param SetBillingAddressOnCartModel $setBillingAddressOnCart
-     * @param CheckCartCheckoutAllowance $checkCartCheckoutAllowance
      */
     public function __construct(
         GetCartForUser $getCartForUser,
-        SetBillingAddressOnCartModel $setBillingAddressOnCart,
-        CheckCartCheckoutAllowance $checkCartCheckoutAllowance
+        SetBillingAddressOnCartModel $setBillingAddressOnCart
     ) {
         $this->getCartForUser = $getCartForUser;
         $this->setBillingAddressOnCart = $setBillingAddressOnCart;
-        $this->checkCartCheckoutAllowance = $checkCartCheckoutAllowance;
     }
 
     /**
@@ -55,19 +46,17 @@ class SetBillingAddressOnCart implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        if (empty($args['input']['cart_id'])) {
+        if (!isset($args['input']['cart_id']) || empty($args['input']['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
         $maskedCartId = $args['input']['cart_id'];
 
-        if (empty($args['input']['billing_address'])) {
+        if (!isset($args['input']['billing_address']) || empty($args['input']['billing_address'])) {
             throw new GraphQlInputException(__('Required parameter "billing_address" is missing'));
         }
         $billingAddress = $args['input']['billing_address'];
 
-        $storeId = $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
-        $cart = $this->getCartForUser->execute($maskedCartId, $context->getUserId(), $storeId);
-        $this->checkCartCheckoutAllowance->execute($cart);
+        $cart = $this->getCartForUser->execute($maskedCartId, $context->getUserId());
         $this->setBillingAddressOnCart->execute($context, $cart, $billingAddress);
 
         return [

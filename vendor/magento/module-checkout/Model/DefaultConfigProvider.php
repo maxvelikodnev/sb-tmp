@@ -343,10 +343,6 @@ class DefaultConfigProvider implements ConfigProviderInterface
                 )
             )
         ];
-        $output['useQty'] = $this->scopeConfig->isSetFlag(
-            'checkout/cart_link/use_qty',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
         $output['activeCarriers'] = $this->getActiveCarriers();
         $output['originCountryCode'] = $this->getOriginCountryCode();
         $output['paymentMethods'] = $this->getPaymentMethods();
@@ -397,9 +393,6 @@ class DefaultConfigProvider implements ConfigProviderInterface
         if ($this->checkoutSession->getQuote()->getId()) {
             $quote = $this->quoteRepository->get($this->checkoutSession->getQuote()->getId());
             $quoteData = $quote->toArray();
-            if (null !== $quote->getExtensionAttributes()) {
-                $quoteData['extension_attributes'] = $quote->getExtensionAttributes()->__toArray();
-            }
             $quoteData['is_virtual'] = $quote->getIsVirtual();
 
             if (!$quote->getCustomer()->getId()) {

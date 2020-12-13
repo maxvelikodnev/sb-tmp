@@ -20,7 +20,6 @@ use Magento\GroupedProduct\Model\Product\Type\Grouped as GroupedType;
 
 /**
  * Calculate minimal and maximal prices for Grouped products
- *
  * Use calculated price for relation products
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -86,7 +85,10 @@ class Grouped implements DimensionalIndexerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
+     * @param array $dimensions
+     * @param \Traversable $entityIds
+     * @throws \Exception
      */
     public function executeByDimensions(array $dimensions, \Traversable $entityIds)
     {
@@ -103,8 +105,9 @@ class Grouped implements DimensionalIndexerInterface
             'maxPriceField' => 'max_price',
             'tierPriceField' => 'tier_price',
         ]);
-        $select = $this->prepareGroupedProductPriceDataSelect($dimensions, iterator_to_array($entityIds));
-        $this->tableMaintainer->insertFromSelect($select, $temporaryPriceTable->getTableName(), []);
+        $query = $this->prepareGroupedProductPriceDataSelect($dimensions, iterator_to_array($entityIds))
+            ->insertFromSelect($temporaryPriceTable->getTableName());
+        $this->getConnection()->query($query);
     }
 
     /**
@@ -183,13 +186,13 @@ class Grouped implements DimensionalIndexerInterface
         if ($this->fullReindexAction) {
             return $this->tableMaintainer->getMainReplicaTable($dimensions);
         }
-        return $this->tableMaintainer->getMainTableByDimensions($dimensions);
+        return $this->tableMaintainer->getMainTable($dimensions);
     }
 
     /**
      * Get connection
      *
-     * @return \Magento\Framework\DB\Adapter\AdapterInterface
+     * return \Magento\Framework\DB\Adapter\AdapterInterface
      * @throws \DomainException
      */
     private function getConnection(): \Magento\Framework\DB\Adapter\AdapterInterface

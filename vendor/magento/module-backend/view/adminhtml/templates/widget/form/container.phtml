@@ -4,13 +4,15 @@
  * See COPYING.txt for license details.
  */
 
+// @codingStandardsIgnoreFile
+
 /** @var $block \Magento\Backend\Block\Widget\Form\Container */
-?>
-<?= /* @noEscape */ $block->getFormInitScripts() ?>
-<?php if ($block->getButtonsHtml('header')) : ?>
-    <div class="page-form-actions" <?= /* @noEscape */ $block->getUiId('content-header') ?>><?= $block->getButtonsHtml('header') ?></div>
+ ?>
+<?= /* @escapeNotVerified */ $block->getFormInitScripts() ?>
+<?php if ($block->getButtonsHtml('header')): ?>
+    <div class="page-form-actions" <?= /* @escapeNotVerified */ $block->getUiId('content-header') ?>><?= $block->getButtonsHtml('header') ?></div>
 <?php endif; ?>
-<?php if ($block->getButtonsHtml('toolbar')) : ?>
+<?php if ($block->getButtonsHtml('toolbar')): ?>
     <div class="page-main-actions">
         <div class="page-actions">
             <div class="page-actions-buttons">
@@ -20,7 +22,7 @@
     </div>
 <?php endif; ?>
 <?= $block->getFormHtml() ?>
-<?php if ($block->hasFooterButtons()) : ?>
+<?php if ($block->hasFooterButtons()): ?>
     <div class="content-footer">
         <p class="form-buttons"><?= $block->getButtonsHtml('footer') ?></p>
     </div>
@@ -34,7 +36,7 @@ require([
 
     $('#edit_form').form()
         .validation({
-            validationUrl: '<?= $block->escapeJs($block->getValidationUrl()) ?>',
+            validationUrl: '<?= /* @escapeNotVerified */ $block->getValidationUrl() ?>',
             highlight: function(element) {
                 var detailsElement = $(element).closest('details');
                 if (detailsElement.length && detailsElement.is('.details')) {
@@ -49,4 +51,4 @@ require([
 
 });
 </script>
-<?= /* @noEscape */ $block->getFormScripts() ?>
+<?= /* @escapeNotVerified */ $block->getFormScripts() ?>

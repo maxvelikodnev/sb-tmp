@@ -5,7 +5,6 @@
  */
 namespace Magento\Catalog\Model\ResourceModel\Product;
 
-use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
 
 /**
@@ -15,32 +14,6 @@ use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
  */
 class Action extends \Magento\Catalog\Model\ResourceModel\AbstractResource
 {
-    /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
-     */
-    private $dateTime;
-
-    /**
-     * @param \Magento\Eav\Model\Entity\Context $context
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Model\Factory $modelFactory
-     * @param \Magento\Eav\Model\Entity\Attribute\UniqueValidationInterface $uniqueValidator
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $dateTime
-     * @param array $data
-     */
-    public function __construct(
-        \Magento\Eav\Model\Entity\Context $context,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Model\Factory $modelFactory,
-        \Magento\Eav\Model\Entity\Attribute\UniqueValidationInterface $uniqueValidator,
-        \Magento\Framework\Stdlib\DateTime\DateTime $dateTime,
-        $data = []
-    ) {
-        parent::__construct($context, $storeManager, $modelFactory, $data, $uniqueValidator);
-
-        $this->dateTime = $dateTime;
-    }
-
     /**
      * Initialize connection
      *
@@ -70,7 +43,6 @@ class Action extends \Magento\Catalog\Model\ResourceModel\AbstractResource
         $object = new \Magento\Framework\DataObject();
         $object->setStoreId($storeId);
 
-        $attrData[ProductInterface::UPDATED_AT] = $this->dateTime->gmtDate();
         $this->getConnection()->beginTransaction();
         try {
             foreach ($attrData as $attrCode => $value) {
@@ -123,7 +95,7 @@ class Action extends \Magento\Catalog\Model\ResourceModel\AbstractResource
          * for default store id
          * In this case we clear all not default values
          */
-        if ($this->_storeManager->hasSingleStore() && !$attribute->isStatic()) {
+        if ($this->_storeManager->hasSingleStore()) {
             $storeId = $this->getDefaultStoreId();
             $connection->delete(
                 $table,
@@ -135,24 +107,17 @@ class Action extends \Magento\Catalog\Model\ResourceModel\AbstractResource
             );
         }
 
-        $data = $attribute->isStatic()
-            ? new \Magento\Framework\DataObject(
-                [
-                    $this->getLinkField() => $entityId,
-                    $attribute->getAttributeCode() => $this->_prepareValueForSave($value, $attribute),
-                ]
-            )
-            : new \Magento\Framework\DataObject(
-                [
-                    'attribute_id' => $attribute->getAttributeId(),
-                    'store_id' => $storeId,
-                    $this->getLinkField() => $entityId,
-                    'value' => $this->_prepareValueForSave($value, $attribute),
-                ]
-            );
+        $data = new \Magento\Framework\DataObject(
+            [
+                'attribute_id' => $attribute->getAttributeId(),
+                'store_id' => $storeId,
+                $this->getLinkField() => $entityId,
+                'value' => $this->_prepareValueForSave($value, $attribute),
+            ]
+        );
         $bind = $this->_prepareDataForTable($data, $table);
 
-        if ($attribute->isScopeStore() || $attribute->isStatic()) {
+        if ($attribute->isScopeStore()) {
             /**
              * Update attribute value for store
              */
@@ -178,8 +143,6 @@ class Action extends \Magento\Catalog\Model\ResourceModel\AbstractResource
     }
 
     /**
-     * Resolve entity id
-     *
      * @param int $entityId
      * @return int
      */

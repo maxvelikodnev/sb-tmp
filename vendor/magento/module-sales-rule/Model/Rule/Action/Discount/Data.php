@@ -6,8 +6,6 @@
 namespace Magento\SalesRule\Model\Rule\Action\Discount;
 
 /**
- *  Discount Data
- *
  * @api
  * @since 100.0.2
  */
@@ -45,8 +43,6 @@ class Data
     }
 
     /**
-     * Set Amount
-     *
      * @param float $amount
      * @return $this
      */
@@ -57,8 +53,6 @@ class Data
     }
 
     /**
-     * Get Amount
-     *
      * @return float
      */
     public function getAmount()
@@ -67,8 +61,6 @@ class Data
     }
 
     /**
-     * Set Base Amount
-     *
      * @param float $baseAmount
      * @return $this
      */
@@ -79,8 +71,6 @@ class Data
     }
 
     /**
-     * Get Base Amount
-     *
      * @return float
      */
     public function getBaseAmount()
@@ -89,8 +79,6 @@ class Data
     }
 
     /**
-     * Set Original Amount
-     *
      * @param float $originalAmount
      * @return $this
      */
@@ -111,8 +99,6 @@ class Data
     }
 
     /**
-     * Set Base Original Amount
-     *
      * @param float $baseOriginalAmount
      * @return $this
      */

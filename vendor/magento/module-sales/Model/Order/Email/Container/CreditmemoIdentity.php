@@ -3,18 +3,10 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Sales\Model\Order\Email\Container;
 
-/**
- * Class \Magento\Sales\Model\Order\Email\Container\CreditmemoIdentity
- */
 class CreditmemoIdentity extends Container implements IdentityInterface
 {
-    /**
-     * Configuration paths
-     */
     const XML_PATH_EMAIL_COPY_METHOD = 'sales_email/creditmemo/copy_method';
     const XML_PATH_EMAIL_COPY_TO = 'sales_email/creditmemo/copy_to';
     const XML_PATH_EMAIL_IDENTITY = 'sales_email/creditmemo/identity';
@@ -23,8 +15,6 @@ class CreditmemoIdentity extends Container implements IdentityInterface
     const XML_PATH_EMAIL_ENABLED = 'sales_email/creditmemo/enabled';
 
     /**
-     * Is email enabled
-     *
      * @return bool
      */
     public function isEnabled()
@@ -37,22 +27,18 @@ class CreditmemoIdentity extends Container implements IdentityInterface
     }
 
     /**
-     * Return email copy_to list
-     *
      * @return array|bool
      */
     public function getEmailCopyTo()
     {
         $data = $this->getConfigValue(self::XML_PATH_EMAIL_COPY_TO, $this->getStore()->getStoreId());
         if (!empty($data)) {
-            return array_map('trim', explode(',', $data));
+            return explode(',', $data);
         }
         return false;
     }
 
     /**
-     * Return email copy method
-     *
      * @return mixed
      */
     public function getCopyMethod()
@@ -61,8 +47,6 @@ class CreditmemoIdentity extends Container implements IdentityInterface
     }
 
     /**
-     * Return guest template id
-     *
      * @return mixed
      */
     public function getGuestTemplateId()
@@ -71,8 +55,6 @@ class CreditmemoIdentity extends Container implements IdentityInterface
     }
 
     /**
-     * Return template id
-     *
      * @return mixed
      */
     public function getTemplateId()
@@ -81,8 +63,6 @@ class CreditmemoIdentity extends Container implements IdentityInterface
     }
 
     /**
-     * Return email identity
-     *
      * @return mixed
      */
     public function getEmailIdentity()

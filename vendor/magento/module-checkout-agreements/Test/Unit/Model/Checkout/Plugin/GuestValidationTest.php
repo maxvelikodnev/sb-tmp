@@ -10,6 +10,7 @@ use Magento\CheckoutAgreements\Model\AgreementsProvider;
 use Magento\Store\Model\ScopeInterface;
 
 /**
+ * Class GuestValidationTest
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class GuestValidationTest extends \PHPUnit\Framework\TestCase
@@ -108,7 +109,7 @@ class GuestValidationTest extends \PHPUnit\Framework\TestCase
         $this->paymentMock->expects(static::atLeastOnce())
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributesMock);
-        $this->model->beforeSavePaymentInformationAndPlaceOrder(
+        $this->model->beforeSavePaymentInformation(
             $this->subjectMock,
             $cartId,
             $email,
@@ -143,7 +144,7 @@ class GuestValidationTest extends \PHPUnit\Framework\TestCase
         $this->paymentMock->expects(static::atLeastOnce())
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributesMock);
-        $this->model->beforeSavePaymentInformationAndPlaceOrder(
+        $this->model->beforeSavePaymentInformation(
             $this->subjectMock,
             $cartId,
             $email,
@@ -153,6 +154,38 @@ class GuestValidationTest extends \PHPUnit\Framework\TestCase
 
         $this->expectExceptionMessage(
             "The order wasn't placed. First, agree to the terms and conditions, then try placing your order again."
+        );
+    }
+
+    public function testBeforeSavePaymentInformation()
+    {
+        $cartId = 100;
+        $email = 'email@example.com';
+        $agreements = [1, 2, 3];
+        $this->scopeConfigMock
+            ->expects($this->once())
+            ->method('isSetFlag')
+            ->with(AgreementsProvider::PATH_ENABLED, ScopeInterface::SCOPE_STORE)
+            ->willReturn(true);
+        $searchCriteriaMock = $this->createMock(\Magento\Framework\Api\SearchCriteria::class);
+        $this->agreementsFilterMock->expects($this->once())
+            ->method('buildSearchCriteria')
+            ->willReturn($searchCriteriaMock);
+        $this->checkoutAgreementsListMock->expects($this->once())
+            ->method('getList')
+            ->with($searchCriteriaMock)
+            ->willReturn([1]);
+        $this->extensionAttributesMock->expects($this->once())->method('getAgreementIds')->willReturn($agreements);
+        $this->agreementsValidatorMock->expects($this->once())->method('isValid')->with($agreements)->willReturn(true);
+        $this->paymentMock->expects(static::atLeastOnce())
+            ->method('getExtensionAttributes')
+            ->willReturn($this->extensionAttributesMock);
+        $this->model->beforeSavePaymentInformation(
+            $this->subjectMock,
+            $cartId,
+            $email,
+            $this->paymentMock,
+            $this->addressMock
         );
     }
 }

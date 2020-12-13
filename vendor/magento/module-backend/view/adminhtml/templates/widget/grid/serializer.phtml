@@ -3,18 +3,18 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
+
 ?>
 <?php
 /**
  * @var $block \Magento\Backend\Block\Widget\Grid\Serializer
  */
 ?>
-<?php
-// phpcs:ignore
-$_id = 'id_' . md5(microtime());
-?>
+<?php $_id = 'id_' . md5(microtime()) ?>
 <?php $formId = $block->getFormId()?>
-<?php if (!empty($formId)) : ?>
+<?php if (!empty($formId)) :?>
 <script>
     require([
         'prototype',
@@ -23,11 +23,11 @@ $_id = 'id_' . md5(microtime());
         Event.observe(window, "load", function(){
             var serializeInput  = document.createElement('input');
             serializeInput.type = 'hidden';
-            serializeInput.name = '<?= $block->escapeJs($block->getInputElementName()) ?>';
-            serializeInput.id   = '<?= /* @noEscape */ $_id ?>';
+            serializeInput.name = '<?= /* @escapeNotVerified */ $block->getInputElementName() ?>';
+            serializeInput.id   = '<?= /* @escapeNotVerified */ $_id ?>';
             try {
-                document.getElementById('<?= $block->escapeJs($formId) ?>').appendChild(serializeInput);
-                new serializerController('<?= /* @noEscape */ $_id ?>', <?= /* @noEscape */ $block->getDataAsJSON() ?>, <?= /* @noEscape */ $block->getColumnInputNames(true) ?>, <?= $block->escapeJs($block->getGridBlock()->getJsObjectName()) ?>, '<?= $block->escapeJs($block->getReloadParamName()) ?>');
+                document.getElementById('<?= /* @escapeNotVerified */ $formId ?>').appendChild(serializeInput);
+                new serializerController('<?= /* @escapeNotVerified */ $_id ?>', <?= /* @escapeNotVerified */ $block->getDataAsJSON() ?>, <?= /* @escapeNotVerified */ $block->getColumnInputNames(true) ?>, <?= /* @escapeNotVerified */ $block->getGridBlock()->getJsObjectName() ?>, '<?= /* @escapeNotVerified */ $block->getReloadParamName() ?>');
             } catch(e) {
                 //Error add serializer
             }
@@ -35,12 +35,12 @@ $_id = 'id_' . md5(microtime());
     });
 </script>
 <?php else :?>
-<input type="hidden" name="<?= $block->escapeHtmlAttr($block->getInputElementName()) ?>"  value="" id="<?= /* @noEscape */ $_id ?>" />
+<input type="hidden" name="<?= /* @escapeNotVerified */ $block->getInputElementName() ?>"  value="" id="<?= /* @escapeNotVerified */ $_id ?>" />
 <script>
     require([
         'mage/adminhtml/grid'
     ], function(){
-        new serializerController('<?= /* @noEscape */ $_id ?>', <?= /* @noEscape */ $block->getDataAsJSON() ?>, <?= /* @noEscape */ $block->getColumnInputNames(true) ?>, <?= $block->escapeJs($block->getGridBlock()->getJsObjectName()) ?>, '<?= $block->escapeJs($block->getReloadParamName()) ?>');
+        new serializerController('<?= /* @escapeNotVerified */ $_id ?>', <?= /* @escapeNotVerified */ $block->getDataAsJSON() ?>, <?= /* @escapeNotVerified */ $block->getColumnInputNames(true) ?>, <?= /* @escapeNotVerified */ $block->getGridBlock()->getJsObjectName() ?>, '<?= /* @escapeNotVerified */ $block->getReloadParamName() ?>');
     });
 </script>
 <?php endif;?>

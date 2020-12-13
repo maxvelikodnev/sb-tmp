@@ -6,14 +6,21 @@
 /**
  * @deprecated since version 2.2.0
  */
-define([
-    'jquery',
-    'mage/template',
-    'jquery-ui-modules/widget',
-    'jquery-ui-modules/core',
-    'mage/translate-inline',
-    'mage/translate'
-], function ($, mageTemplate) {
+(function (root, factory) {
+    'use strict';
+
+    if (typeof define === 'function' && define.amd) {
+        define([
+            'jquery',
+            'mage/template',
+            'jquery/ui',
+            'mage/translate-inline',
+            'mage/translate'
+        ], factory);
+    } else {
+        factory(root.jQuery, root.mageTemplate);
+    }
+}(this, function ($, mageTemplate) {
     'use strict';
 
     /**
@@ -590,4 +597,4 @@ define([
             }
         }
     });
-});
+}));

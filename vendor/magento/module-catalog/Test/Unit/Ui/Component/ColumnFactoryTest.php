@@ -67,10 +67,9 @@ class ColumnFactoryTest extends TestCase
         $this->uiComponentFactory->method('create')
             ->willReturn($this->column);
 
-        $this->columnFactory = $this->objectManager->getObject(
-            ColumnFactory::class,
-            ['componentFactory' => $this->uiComponentFactory]
-        );
+        $this->columnFactory = $this->objectManager->getObject(ColumnFactory::class, [
+            'componentFactory' => $this->uiComponentFactory
+        ]);
     }
 
     /**
@@ -112,7 +111,6 @@ class ColumnFactoryTest extends TestCase
                     'visible' => null,
                     'filter' => $filter,
                     'component' => 'Magento_Ui/js/grid/columns/column',
-                    '__disableTmpl' => ['label' => true]
                 ],
             ],
             'context' => $this->context,

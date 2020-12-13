@@ -100,18 +100,16 @@ class UploaderTest extends \PHPUnit\Framework\TestCase
             ->getMock();
 
         $this->uploader = $this->getMockBuilder(\Magento\CatalogImportExport\Model\Import\Uploader::class)
-            ->setConstructorArgs(
-                [
-                    $this->coreFileStorageDb,
-                    $this->coreFileStorage,
-                    $this->imageFactory,
-                    $this->validator,
-                    $this->filesystem,
-                    $this->readFactory,
-                    null,
-                    $this->random
-                ]
-            )
+            ->setConstructorArgs([
+                $this->coreFileStorageDb,
+                $this->coreFileStorage,
+                $this->imageFactory,
+                $this->validator,
+                $this->filesystem,
+                $this->readFactory,
+                null,
+                $this->random
+            ])
             ->setMethods(['_setUploadFile', 'save', 'getTmpDir', 'checkAllowedExtension'])
             ->getMock();
     }
@@ -128,7 +126,6 @@ class UploaderTest extends \PHPUnit\Framework\TestCase
     {
         $tmpDir = 'var/tmp';
         $destDir = 'var/dest/dir';
-        $this->uploader->method('getTmpDir')->willReturn($tmpDir);
 
         // Expected invocation to validate file extension
         $this->uploader->expects($this->exactly($checkAllowedExtension))->method('checkAllowedExtension')
@@ -160,11 +157,9 @@ class UploaderTest extends \PHPUnit\Framework\TestCase
         $this->directoryMock->expects($this->any())->method('writeFile')
             ->will($this->returnValue($expectedFileName));
 
-        // Expected invocations save the downloaded file to temp file
-        // and move the temp file to the destination directory
-        $this->directoryMock->expects($this->exactly(2))
-            ->method('isWritable')
-            ->withConsecutive([$destDir], [$tmpDir])
+        // Expected invocations to move the temp file to the destination directory
+        $this->directoryMock->expects($this->once())->method('isWritable')
+            ->with($destDir)
             ->willReturn(true);
         $this->directoryMock->expects($this->once())->method('getAbsolutePath')
             ->with($destDir)
@@ -174,6 +169,9 @@ class UploaderTest extends \PHPUnit\Framework\TestCase
         $this->uploader->expects($this->once())->method('save')
             ->with($destDir . '/' . $expectedFileName)
             ->willReturn(['name' => $expectedFileName, 'path' => 'absPath']);
+
+        // Do not use configured temp directory
+        $this->uploader->expects($this->never())->method('getTmpDir');
 
         $this->uploader->setDestDir($destDir);
         $result = $this->uploader->move($fileUrl);
@@ -226,16 +224,14 @@ class UploaderTest extends \PHPUnit\Framework\TestCase
             ->willReturn($driverMock);
 
         $uploaderMock = $this->getMockBuilder(\Magento\CatalogImportExport\Model\Import\Uploader::class)
-            ->setConstructorArgs(
-                [
-                    $this->coreFileStorageDb,
-                    $this->coreFileStorage,
-                    $this->imageFactory,
-                    $this->validator,
-                    $this->filesystem,
-                    $readFactory,
-                ]
-            )
+            ->setConstructorArgs([
+                $this->coreFileStorageDb,
+                $this->coreFileStorage,
+                $this->imageFactory,
+                $this->validator,
+                $this->filesystem,
+                $readFactory,
+            ])
             ->getMock();
 
         $result = $uploaderMock->move($fileUrl);

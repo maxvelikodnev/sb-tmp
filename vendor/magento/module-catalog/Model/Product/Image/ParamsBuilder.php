@@ -68,12 +68,11 @@ class ParamsBuilder
      * Build image params
      *
      * @param array $imageArguments
-     * @param int $scopeId
      * @return array
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function build(array $imageArguments, int $scopeId = null): array
+    public function build(array $imageArguments): array
     {
         $miscParams = [
             'image_type' => $imageArguments['type'] ?? null,
@@ -82,7 +81,7 @@ class ParamsBuilder
         ];
 
         $overwritten = $this->overwriteDefaultValues($imageArguments);
-        $watermark = isset($miscParams['image_type']) ? $this->getWatermark($miscParams['image_type'], $scopeId) : [];
+        $watermark = isset($miscParams['image_type']) ? $this->getWatermark($miscParams['image_type']) : [];
 
         return array_merge($miscParams, $overwritten, $watermark);
     }
@@ -118,38 +117,30 @@ class ParamsBuilder
      * Get watermark
      *
      * @param string $type
-     * @param int $scopeId
      * @return array
      */
-    private function getWatermark(string $type, int $scopeId = null): array
+    private function getWatermark(string $type): array
     {
         $file = $this->scopeConfig->getValue(
             "design/watermark/{$type}_image",
-            ScopeInterface::SCOPE_STORE,
-            $scopeId
+            ScopeInterface::SCOPE_STORE
         );
 
         if ($file) {
-            $size = explode(
-                'x',
-                (string) $this->scopeConfig->getValue(
-                    "design/watermark/{$type}_size",
-                    ScopeInterface::SCOPE_STORE,
-                    $scopeId
-                )
+            $size = $this->scopeConfig->getValue(
+                "design/watermark/{$type}_size",
+                ScopeInterface::SCOPE_STORE
             );
             $opacity = $this->scopeConfig->getValue(
                 "design/watermark/{$type}_imageOpacity",
-                ScopeInterface::SCOPE_STORE,
-                $scopeId
+                ScopeInterface::SCOPE_STORE
             );
             $position = $this->scopeConfig->getValue(
                 "design/watermark/{$type}_position",
-                ScopeInterface::SCOPE_STORE,
-                $scopeId
+                ScopeInterface::SCOPE_STORE
             );
-            $width = !empty($size['0']) ? $size['0'] : null;
-            $height = !empty($size['1']) ? $size['1'] : null;
+            $width = !empty($size['width']) ? $size['width'] : null;
+            $height = !empty($size['height']) ? $size['height'] : null;
 
             return [
                 'watermark_file' => $file,

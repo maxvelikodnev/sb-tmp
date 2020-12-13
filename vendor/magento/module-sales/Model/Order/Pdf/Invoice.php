@@ -19,9 +19,9 @@ class Invoice extends AbstractPdf
     protected $_storeManager;
 
     /**
-     * @var \Magento\Store\Model\App\Emulation
+     * @var \Magento\Framework\Locale\ResolverInterface
      */
-    private $appEmulation;
+    protected $_localeResolver;
 
     /**
      * @param \Magento\Payment\Helper\Data $paymentData
@@ -35,7 +35,7 @@ class Invoice extends AbstractPdf
      * @param \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation
      * @param \Magento\Sales\Model\Order\Address\Renderer $addressRenderer
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Store\Model\App\Emulation $appEmulation
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param array $data
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -52,11 +52,11 @@ class Invoice extends AbstractPdf
         \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
         \Magento\Sales\Model\Order\Address\Renderer $addressRenderer,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Store\Model\App\Emulation $appEmulation,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver,
         array $data = []
     ) {
         $this->_storeManager = $storeManager;
-        $this->appEmulation = $appEmulation;
+        $this->_localeResolver = $localeResolver;
         parent::__construct(
             $paymentData,
             $string,
@@ -127,11 +127,7 @@ class Invoice extends AbstractPdf
 
         foreach ($invoices as $invoice) {
             if ($invoice->getStoreId()) {
-                $this->appEmulation->startEnvironmentEmulation(
-                    $invoice->getStoreId(),
-                    \Magento\Framework\App\Area::AREA_FRONTEND,
-                    true
-                );
+                $this->_localeResolver->emulate($invoice->getStoreId());
                 $this->_storeManager->setCurrentStore($invoice->getStoreId());
             }
             $page = $this->newPage();
@@ -166,7 +162,7 @@ class Invoice extends AbstractPdf
             /* Add totals */
             $this->insertTotals($page, $invoice);
             if ($invoice->getStoreId()) {
-                $this->appEmulation->stopEnvironmentEmulation();
+                $this->_localeResolver->revert();
             }
         }
         $this->_afterGetPdf();

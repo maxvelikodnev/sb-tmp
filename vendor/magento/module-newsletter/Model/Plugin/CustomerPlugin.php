@@ -6,12 +6,11 @@
 namespace Magento\Newsletter\Model\Plugin;
 
 use Magento\Customer\Api\CustomerRepositoryInterface as CustomerRepository;
-use Magento\Customer\Api\Data\CustomerExtensionInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Newsletter\Model\SubscriberFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Newsletter\Model\ResourceModel\Subscriber;
-use Magento\Newsletter\Model\Subscriber as SubscriberModel;
-use Magento\Newsletter\Model\SubscriberFactory;
+use Magento\Customer\Api\Data\CustomerExtensionInterface;
 
 /**
  * Newsletter Plugin for customer
@@ -71,7 +70,7 @@ class CustomerPlugin
     public function afterSave(CustomerRepository $subject, CustomerInterface $result, CustomerInterface $customer)
     {
         $resultId = $result->getId();
-        /** @var SubscriberModel $subscriber */
+        /** @var \Magento\Newsletter\Model\Subscriber $subscriber */
         $subscriber = $this->subscriberFactory->create();
 
         $subscriber->updateSubscription($resultId);
@@ -94,12 +93,7 @@ class CustomerPlugin
             }
         }
 
-        $isSubscribed = $subscriber->getId() && (
-            (int)$subscriber->getStatus() === SubscriberModel::STATUS_SUBSCRIBED
-            ||
-            (int)$subscriber->getStatus() === SubscriberModel::STATUS_UNCONFIRMED
-        );
-
+        $isSubscribed = $subscriber->isSubscribed();
         $this->customerSubscriptionStatus[$resultId] = $isSubscribed;
         $initialExtensionAttributes->setIsSubscribed($isSubscribed);
 
@@ -121,7 +115,7 @@ class CustomerPlugin
     ) {
         $customer = $subject->getById($customerId);
         $result = $deleteCustomerById($customerId);
-        /** @var SubscriberModel $subscriber */
+        /** @var \Magento\Newsletter\Model\Subscriber $subscriber */
         $subscriber = $this->subscriberFactory->create();
         $subscriber->loadByEmail($customer->getEmail());
         if ($subscriber->getId()) {

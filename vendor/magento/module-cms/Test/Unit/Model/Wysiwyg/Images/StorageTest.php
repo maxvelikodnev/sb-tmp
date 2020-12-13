@@ -107,16 +107,6 @@ class StorageTest extends \PHPUnit\Framework\TestCase
      */
     protected $objectManagerHelper;
 
-    /**
-     * @var \Magento\Framework\Filesystem\Io\File|\PHPUnit_Framework_MockObject_MockObject
-     */
-    protected $ioFileMock;
-
-    /**
-     * @var \Magento\Framework\Filesystem\Driver\File|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $fileMock;
-
     private $allowedImageExtensions = [
         'jpg' => 'image/jpg',
         'jpeg' => 'image/jpeg',
@@ -130,7 +120,6 @@ class StorageTest extends \PHPUnit\Framework\TestCase
      */
     protected function setUp()
     {
-        $this->objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         $this->filesystemMock = $this->createMock(\Magento\Framework\Filesystem::class);
         $this->driverMock = $this->getMockBuilder(\Magento\Framework\Filesystem\DriverInterface::class)
             ->setMethods(['getRealPathSafety'])
@@ -138,7 +127,7 @@ class StorageTest extends \PHPUnit\Framework\TestCase
 
         $this->directoryMock = $this->createPartialMock(
             \Magento\Framework\Filesystem\Directory\Write::class,
-            ['delete', 'getDriver', 'create', 'getRelativePath', 'getAbsolutePath', 'isExist', 'isFile']
+            ['delete', 'getDriver', 'create', 'getRelativePath', 'isExist', 'isFile']
         );
         $this->directoryMock->expects(
             $this->any()
@@ -157,20 +146,6 @@ class StorageTest extends \PHPUnit\Framework\TestCase
             DirectoryList::MEDIA
         )->will(
             $this->returnValue($this->directoryMock)
-        );
-
-        $this->fileMock   = $this->objectManagerHelper->getObject(\Magento\Framework\Filesystem\Driver\File::class);
-        $this->ioFileMock = $this->createPartialMock(\Magento\Framework\Filesystem\Io\File::class, ['getPathInfo']);
-        $this->ioFileMock->expects(
-            $this->any()
-        )->method(
-            'getPathInfo'
-        )->will(
-            $this->returnCallback(
-                function ($path) {
-                    return pathinfo($path);
-                }
-            )
         );
 
         $this->adapterFactoryMock = $this->createMock(\Magento\Framework\Image\AdapterFactory::class);
@@ -230,6 +205,8 @@ class StorageTest extends \PHPUnit\Framework\TestCase
             'image_allowed' => $this->allowedImageExtensions,
         ];
 
+        $this->objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
+
         $this->imagesStorage = $this->objectManagerHelper->getObject(
             \Magento\Cms\Model\Wysiwyg\Images\Storage::class,
             [
@@ -246,14 +223,11 @@ class StorageTest extends \PHPUnit\Framework\TestCase
                 'directoryDatabaseFactory' => $this->directoryDatabaseFactoryMock,
                 'uploaderFactory' => $this->uploaderFactoryMock,
                 'resizeParameters' => $this->resizeParameters,
-                'extensions' => $allowedExtensions,
                 'dirs' => [
                     'exclude' => [],
                     'include' => [],
                 ],
-                'data' => [],
-                'file' => $this->fileMock,
-                'ioFile' => $this->ioFileMock
+                'extensions' => $allowedExtensions,
             ]
         );
     }
@@ -282,7 +256,6 @@ class StorageTest extends \PHPUnit\Framework\TestCase
     public function testDeleteDirectoryOverRoot()
     {
         $this->driverMock->expects($this->atLeastOnce())->method('getRealPathSafety')->will($this->returnArgument(0));
-        $this->directoryMock->expects($this->atLeastOnce())->method('getAbsolutePath')->will($this->returnArgument(0));
         $this->imagesStorage->deleteDirectory(self::INVALID_DIRECTORY_OVER_ROOT);
     }
 
@@ -294,7 +267,6 @@ class StorageTest extends \PHPUnit\Framework\TestCase
     public function testDeleteRootDirectory()
     {
         $this->driverMock->expects($this->atLeastOnce())->method('getRealPathSafety')->will($this->returnArgument(0));
-        $this->directoryMock->expects($this->atLeastOnce())->method('getAbsolutePath')->will($this->returnArgument(0));
         $this->imagesStorage->deleteDirectory(self::STORAGE_ROOT_DIR);
     }
 
@@ -452,7 +424,7 @@ class StorageTest extends \PHPUnit\Framework\TestCase
         $storageCollectionMock->expects($this->once())
             ->method('getIterator')
             ->willReturn(new \ArrayIterator($collectionArray));
-        $storageCollectionInvMock = $storageCollectionMock->expects($this->exactly(count($expectedRemoveKeys)))
+        $storageCollectionInvMock = $storageCollectionMock->expects($this->exactly(sizeof($expectedRemoveKeys)))
             ->method('removeItemByKey');
         call_user_func_array([$storageCollectionInvMock, 'withConsecutive'], $expectedRemoveKeys);
 

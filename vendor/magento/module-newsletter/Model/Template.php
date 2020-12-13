@@ -200,16 +200,9 @@ class Template extends \Magento\Email\Model\AbstractTemplate
     {
         $variables['this'] = $this;
 
-        $filter = $this->getTemplateFilter();
-        $filter->setVariables($variables);
-
-        $previousStrictMode = $filter->setStrictMode(
-            !$this->getData('is_legacy') && is_numeric($this->getTemplateId())
-        );
-        $result = $filter->filter($this->getTemplateSubject());
-        $filter->setStrictMode($previousStrictMode);
-
-        return $result;
+        return $this->getTemplateFilter()
+            ->setVariables($variables)
+            ->filter($this->getTemplateSubject());
     }
 
     /**
@@ -234,8 +227,6 @@ class Template extends \Magento\Email\Model\AbstractTemplate
     }
 
     /**
-     * Return the filter factory
-     *
      * @return \Magento\Newsletter\Model\Template\FilterFactory
      */
     protected function getFilterFactory()

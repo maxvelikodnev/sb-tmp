@@ -90,46 +90,11 @@ define([
          * @param {Object} option
          */
         saveOption: function (option) {
-            if (this.isValidOption(option)) {
+            if (!_.isEmpty(option.label)) {
                 this.options.remove(option);
                 this.options.push(option);
                 this.chosenOptions.push(option.id);
             }
-        },
-
-        /**
-         * @param {Object} newOption
-         * @return boolean
-         */
-        isValidOption: function (newOption) {
-            var duplicatedOptions = [],
-                errorOption,
-                allOptions = [];
-
-            newOption.label = $.trim(newOption.label);
-
-            if (_.isEmpty(newOption.label)) {
-                return false;
-            }
-
-            _.each(this.options(), function (option) {
-                if (!_.isUndefined(allOptions[option.label]) && newOption.label === option.label) {
-                    duplicatedOptions.push(option);
-                }
-
-                allOptions[option.label] = option.label;
-            });
-
-            if (duplicatedOptions.length) {
-                _.each(duplicatedOptions, function (duplicatedOption) {
-                    errorOption = $('[data-role="' + duplicatedOption.id + '"]');
-                    errorOption.addClass('_error');
-                });
-
-                return false;
-            }
-
-            return true;
         },
 
         /**
@@ -163,7 +128,6 @@ define([
             }));
             attribute.opened = ko.observable(this.initialOpened(index));
             attribute.collapsible = ko.observable(true);
-            attribute.isValidOption = this.isValidOption;
 
             return attribute;
         },
@@ -184,22 +148,22 @@ define([
         saveAttribute: function () {
             var errorMessage = $.mage.__('Select options for all attributes or remove unused attributes.');
 
-            if (!this.attributes().length) {
-                throw new Error(errorMessage);
-            }
-
-            _.each(this.attributes(), function (attribute) {
+            this.attributes.each(function (attribute) {
                 attribute.chosen = [];
 
                 if (!attribute.chosenOptions.getLength()) {
                     throw new Error(errorMessage);
                 }
-                _.each(attribute.chosenOptions(), function (id) {
+                attribute.chosenOptions.each(function (id) {
                     attribute.chosen.push(attribute.options.findWhere({
                         id: id
                     }));
                 });
             });
+
+            if (!this.attributes().length) {
+                throw new Error(errorMessage);
+            }
         },
 
         /**
@@ -220,47 +184,33 @@ define([
          * @return {Boolean}
          */
         saveOptions: function () {
-            var newOptions = [];
+            var options = [];
 
-            _.each(this.attributes(), function (attribute) {
-                _.each(attribute.options(), function (element) {
+            this.attributes.each(function (attribute) {
+                attribute.chosenOptions.each(function (id) {
                     var option = attribute.options.findWhere({
-                        id: element.id
+                        id: id,
+                        'is_new': true
                     });
 
-                    if (option['is_new'] === true) {
-                        if (!attribute.isValidOption(option)) {
-                            throw new Error(
-                                $.mage.__('The value of attribute ""%1"" must be unique')
-                                    .replace('"%1"', attribute.label)
-                            );
-                        }
-
-                        newOptions.push(option);
+                    if (option) {
+                        options.push(option);
                     }
                 });
             });
 
-            if (!newOptions.length) {
+            if (!options.length) {
                 return false;
             }
-
             $.ajax({
                 type: 'POST',
                 url: this.createOptionsUrl,
                 data: {
-                    options: newOptions
+                    options: options
                 },
                 showLoader: true
             }).done(function (savedOptions) {
-                if (savedOptions.error) {
-                    this.notificationMessage.error = savedOptions.error;
-                    this.notificationMessage.text = savedOptions.message;
-
-                    return;
-                }
-
-                _.each(this.attributes(), function (attribute) {
+                this.attributes.each(function (attribute) {
                     _.each(savedOptions, function (newOptionId, oldOptionId) {
                         var option = attribute.options.findWhere({
                             id: oldOptionId

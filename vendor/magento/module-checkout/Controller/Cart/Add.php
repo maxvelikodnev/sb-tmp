@@ -9,8 +9,6 @@ namespace Magento\Checkout\Controller\Cart;
 use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Cart as CustomerCart;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -79,7 +77,7 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
     /**
      * Add product to shopping cart action
      *
-     * @return ResponseInterface|ResultInterface
+     * @return \Magento\Framework\Controller\Result\Redirect
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function execute()
@@ -92,6 +90,7 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
         }
 
         $params = $this->getRequest()->getParams();
+
         try {
             if (isset($params['qty'])) {
                 $filter = new \Zend_Filter_LocalizedToNormalized(
@@ -105,7 +104,9 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
             $product = $this->_initProduct();
             $related = $this->getRequest()->getParam('related_product');
 
-            /** Check product availability */
+            /**
+             * Check product availability
+             */
             if (!$product) {
                 return $this->goBack();
             }
@@ -114,6 +115,7 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
             if (!empty($related)) {
                 $this->cart->addProductsByIds(explode(',', $related));
             }
+
             $this->cart->save();
 
             /**
@@ -125,25 +127,21 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
             );
 
             if (!$this->_checkoutSession->getNoCartRedirect(true)) {
-                if ($this->shouldRedirectToCart()) {
-                    $message = __(
-                        'You added %1 to your shopping cart.',
-                        $product->getName()
-                    );
-                    $this->messageManager->addSuccessMessage($message);
-                } else {
-                    $this->messageManager->addComplexSuccessMessage(
-                        'addCartSuccessMessage',
-                        [
-                            'product_name' => $product->getName(),
-                            'cart_url' => $this->getCartUrl(),
-                        ]
-                    );
-                }
-                if ($this->cart->getQuote()->getHasError()) {
-                    $errors = $this->cart->getQuote()->getErrors();
-                    foreach ($errors as $error) {
-                        $this->messageManager->addErrorMessage($error->getText());
+                if (!$this->cart->getQuote()->getHasError()) {
+                    if ($this->shouldRedirectToCart()) {
+                        $message = __(
+                            'You added %1 to your shopping cart.',
+                            $product->getName()
+                        );
+                        $this->messageManager->addSuccessMessage($message);
+                    } else {
+                        $this->messageManager->addComplexSuccessMessage(
+                            'addCartSuccessMessage',
+                            [
+                                'product_name' => $product->getName(),
+                                'cart_url' => $this->getCartUrl(),
+                            ]
+                        );
                     }
                 }
                 return $this->goBack(null, $product);
@@ -163,6 +161,7 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
             }
 
             $url = $this->_checkoutSession->getRedirectUrl(true);
+
             if (!$url) {
                 $url = $this->_redirect->getRedirectUrl($this->getCartUrl());
             }
@@ -176,8 +175,6 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
             $this->_objectManager->get(\Psr\Log\LoggerInterface::class)->critical($e);
             return $this->goBack();
         }
-
-        return $this->getResponse();
     }
 
     /**
@@ -185,7 +182,7 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
      *
      * @param string $backUrl
      * @param \Magento\Catalog\Model\Product $product
-     * @return ResponseInterface|ResultInterface
+     * @return $this|\Magento\Framework\Controller\Result\Redirect
      */
     protected function goBack($backUrl = null, $product = null)
     {
@@ -208,8 +205,6 @@ class Add extends \Magento\Checkout\Controller\Cart implements HttpPostActionInt
         $this->getResponse()->representJson(
             $this->_objectManager->get(\Magento\Framework\Json\Helper\Data::class)->jsonEncode($result)
         );
-
-        return $this->getResponse();
     }
 
     /**

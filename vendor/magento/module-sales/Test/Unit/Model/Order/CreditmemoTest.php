@@ -6,7 +6,6 @@
 
 namespace Magento\Sales\Test\Unit\Model\Order;
 
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\OrderFactory;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use Magento\Sales\Model\ResourceModel\Order\Creditmemo\Item\CollectionFactory;
@@ -21,9 +20,9 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 class CreditmemoTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var OrderRepositoryInterface |\PHPUnit_Framework_MockObject_MockObject
+     * @var OrderFactory |\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $orderRepository;
+    protected $orderFactory;
 
     /**
      * @var \Magento\Sales\Model\Order\Creditmemo
@@ -42,7 +41,7 @@ class CreditmemoTest extends \PHPUnit\Framework\TestCase
 
     protected function setUp()
     {
-        $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
+        $this->orderFactory = $this->createPartialMock(\Magento\Sales\Model\OrderFactory::class, ['create']);
         $this->scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
 
         $objectManagerHelper = new ObjectManagerHelper($this);
@@ -62,6 +61,7 @@ class CreditmemoTest extends \PHPUnit\Framework\TestCase
             'creditmemoConfig' => $this->createMock(
                 \Magento\Sales\Model\Order\Creditmemo\Config::class
             ),
+            'orderFactory' => $this->orderFactory,
             'cmItemCollectionFactory' => $this->cmItemCollectionFactoryMock,
             'calculatorFactory' => $this->createMock(\Magento\Framework\Math\CalculatorFactory::class),
             'storeManager' => $this->createMock(\Magento\Store\Model\StoreManagerInterface::class),
@@ -69,8 +69,7 @@ class CreditmemoTest extends \PHPUnit\Framework\TestCase
             'commentCollectionFactory' => $this->createMock(
                 \Magento\Sales\Model\ResourceModel\Order\Creditmemo\Comment\CollectionFactory::class
             ),
-            'scopeConfig' => $this->scopeConfigMock,
-            'orderRepository' => $this->orderRepository,
+            'scopeConfig' => $this->scopeConfigMock
         ];
         $this->creditmemo = $objectManagerHelper->getObject(
             \Magento\Sales\Model\Order\Creditmemo::class,
@@ -92,10 +91,14 @@ class CreditmemoTest extends \PHPUnit\Framework\TestCase
             ->method('setHistoryEntityName')
             ->with($entityName)
             ->will($this->returnSelf());
-        $this->orderRepository->expects($this->atLeastOnce())
-            ->method('get')
+        $order->expects($this->atLeastOnce())
+            ->method('load')
             ->with($orderId)
-            ->willReturn($order);
+            ->will($this->returnValue($order));
+
+        $this->orderFactory->expects($this->atLeastOnce())
+            ->method('create')
+            ->will($this->returnValue($order));
 
         $this->assertEquals($order, $this->creditmemo->getOrder());
     }

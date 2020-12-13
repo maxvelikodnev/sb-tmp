@@ -3,8 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Cron\Console\Command;
 
 use Magento\Framework\Crontab\CrontabManagerInterface;
@@ -21,9 +19,6 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class CronInstallCommand extends Command
 {
-    private const COMMAND_OPTION_FORCE = 'force';
-    private const COMMAND_OPTION_NON_OPTIONAL = 'non-optional';
-
     /**
      * @var CrontabManagerInterface
      */
@@ -49,27 +44,19 @@ class CronInstallCommand extends Command
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function configure()
     {
         $this->setName('cron:install')
             ->setDescription('Generates and installs crontab for current user')
-            ->addOption(self::COMMAND_OPTION_FORCE, 'f', InputOption::VALUE_NONE, 'Force install tasks')
-            // @codingStandardsIgnoreStart
-            ->addOption(self::COMMAND_OPTION_NON_OPTIONAL, 'd', InputOption::VALUE_NONE, 'Install only the non-optional (default) tasks');
-            // @codingStandardsIgnoreEnd
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force install tasks');
 
         parent::configure();
     }
 
     /**
-     * Executes "cron:install" command.
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int|null
-     * @throws LocalizedException
+     * {@inheritdoc}
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -78,13 +65,8 @@ class CronInstallCommand extends Command
             return Cli::RETURN_FAILURE;
         }
 
-        $tasks = $this->tasksProvider->getTasks();
-        if ($input->getOption(self::COMMAND_OPTION_NON_OPTIONAL)) {
-            $tasks = $this->extractNonOptionalTasks($tasks);
-        }
-
         try {
-            $this->crontabManager->saveTasks($tasks);
+            $this->crontabManager->saveTasks($this->tasksProvider->getTasks());
         } catch (LocalizedException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
             return Cli::RETURN_FAILURE;
@@ -93,24 +75,5 @@ class CronInstallCommand extends Command
         $output->writeln('<info>Crontab has been generated and saved</info>');
 
         return Cli::RETURN_SUCCESS;
-    }
-
-    /**
-     * Returns an array of non-optional tasks
-     *
-     * @param array $tasks
-     * @return array
-     */
-    private function extractNonOptionalTasks(array $tasks = []): array
-    {
-        $defaultTasks = [];
-
-        foreach ($tasks as $taskCode => $taskParams) {
-            if (!$taskParams['optional']) {
-                $defaultTasks[$taskCode] = $taskParams;
-            }
-        }
-
-        return $defaultTasks;
     }
 }

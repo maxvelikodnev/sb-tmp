@@ -3,48 +3,34 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Multishipping\Model\Cart\Controller;
 
-use Magento\Checkout\Controller\Cart;
-use Magento\Checkout\Model\Session;
-use Magento\Customer\Api\AddressRepositoryInterface;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Multishipping\Model\Checkout\Type\Multishipping\State;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\Quote;
-
-/**
- * Cleans shipping addresses and item assignments after MultiShipping flow
- */
 class CartPlugin
 {
     /**
-     * @var CartRepositoryInterface
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     private $cartRepository;
 
     /**
-     * @var Session
+     * @var \Magento\Checkout\Model\Session
      */
     private $checkoutSession;
 
     /**
-     * @var AddressRepositoryInterface
+     * @var \Magento\Customer\Api\AddressRepositoryInterface
      */
     private $addressRepository;
 
     /**
-     * @param CartRepositoryInterface $cartRepository
-     * @param Session $checkoutSession
-     * @param AddressRepositoryInterface $addressRepository
+     * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
      */
     public function __construct(
-        CartRepositoryInterface $cartRepository,
-        Session $checkoutSession,
-        AddressRepositoryInterface $addressRepository
+        \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
     ) {
         $this->cartRepository = $cartRepository;
         $this->checkoutSession = $checkoutSession;
@@ -52,19 +38,20 @@ class CartPlugin
     }
 
     /**
-     * Cleans shipping addresses and item assignments after MultiShipping flow
-     *
-     * @param Cart $subject
-     * @param RequestInterface $request
+     * @param \Magento\Checkout\Controller\Cart $subject
+     * @param \Magento\Framework\App\RequestInterface $request
      * @return void
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     * @throws LocalizedException
      */
-    public function beforeDispatch(Cart $subject, RequestInterface $request)
-    {
-        /** @var Quote $quote */
+    public function beforeDispatch(
+        \Magento\Checkout\Controller\Cart $subject,
+        \Magento\Framework\App\RequestInterface $request
+    ) {
+        /** @var \Magento\Quote\Model\Quote $quote */
         $quote = $this->checkoutSession->getQuote();
-        if ($quote->isMultipleShippingAddresses() && $this->isCheckoutComplete()) {
+
+        // Clear shipping addresses and item assignments after MultiShipping flow
+        if ($quote->isMultipleShippingAddresses()) {
             foreach ($quote->getAllShippingAddresses() as $address) {
                 $quote->removeAddress($address->getId());
             }
@@ -72,20 +59,12 @@ class CartPlugin
             $shippingAddress = $quote->getShippingAddress();
             $defaultShipping = $quote->getCustomer()->getDefaultShipping();
             if ($defaultShipping) {
-                $defaultCustomerAddress = $this->addressRepository->getById($defaultShipping);
+                $defaultCustomerAddress = $this->addressRepository->getById(
+                    $defaultShipping
+                );
                 $shippingAddress->importCustomerAddressData($defaultCustomerAddress);
             }
             $this->cartRepository->save($quote);
         }
-    }
-
-    /**
-     * Checks whether the checkout flow is complete
-     *
-     * @return bool
-     */
-    private function isCheckoutComplete() : bool
-    {
-        return (bool) ($this->checkoutSession->getStepData(State::STEP_SHIPPING)['is_complete'] ?? true);
     }
 }

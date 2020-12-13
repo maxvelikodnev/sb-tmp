@@ -6,7 +6,6 @@
 namespace Magento\CustomerImportExport\Model\Import;
 
 use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface;
-use Magento\Customer\Model\Indexer\Processor;
 
 /**
  * Import entity customer combined model
@@ -150,11 +149,6 @@ class CustomerComposite extends \Magento\ImportExport\Model\Import\AbstractEntit
     protected $masterAttributeCode = 'email';
 
     /**
-     * @var Processor
-     */
-    private $indexerProcessor;
-
-    /**
      * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\ImportExport\Model\ImportFactory $importFactory
@@ -164,7 +158,6 @@ class CustomerComposite extends \Magento\ImportExport\Model\Import\AbstractEntit
      * @param \Magento\CustomerImportExport\Model\ResourceModel\Import\CustomerComposite\DataFactory $dataFactory
      * @param \Magento\CustomerImportExport\Model\Import\CustomerFactory $customerFactory
      * @param \Magento\CustomerImportExport\Model\Import\AddressFactory $addressFactory
-     * @param Processor $indexerProcessor
      * @param array $data
      * @throws \Magento\Framework\Exception\LocalizedException
      *
@@ -180,7 +173,6 @@ class CustomerComposite extends \Magento\ImportExport\Model\Import\AbstractEntit
         \Magento\CustomerImportExport\Model\ResourceModel\Import\CustomerComposite\DataFactory $dataFactory,
         \Magento\CustomerImportExport\Model\Import\CustomerFactory $customerFactory,
         \Magento\CustomerImportExport\Model\Import\AddressFactory $addressFactory,
-        Processor $indexerProcessor,
         array $data = []
     ) {
         parent::__construct($string, $scopeConfig, $importFactory, $resourceHelper, $resource, $errorAggregator, $data);
@@ -238,7 +230,6 @@ class CustomerComposite extends \Magento\ImportExport\Model\Import\AbstractEntit
         } else {
             $this->_nextCustomerId = $resourceHelper->getNextAutoincrement($this->_customerEntity->getEntityTable());
         }
-        $this->indexerProcessor = $indexerProcessor;
     }
 
     /**
@@ -279,15 +270,10 @@ class CustomerComposite extends \Magento\ImportExport\Model\Import\AbstractEntit
     protected function _importData()
     {
         $result = $this->_customerEntity->importData();
-        $this->countItemsCreated += $this->_customerEntity->getCreatedItemsCount();
-        $this->countItemsUpdated += $this->_customerEntity->getUpdatedItemsCount();
-        $this->countItemsDeleted += $this->_customerEntity->getDeletedItemsCount();
         if ($this->getBehavior() != \Magento\ImportExport\Model\Import::BEHAVIOR_DELETE) {
-            $result = $result && $this->_addressEntity->setCustomerAttributes($this->_customerAttributes)->importData();
+            return $result && $this->_addressEntity->setCustomerAttributes($this->_customerAttributes)->importData();
         }
-        if ($result) {
-            $this->indexerProcessor->markIndexerAsInvalid();
-        }
+
         return $result;
     }
 

@@ -368,7 +368,7 @@ class Structure implements \Magento\Config\Model\Config\Structure\SearchInterfac
      * ```
      *
      * @return array An array of config path to config structure path map
-     * @since 100.1.12
+     * @since 101.0.0
      */
     public function getFieldPaths()
     {

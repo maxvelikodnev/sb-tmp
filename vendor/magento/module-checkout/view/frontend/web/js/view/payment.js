@@ -54,7 +54,7 @@ define([
                 $t('Review & Payments'),
                 this.isVisible,
                 _.bind(this.navigate, this),
-                this.sortOrder
+                20
             );
 
             return this;

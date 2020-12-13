@@ -45,7 +45,6 @@ abstract class AbstractModifierTest extends \PHPUnit\Framework\TestCase
         $this->locatorMock = $this->getMockBuilder(LocatorInterface::class)
             ->getMockForAbstractClass();
         $this->productMock = $this->getMockBuilder(ProductInterface::class)
-            ->setMethods(['getPriceType'])
             ->getMockForAbstractClass();
 
         $this->locatorMock->expects($this->any())

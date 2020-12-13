@@ -217,7 +217,7 @@ class ListProductTest extends \PHPUnit\Framework\TestCase
             ->will($this->returnValue(true));
         $this->cartHelperMock->expects($this->any())
             ->method('getAddUrl')
-            ->with($this->equalTo($this->productMock), $this->equalTo(['_escape' => false]))
+            ->with($this->equalTo($this->productMock), $this->equalTo([]))
             ->will($this->returnValue($url));
         $this->productMock->expects($this->once())
             ->method('getEntityId')

@@ -3,8 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Catalog\Model\Product\Type;
 
 use Magento\Catalog\Model\Product;
@@ -204,7 +202,7 @@ class Price
     }
 
     /**
-     * Gets the 'tier_price' array from the product
+     * Gets the 'tear_price' array from the product
      *
      * @param Product $product
      * @param string $key
@@ -262,7 +260,7 @@ class Price
 
         $tierPrice = $product->getTierPrice($qty);
         if (is_numeric($tierPrice)) {
-            $finalPrice = min($finalPrice, (float) $tierPrice);
+            $finalPrice = min($finalPrice, $tierPrice);
         }
         return $finalPrice;
     }
@@ -505,10 +503,10 @@ class Price
     /**
      * Get formatted by currency tier price
      *
-     * @param float $qty
-     * @param Product $product
+     * @param   float $qty
+     * @param   Product $product
      *
-     * @return array|float
+     * @return  array|float
      *
      * @deprecated 102.0.6
      * @see getFormattedTierPrice()
@@ -533,8 +531,8 @@ class Price
     /**
      * Get formatted by currency product price
      *
-     * @param Product $product
-     * @return array || float
+     * @param   Product $product
+     * @return  array || float
      *
      * @deprecated 102.0.6
      * @see getFormattedPrice()
@@ -647,7 +645,7 @@ class Price
     ) {
         if ($specialPrice !== null && $specialPrice != false) {
             if ($this->_localeDate->isScopeDateInInterval($store, $specialPriceFrom, $specialPriceTo)) {
-                $finalPrice = min($finalPrice, (float) $specialPrice);
+                $finalPrice = min($finalPrice, $specialPrice);
             }
         }
         return $finalPrice;

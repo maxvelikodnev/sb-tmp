@@ -4,14 +4,16 @@
  * See COPYING.txt for license details.
  */
 
-namespace Magento\Eav\Block\Adminhtml\Attribute\Edit\Options;
-
-use Magento\Store\Model\ResourceModel\Store\Collection;
-use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
-
 /**
  * Attribute add/edit form options tab
  *
+ * @author     Magento Core Team <core@magentocommerce.com>
+ */
+namespace Magento\Eav\Block\Adminhtml\Attribute\Edit\Options;
+
+use Magento\Store\Model\ResourceModel\Store\Collection;
+
+/**
  * @api
  * @since 100.0.2
  */
@@ -59,7 +61,6 @@ class Options extends \Magento\Backend\Block\Template
 
     /**
      * Is true only for system attributes which use source model
-     *
      * Option labels and position for such attributes are kept in source model and thus cannot be overridden
      *
      * @return bool
@@ -95,16 +96,12 @@ class Options extends \Magento\Backend\Block\Template
     {
         $stores = $this->getStores();
         if (is_array($stores)) {
-            usort(
-                $stores,
-                function ($storeA, $storeB) {
-                    if ($storeA->getSortOrder() == $storeB->getSortOrder()) {
-                        return $storeA->getId() < $storeB->getId() ? -1 : 1;
-                    }
-
-                    return ($storeA->getSortOrder() < $storeB->getSortOrder()) ? -1 : 1;
+            usort($stores, function ($storeA, $storeB) {
+                if ($storeA->getSortOrder() == $storeB->getSortOrder()) {
+                    return $storeA->getId() < $storeB->getId() ? -1 : 1;
                 }
-            );
+                return ($storeA->getSortOrder() < $storeB->getSortOrder()) ? -1 : 1;
+            });
         }
         return $stores;
     }
@@ -133,14 +130,12 @@ class Options extends \Magento\Backend\Block\Template
     }
 
     /**
-     * Preparing values of attribute options
-     *
-     * @param AbstractAttribute $attribute
+     * @param \Magento\Eav\Model\Entity\Attribute\AbstractAttribute $attribute
      * @param array|\Magento\Eav\Model\ResourceModel\Entity\Attribute\Option\Collection $optionCollection
      * @return array
      */
     protected function _prepareOptionValues(
-        AbstractAttribute $attribute,
+        \Magento\Eav\Model\Entity\Attribute\AbstractAttribute $attribute,
         $optionCollection
     ) {
         $type = $attribute->getFrontendInput();
@@ -154,41 +149,6 @@ class Options extends \Magento\Backend\Block\Template
 
         $values = [];
         $isSystemAttribute = is_array($optionCollection);
-        if ($isSystemAttribute) {
-            $values = $this->getPreparedValues($optionCollection, $isSystemAttribute, $inputType, $defaultValues);
-        } else {
-            $optionCollection->setPageSize(200);
-            $pageCount = $optionCollection->getLastPageNumber();
-            $currentPage = 1;
-            while ($currentPage <= $pageCount) {
-                $optionCollection->clear();
-                $optionCollection->setCurPage($currentPage);
-                $values = array_merge(
-                    $values,
-                    $this->getPreparedValues($optionCollection, $isSystemAttribute, $inputType, $defaultValues)
-                );
-                $currentPage++;
-            }
-        }
-
-        return $values;
-    }
-
-    /**
-     * Return prepared values of system or user defined attribute options
-     *
-     * @param array|\Magento\Eav\Model\ResourceModel\Entity\Attribute\Option\Collection $optionCollection
-     * @param bool $isSystemAttribute
-     * @param string $inputType
-     * @param array $defaultValues
-     */
-    private function getPreparedValues(
-        $optionCollection,
-        bool $isSystemAttribute,
-        string $inputType,
-        array $defaultValues
-    ) {
-        $values = [];
         foreach ($optionCollection as $option) {
             $bunch = $isSystemAttribute ? $this->_prepareSystemAttributeOptionValues(
                 $option,
@@ -209,13 +169,12 @@ class Options extends \Magento\Backend\Block\Template
 
     /**
      * Retrieve option values collection
-     *
      * It is represented by an array in case of system attribute
      *
-     * @param AbstractAttribute $attribute
+     * @param \Magento\Eav\Model\Entity\Attribute\AbstractAttribute $attribute
      * @return array|\Magento\Eav\Model\ResourceModel\Entity\Attribute\Option\Collection
      */
-    protected function _getOptionValuesCollection(AbstractAttribute $attribute)
+    protected function _getOptionValuesCollection(\Magento\Eav\Model\Entity\Attribute\AbstractAttribute $attribute)
     {
         if ($this->canManageOptionDefaultOnly()) {
             $options = $this->_universalFactory->create(
@@ -267,7 +226,7 @@ class Options extends \Magento\Backend\Block\Template
         foreach ($this->getStores() as $store) {
             $storeId = $store->getId();
             $value['store' . $storeId] = $storeId ==
-            \Magento\Store\Model\Store::DEFAULT_STORE_ID ? $valuePrefix . $this->escapeHtml($option['label']) : '';
+                \Magento\Store\Model\Store::DEFAULT_STORE_ID ? $valuePrefix . $this->escapeHtml($option['label']) : '';
         }
 
         return [$value];

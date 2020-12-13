@@ -26,7 +26,7 @@ class Edit extends Action implements HttpGetActionInterface
     /**
      * @see _isAllowed()
      */
-    const ADMIN_RESOURCE = 'Magento_InventoryApi::stock_edit';
+    const ADMIN_RESOURCE = 'Magento_InventoryApi::stock';
 
     /**
      * @var StockRepositoryInterface

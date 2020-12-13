@@ -8,178 +8,127 @@ declare(strict_types=1);
 
 namespace Magento\GroupedCatalogInventory\Test\Unit\Plugin;
 
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Catalog\Model\Product;
+use Magento\CatalogInventory\Api\Data\StockStatusCollectionInterface;
 use Magento\CatalogInventory\Api\Data\StockStatusInterface;
+use Magento\CatalogInventory\Api\StockStatusCriteriaInterface;
+use Magento\CatalogInventory\Api\StockStatusCriteriaInterfaceFactory;
+use Magento\CatalogInventory\Api\StockStatusRepositoryInterface;
 use Magento\Framework\DataObject;
 use Magento\GroupedCatalogInventory\Plugin\OutOfStockFilter;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Magento\CatalogInventory\Api\StockRegistryInterface;
 
-/**
- * Test for OutOfStockFilter plugin.
- */
 class OutOfStockFilterTest extends TestCase
 {
     /**
-     * @var OutOfStockFilter
-     */
-    private $unit;
-    /**
-     * @var Grouped|MockObject
+     * @var MockObject
      */
     private $subjectMock;
 
     /**
-     * @var StockRegistryInterface|MockObject
+     * @var MockObject
      */
-    private $stockRegistryMock;
+    private $stockStatusRepositoryMock;
 
     /**
-     * @var DataObject|MockObject
+     * @var MockObject
      */
-    private $buyRequestMock;
+    private $searchCriteriaMock;
 
     /**
-     * @inheritdoc
+     * @var MockObject
      */
-    protected function setUp()
+    private $searchCriteriaFactoryMock;
+
+    /**
+     * @var MockObject
+     */
+    private $stockStatusCollectionMock;
+
+    /**
+     * @param $nonArrayResult
+     * @dataProvider nonArrayResults
+     */
+    public function testFilterOnlyProcessesArray($nonArrayResult)
     {
-        $objectManager = new ObjectManager($this);
+        $this->searchCriteriaMock->expects($this->never())->method('setProductsFilter');
+        $this->stockStatusRepositoryMock->expects($this->never())->method('getList');
 
-        $this->subjectMock = $this->getMockBuilder(Grouped::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $plugin = $this->getPluginInstance();
 
-        $this->buyRequestMock = $this->getMockBuilder(DataObject::class)
-            ->getMock();
-
-        $this->stockRegistryMock = $this->getMockBuilder(StockRegistryInterface::class)
-            ->getMock();
-
-        $this->unit = $objectManager->getObject(
-            OutOfStockFilter::class,
-            [
-                'stockRegistry' => $this->stockRegistryMock,
-            ]
-        );
-    }
-
-    /**
-     * Tests that the unit will process only parameters of array type.
-     *
-     * @param mixed $nonArrayResult
-     * @return void
-     * @dataProvider nonArrayResultsProvider
-     */
-    public function testFilterOnlyProcessesArray($nonArrayResult): void
-    {
-        $this->stockRegistryMock->expects($this->never())
-            ->method('getProductStockStatus');
-
-        $result = $this->unit->afterPrepareForCartAdvanced(
+        $result = $plugin->afterPrepareForCartAdvanced(
             $this->subjectMock,
             $nonArrayResult,
-            $this->buyRequestMock
+            new DataObject()
         );
 
         $this->assertSame($nonArrayResult, $result);
     }
 
-    /**
-     * Tests that the unit will not process if special parameter "super_group" will present in "buyRequest" parameter.
-     *
-     * @return void
-     */
-    public function testFilterIgnoresResultIfSuperGroupIsPresent(): void
+    public function testFilterIgnoresResultIfSuperGroupIsPresent()
     {
-        $this->stockRegistryMock->method('getProductStockStatus')
-            ->willReturn(StockStatusInterface::STATUS_OUT_OF_STOCK);
-        $this->buyRequestMock->method('getData')
-            ->with('super_group')
-            ->willReturn([123 => '1']);
+        $this->searchCriteriaMock->expects($this->never())->method('setProductsFilter');
+        $this->stockStatusRepositoryMock->expects($this->never())->method('getList');
+
+        $plugin = $this->getPluginInstance();
 
         $product = $this->createProductMock();
 
-        $result = $this->unit->afterPrepareForCartAdvanced(
+        $result = $plugin->afterPrepareForCartAdvanced(
             $this->subjectMock,
             [$product],
-            $this->buyRequestMock
+            new DataObject(['super_group' => [123 => '1']])
         );
 
-        $this->assertSame([$product], $result, 'All products should stay in array if super_group is setted.');
+        $this->assertSame([$product], $result);
     }
 
     /**
-     * Tests that out of stock products will be removed from resulting array.
-     *
-     * @param array $originalResult
-     * @param array $productStockStatusMap
-     * @param array $expectedResult
-     * @dataProvider outOfStockProductDataProvider
+     * @param $originalResult
+     * @param $stockStatusCollection
+     * @param $expectedResult
+     * @dataProvider outOfStockProductData
      */
-    public function testFilterRemovesOutOfStockProducts(
+    public function testFilterRemovesOutOfStockProductsWhenSuperGroupIsNotPresent(
         $originalResult,
-        array $productStockStatusMap,
-        array $expectedResult
-    ): void {
-        $this->stockRegistryMock->method('getProductStockStatus')
-            ->will($this->returnValueMap($productStockStatusMap));
+        $stockStatusCollection,
+        $expectedResult
+    ) {
+        $this->stockStatusRepositoryMock
+            ->expects($this->once())
+            ->method('getList')
+            ->with($this->searchCriteriaMock)
+            ->willReturn($stockStatusCollection);
 
-        $result = $this->unit->afterPrepareForCartAdvanced(
+        $plugin = $this->getPluginInstance();
+
+        $result = $plugin->afterPrepareForCartAdvanced(
             $this->subjectMock,
             $originalResult,
-            $this->buyRequestMock
+            new DataObject()
         );
 
         $this->assertSame($expectedResult, $result);
     }
 
-    /**
-     * Out of stock
-     *
-     * @return array
-     */
-    public function outOfStockProductDataProvider(): array
+    public function outOfStockProductData()
     {
         $product1 = $this->createProductMock();
-        $product1->method('getId')
-            ->willReturn(123);
+        $product1->method('getId')->willReturn(123);
 
         $product2 = $this->createProductMock();
-        $product2->method('getId')
-            ->willReturn(321);
+        $product2->method('getId')->willReturn(321);
 
         return [
-            [
-                'originalResult' => [$product1, $product2],
-                'productStockStatusMap' => [
-                    [123, null, StockStatusInterface::STATUS_OUT_OF_STOCK],
-                    [321, null, StockStatusInterface::STATUS_IN_STOCK],
-                ],
-                'expectedResult' => [1 => $product2],
-            ],
-            [
-                'originalResult' => [$product1],
-                'productStockStatusMap' => [[123, null, StockStatusInterface::STATUS_IN_STOCK]],
-                'expectedResult' => [0 => $product1],
-            ],
-            [
-                'originalResult' => $product1,
-                'productStockStatusMap' => [[123, null, StockStatusInterface::STATUS_IN_STOCK]],
-                'expectedResult' => [0 => $product1],
-            ],
+            [[$product1, $product2], $this->createStatusResult([123 => false, 321 => true]), [1 => $product2]],
+            [[$product1], $this->createStatusResult([123 => true]), [0 => $product1]],
+            [$product1, $this->createStatusResult([123 => true]), [0 => $product1]]
         ];
     }
 
-    /**
-     * Provider of non array type "result" parameters.
-     *
-     * @return array
-     */
-    public function nonArrayResultsProvider(): array
+    public function nonArrayResults()
     {
         return [
             [123],
@@ -188,15 +137,85 @@ class OutOfStockFilterTest extends TestCase
         ];
     }
 
-    /**
-     * Creates new Product mock.
-     *
-     * @return MockObject|Product
-     */
-    private function createProductMock(): MockObject
+    protected function setUp()
+    {
+        $this->subjectMock = $this->getMockBuilder(Grouped::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->stockStatusRepositoryMock = $this->getMockBuilder(StockStatusRepositoryInterface::class)
+            ->getMock();
+
+        $this->searchCriteriaFactoryMock = $this->getMockBuilder(StockStatusCriteriaInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->searchCriteriaMock = $this->getMockBuilder(StockStatusCriteriaInterface::class)
+            ->getMock();
+
+        $this->stockStatusCollectionMock = $this->getMockBuilder(StockStatusCollectionInterface::class)
+            ->getMock();
+
+        $this->searchCriteriaFactoryMock
+            ->expects($this->any())
+            ->method('create')
+            ->willReturn($this->searchCriteriaMock);
+    }
+
+    private function createProductMock()
     {
         return $this->getMockBuilder(Product::class)
             ->disableOriginalConstructor()
             ->getMock();
+    }
+
+    /**
+     * @return OutOfStockFilter
+     */
+    private function getPluginInstance()
+    {
+        $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
+
+        /** @var OutOfStockFilter $filter */
+        $filter = $objectManager->getObject(OutOfStockFilter::class, [
+            'stockStatusRepository' => $this->stockStatusRepositoryMock,
+            'criteriaInterfaceFactory' => $this->searchCriteriaFactoryMock
+        ]);
+
+        return $filter;
+    }
+
+    private function createStatusResult(array $productStatuses)
+    {
+        $result = [];
+
+        foreach ($productStatuses as $productId => $status) {
+            $mock = $this->getMockBuilder(StockStatusInterface::class)
+                ->getMock();
+
+            $mock->expects($this->any())
+                ->method('getProductId')
+                ->willReturn($productId);
+
+            $mock->expects($this->any())
+                ->method('getStockStatus')
+                ->willReturn(
+                    $status
+                    ? StockStatusInterface::STATUS_IN_STOCK
+                    : StockStatusInterface::STATUS_OUT_OF_STOCK
+                );
+
+            $result[] = $mock;
+        }
+
+        $stockStatusCollection = $this->getMockBuilder(StockStatusCollectionInterface::class)
+            ->getMock();
+
+        $stockStatusCollection
+            ->expects($this->once())
+            ->method('getItems')
+            ->willReturn($result);
+
+        return $stockStatusCollection;
     }
 }

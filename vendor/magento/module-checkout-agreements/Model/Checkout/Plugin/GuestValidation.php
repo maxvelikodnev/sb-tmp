@@ -11,7 +11,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\CheckoutAgreements\Model\Api\SearchCriteria\ActiveStoreAgreementsFilter;
 
 /**
- * Guest checkout agreements validation.
+ * Class GuestValidation
  *
  * Plugin that checks if checkout agreement enabled and validates all agreements.
  * Current plugin is duplicate from Magento\CheckoutAgreements\Model\Checkout\Plugin\Validation due to different
@@ -58,8 +58,6 @@ class GuestValidation
     }
 
     /**
-     * Validates agreements before save payment information and  order placing.
-     *
      * @param \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject
      * @param string $cartId
      * @param string $email
@@ -82,8 +80,28 @@ class GuestValidation
     }
 
     /**
-     * Validates agreements.
-     *
+     * @param \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject
+     * @param string $cartId
+     * @param string $email
+     * @param \Magento\Quote\Api\Data\PaymentInterface $paymentMethod
+     * @param \Magento\Quote\Api\Data\AddressInterface|null $billingAddress
+     * @throws \Magento\Framework\Exception\CouldNotSaveException
+     * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function beforeSavePaymentInformation(
+        \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject,
+        $cartId,
+        $email,
+        \Magento\Quote\Api\Data\PaymentInterface $paymentMethod,
+        \Magento\Quote\Api\Data\AddressInterface $billingAddress = null
+    ) {
+        if ($this->isAgreementEnabled()) {
+            $this->validateAgreements($paymentMethod);
+        }
+    }
+
+    /**
      * @param \Magento\Quote\Api\Data\PaymentInterface $paymentMethod
      * @throws \Magento\Framework\Exception\CouldNotSaveException
      * @return void
@@ -105,8 +123,7 @@ class GuestValidation
     }
 
     /**
-     * Verify if agreement validation needed.
-     *
+     * Verify if agreement validation needed
      * @return bool
      */
     private function isAgreementEnabled()

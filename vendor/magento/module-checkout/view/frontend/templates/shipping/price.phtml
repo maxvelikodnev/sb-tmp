@@ -4,8 +4,10 @@
  * See COPYING.txt for license details.
  */
 
+// @codingStandardsIgnoreFile
+
 ?>
 <?php /** @var $block \Magento\Checkout\Block\Shipping\Price */ ?>
 
 <?php $shippingPrice = $block->getShippingPrice(); ?>
-<?= $block->escapeHtml($shippingPrice) ?>
+<?= /* @escapeNotVerified */ $shippingPrice ?>

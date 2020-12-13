@@ -85,10 +85,9 @@ class AddStockDataToCollectionTest extends TestCase
             ['store_for_eu_website', 3, true],
             ['store_for_us_website', 1, true],
             ['store_for_global_website', 4, true],
-            // all products including out of stock and those not assigned website stock
-            ['store_for_eu_website', 6, false],
-            ['store_for_us_website', 6, false],
-            ['store_for_global_website', 6, false],
+            ['store_for_eu_website', 4, false],
+            ['store_for_us_website', 1, false],
+            ['store_for_global_website', 5, false],
         ];
     }
 

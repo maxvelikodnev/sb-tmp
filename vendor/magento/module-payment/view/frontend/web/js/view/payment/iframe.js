@@ -114,42 +114,24 @@ define([
          * @override
          */
         placeOrder: function () {
-            var self = this;
+            if (this.validateHandler() && additionalValidators.validate()) {
 
-            if (this.validateHandler() &&
-                additionalValidators.validate() &&
-                this.isPlaceOrderActionAllowed() === true
-            ) {
                 fullScreenLoader.startLoader();
 
                 this.isPlaceOrderActionAllowed(false);
 
                 $.when(
-                    this.setPaymentInformation()
-                ).done(
-                    this.done.bind(this)
-                ).fail(
-                    this.fail.bind(this)
-                ).always(
-                    function () {
-                        self.isPlaceOrderActionAllowed(true);
-                    }
-                );
+                    setPaymentInformationAction(
+                        this.messageContainer,
+                        {
+                            method: this.getCode()
+                        }
+                    )
+                ).done(this.done.bind(this))
+                    .fail(this.fail.bind(this));
 
                 this.initTimeoutHandler();
             }
-        },
-
-        /**
-         * {Function}
-         */
-        setPaymentInformation: function () {
-            return setPaymentInformationAction(
-                this.messageContainer,
-                {
-                    method: this.getCode()
-                }
-            );
         },
 
         /**
@@ -210,6 +192,7 @@ define([
          */
         fail: function () {
             fullScreenLoader.stopLoader();
+            this.isPlaceOrderActionAllowed(true);
 
             return this;
         },

@@ -32,12 +32,12 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute\AbstractAttribute im
     const ATTRIBUTE_CODE_MAX_LENGTH = 60;
 
     /**
-     * Min accepted length of an attribute code.
+     * Attribute code min length.
      */
     const ATTRIBUTE_CODE_MIN_LENGTH = 1;
 
     /**
-     * Tag to use for attributes caching.
+     * Cache tag
      */
     const CACHE_TAG = 'EAV_ATTRIBUTE';
 
@@ -260,8 +260,6 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute\AbstractAttribute im
             );
         }
 
-        $this->validateEntityType();
-
         $defaultValue = $this->getDefaultValue();
         $hasDefaultValue = (string)$defaultValue != '';
 
@@ -313,7 +311,7 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute\AbstractAttribute im
     }
 
     /**
-     * @inheritdoc
+     * Save additional data
      *
      * @return $this
      * @throws LocalizedException
@@ -513,22 +511,5 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute\AbstractAttribute im
         $this->_localeResolver = $objectManager->get(\Magento\Framework\Locale\ResolverInterface::class);
         $this->reservedAttributeList = $objectManager->get(\Magento\Catalog\Model\Product\ReservedAttributeList::class);
         $this->dateTimeFormatter = $objectManager->get(DateTimeFormatterInterface::class);
-    }
-
-    /**
-     * Entity type for existing attribute shouldn't be changed.
-     *
-     * @return void
-     * @throws LocalizedException
-     */
-    private function validateEntityType(): void
-    {
-        if ($this->getId() !== null) {
-            $origEntityTypeId = $this->getOrigData('entity_type_id');
-
-            if (($origEntityTypeId !== null) && ((int)$this->getEntityTypeId() !== (int)$origEntityTypeId)) {
-                throw new LocalizedException(__('Do not change entity type.'));
-            }
-        }
     }
 }

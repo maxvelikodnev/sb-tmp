@@ -10,11 +10,10 @@ define([
     'Magento_Ui/js/modal/alert',
     'Magento_Ui/js/modal/confirm',
     'underscore',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'mage/decorate',
     'mage/collapsible',
-    'mage/cookies',
-    'jquery-ui-modules/effect-fade'
+    'mage/cookies'
 ], function ($, authenticationPopup, customerData, alert, confirm, _) {
     'use strict';
 
@@ -260,17 +259,8 @@ define([
 
             if (!_.isUndefined(productData)) {
                 $(document).trigger('ajax:removeFromCart', {
-                    productIds: [productData['product_id']],
-                    productInfo: [
-                        {
-                            'id': productData['product_id']
-                        }
-                    ]
+                    productIds: [productData['product_id']]
                 });
-
-                if (window.location.href.indexOf(this.shoppingCartUrl) === 0) {
-                    window.location.reload();
-                }
             }
         },
 
@@ -353,7 +343,7 @@ define([
                 if ($(this).find('.options').length > 0) {
                     $(this).collapsible();
                 }
-                outerHeight = $(this).outerHeight(true);
+                outerHeight = $(this).outerHeight();
 
                 if (counter-- > 0) {
                     height += outerHeight;

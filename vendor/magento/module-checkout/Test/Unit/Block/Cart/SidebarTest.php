@@ -145,8 +145,7 @@ class SidebarTest extends \PHPUnit\Framework\TestCase
             'minicartMaxItemsVisible' => 3,
             'websiteId' => 100,
             'maxItemsToDisplay' => 8,
-            'storeId' => null,
-            'storeGroupId' => null
+            'storeId' => null
         ];
 
         $valueMap = [

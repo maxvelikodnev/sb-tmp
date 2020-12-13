@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Eav\Model;
 
@@ -53,7 +52,7 @@ class AttributeProvider implements AttributeProviderInterface
      * Returns array of fields
      *
      * @param string $entityType
-     * @return string[]
+     * @return array
      * @throws \Exception
      */
     public function getAttributes($entityType)
@@ -67,7 +66,6 @@ class AttributeProvider implements AttributeProviderInterface
         foreach ($searchResult->getItems() as $attribute) {
             $attributes[] = $attribute->getAttributeCode();
         }
-
         return $attributes;
     }
 }

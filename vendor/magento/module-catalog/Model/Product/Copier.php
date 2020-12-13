@@ -6,9 +6,7 @@
 namespace Magento\Catalog\Model\Product;
 
 use Magento\Catalog\Api\Data\ProductInterface;
-use Magento\Catalog\Model\Attribute\ScopeOverriddenValue;
 use Magento\Catalog\Model\Product;
-use Magento\Catalog\Model\ProductFactory;
 
 /**
  * Catalog product copier.
@@ -30,7 +28,7 @@ class Copier
     protected $copyConstructor;
 
     /**
-     * @var ProductFactory
+     * @var \Magento\Catalog\Model\ProductFactory
      */
     protected $productFactory;
 
@@ -38,24 +36,17 @@ class Copier
      * @var \Magento\Framework\EntityManager\MetadataPool
      */
     protected $metadataPool;
-    /**
-     * @var ScopeOverriddenValue
-     */
-    private $scopeOverriddenValue;
 
     /**
      * @param CopyConstructorInterface $copyConstructor
-     * @param ProductFactory $productFactory
-     * @param ScopeOverriddenValue $scopeOverriddenValue
+     * @param \Magento\Catalog\Model\ProductFactory $productFactory
      */
     public function __construct(
         CopyConstructorInterface $copyConstructor,
-        ProductFactory $productFactory,
-        ScopeOverriddenValue $scopeOverriddenValue
+        \Magento\Catalog\Model\ProductFactory $productFactory
     ) {
         $this->productFactory = $productFactory;
         $this->copyConstructor = $copyConstructor;
-        $this->scopeOverriddenValue = $scopeOverriddenValue;
     }
 
     /**
@@ -130,20 +121,19 @@ class Copier
         $storeIds = $duplicate->getStoreIds();
         $productId = $product->getId();
         $productResource = $product->getResource();
+        $defaultUrlKey = $productResource->getAttributeRawValue(
+            $productId,
+            'url_key',
+            \Magento\Store\Model\Store::DEFAULT_STORE_ID
+        );
         $duplicate->setData('save_rewrites_history', false);
         foreach ($storeIds as $storeId) {
-            $useDefault = !$this->scopeOverriddenValue->containsValue(
-                ProductInterface::class,
-                $product,
-                'url_key',
-                $storeId
-            );
-            if ($useDefault) {
-                continue;
-            }
             $isDuplicateSaved = false;
             $duplicate->setStoreId($storeId);
             $urlKey = $productResource->getAttributeRawValue($productId, 'url_key', $storeId);
+            if ($urlKey === $defaultUrlKey) {
+                continue;
+            }
             do {
                 $urlKey = $this->modifyUrl($urlKey);
                 $duplicate->setUrlKey($urlKey);

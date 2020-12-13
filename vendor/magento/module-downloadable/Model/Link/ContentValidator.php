@@ -6,29 +6,12 @@
 namespace Magento\Downloadable\Model\Link;
 
 use Magento\Downloadable\Api\Data\LinkInterface;
-use Magento\Downloadable\Helper\File;
 use Magento\Downloadable\Model\File\ContentValidator as FileContentValidator;
 use Magento\Framework\Exception\InputException;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Url\Validator as UrlValidator;
-use Magento\Downloadable\Model\Url\DomainValidator;
 
-/**
- * Class to validate Link Content.
- */
 class ContentValidator
 {
-    /**
-     * @var DomainValidator
-     */
-    private $domainValidator;
-
-    /**
-     * @var File
-     */
-    private $fileHelper;
-
     /**
      * @var FileContentValidator
      */
@@ -42,23 +25,17 @@ class ContentValidator
     /**
      * @param FileContentValidator $fileContentValidator
      * @param UrlValidator $urlValidator
-     * @param DomainValidator $domainValidator
-     * @param File|null $fileHelper
      */
     public function __construct(
         FileContentValidator $fileContentValidator,
-        UrlValidator $urlValidator,
-        DomainValidator $domainValidator,
-        File $fileHelper = null
+        UrlValidator $urlValidator
     ) {
         $this->fileContentValidator = $fileContentValidator;
         $this->urlValidator = $urlValidator;
-        $this->domainValidator = $domainValidator;
-        $this->fileHelper = $fileHelper ?? ObjectManager::getInstance()->get(File::class);
     }
 
     /**
-     * Check if link content is valid.
+     * Check if link content is valid
      *
      * @param LinkInterface $link
      * @param bool $validateLinkContent
@@ -86,74 +63,50 @@ class ContentValidator
         if ($validateSampleContent) {
             $this->validateSampleResource($link);
         }
-
         return true;
     }
 
     /**
-     * Validate link resource (file or URL).
+     * Validate link resource (file or URL)
      *
      * @param LinkInterface $link
-     * @return void
      * @throws InputException
+     * @return void
      */
     protected function validateLinkResource(LinkInterface $link)
     {
-        if ($link->getLinkType() === 'url') {
-            if (!$this->urlValidator->isValid($link->getLinkUrl())) {
-                throw new InputException(__('Link URL must have valid format.'));
-            }
-
-            if (!$this->domainValidator->isValid($link->getLinkUrl())) {
-                throw new InputException(__('Link URL\'s domain is not in list of downloadable_domains in env.php.'));
-            }
-        } elseif ($link->getLinkFileContent()) {
-            if (!$this->fileContentValidator->isValid($link->getLinkFileContent())) {
-                throw new InputException(__('Provided file content must be valid base64 encoded data.'));
-            }
-        } elseif (!$this->isFileValid($link->getBasePath() . $link->getLinkFile())) {
-            throw new InputException(__('Link file not found. Please try again.'));
+        if ($link->getLinkType() == 'url'
+            && !$this->urlValidator->isValid($link->getLinkUrl())
+        ) {
+            throw new InputException(__('Link URL must have valid format.'));
+        }
+        if ($link->getLinkType() == 'file'
+            && (!$link->getLinkFileContent()
+                || !$this->fileContentValidator->isValid($link->getLinkFileContent()))
+        ) {
+            throw new InputException(__('Provided file content must be valid base64 encoded data.'));
         }
     }
 
     /**
-     * Validate sample resource (file or URL).
+     * Validate sample resource (file or URL)
      *
      * @param LinkInterface $link
-     * @return void
      * @throws InputException
+     * @return void
      */
     protected function validateSampleResource(LinkInterface $link)
     {
-        if ($link->getSampleType() === 'url') {
-            if (!$this->urlValidator->isValid($link->getSampleUrl())) {
-                throw new InputException(__('Sample URL must have valid format.'));
-            }
-
-            if (!$this->domainValidator->isValid($link->getSampleUrl())) {
-                throw new InputException(__('Sample URL\'s domain is not in list of downloadable_domains in env.php.'));
-            }
-        } elseif ($link->getSampleFileContent()) {
-            if (!$this->fileContentValidator->isValid($link->getSampleFileContent())) {
-                throw new InputException(__('Provided file content must be valid base64 encoded data.'));
-            }
-        } elseif (!$this->isFileValid($link->getBaseSamplePath() . $link->getSampleFile())) {
-            throw new InputException(__('Link sample file not found. Please try again.'));
+        if ($link->getSampleType() == 'url'
+            && !$this->urlValidator->isValid($link->getSampleUrl())
+        ) {
+            throw new InputException(__('Sample URL must have valid format.'));
         }
-    }
-
-    /**
-     * Check that Links File or Sample is valid.
-     *
-     * @param string $file
-     * @return bool
-     */
-    private function isFileValid(string $file): bool
-    {
-        try {
-            return $this->fileHelper->ensureFileInFilesystem($file);
-        } catch (ValidatorException $e) {
-            return false;
+        if ($link->getSampleType() == 'file'
+            && (!$link->getSampleFileContent()
+                || !$this->fileContentValidator->isValid($link->getSampleFileContent()))
+        ) {
+            throw new InputException(__('Provided file content must be valid base64 encoded data.'));
         }
     }
 }

@@ -71,14 +71,17 @@ class Compare
         if ($target->getProductId() != $compared->getProductId()) {
             return false;
         }
+        $targetOptions = $this->getOptions($target);
+        $comparedOptions = $this->getOptions($compared);
 
-        $targetOptionByCode = $target->getOptionsByCode();
-        $comparedOptionsByCode = $compared->getOptionsByCode();
-        if (!$target->compareOptions($targetOptionByCode, $comparedOptionsByCode)) {
+        if (array_diff_key($targetOptions, $comparedOptions) != array_diff_key($comparedOptions, $targetOptions)
+        ) {
             return false;
         }
-        if (!$target->compareOptions($comparedOptionsByCode, $targetOptionByCode)) {
-            return false;
+        foreach ($targetOptions as $name => $value) {
+            if ($comparedOptions[$name] != $value) {
+                return false;
+            }
         }
         return true;
     }

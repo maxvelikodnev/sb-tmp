@@ -16,9 +16,6 @@ use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
 
 /**
  * Gets Ui component configuration for Braintree PayPal Vault
- *
- * @deprecated Starting from Magento 2.3.6 Braintree payment method core integration is deprecated
- * in favor of official payment integration available on the marketplace
  */
 class TokenUiComponentProvider implements TokenUiComponentProviderInterface
 {

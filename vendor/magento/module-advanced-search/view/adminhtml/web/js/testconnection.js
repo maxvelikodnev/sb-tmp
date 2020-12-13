@@ -40,8 +40,7 @@ define([
                 element =  $('#' + this.options.elementId),
                 self = this,
                 params = {},
-                msg = '',
-                fieldToCheck = this.options.fieldToCheck || 'success';
+                msg = '';
 
             element.removeClass('success').addClass('fail');
             $.each($.parseJSON(this.options.fieldMapping), function (key, el) {
@@ -50,10 +49,9 @@ define([
             $.ajax({
                 url: this.options.url,
                 showLoader: true,
-                data: params,
-                headers: this.options.headers || {}
+                data: params
             }).done(function (response) {
-                if (response[fieldToCheck]) {
+                if (response.success) {
                     element.removeClass('fail').addClass('success');
                     result = self.options.successText;
                 } else {

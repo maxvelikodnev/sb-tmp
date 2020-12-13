@@ -13,7 +13,6 @@ use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Framework\Validator\EmailAddress as EmailValidator;
 
 /**
  * Is Customer Email Available
@@ -26,20 +25,12 @@ class IsEmailAvailable implements ResolverInterface
     private $accountManagement;
 
     /**
-     * @var EmailValidator
-     */
-    private $emailValidator;
-
-    /**
      * @param AccountManagementInterface $accountManagement
-     * @param EmailValidator $emailValidator
      */
     public function __construct(
-        AccountManagementInterface $accountManagement,
-        EmailValidator $emailValidator
+        AccountManagementInterface $accountManagement
     ) {
         $this->accountManagement = $accountManagement;
-        $this->emailValidator = $emailValidator;
     }
 
     /**
@@ -52,12 +43,8 @@ class IsEmailAvailable implements ResolverInterface
         array $value = null,
         array $args = null
     ) {
-        if (empty($args['email'])) {
-            throw new GraphQlInputException(__('Email must be specified'));
-        }
-
-        if (!$this->emailValidator->isValid($args['email'])) {
-            throw new GraphQlInputException(__('Email is invalid'));
+        if (!isset($args['email']) || empty($args['email'])) {
+            throw new GraphQlInputException(__('"Email should be specified'));
         }
 
         try {

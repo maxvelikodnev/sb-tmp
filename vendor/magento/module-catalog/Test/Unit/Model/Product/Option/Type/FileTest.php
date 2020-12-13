@@ -12,7 +12,7 @@ use Magento\Framework\Filesystem\Directory\WriteInterface;
 use Magento\Framework\Filesystem\DriverPool;
 
 /**
- * Test file option type
+ * Class FileTest.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -134,14 +134,6 @@ class FileTest extends \PHPUnit\Framework\TestCase
                 'itemOptionFactory' => $this->itemOptionFactoryMock,
             ]
         );
-    }
-
-    public function testGetFormattedOptionValueWithUnserializedValue()
-    {
-        $fileObject = $this->getFileObject();
-
-        $value = 'some unserialized value, 1, 2.test';
-        $this->assertEquals($value, $fileObject->getFormattedOptionValue($value));
     }
 
     public function testGetCustomizedView()

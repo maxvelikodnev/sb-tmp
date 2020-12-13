@@ -6,12 +6,16 @@
 
 namespace %moduleName%\Setup\Patch\%patchType%;
 
+use Magento\Framework\Setup\Patch\DataPatchInterface;
+use Magento\Framework\Setup\Patch\SchemaPatchInterface;
+use Magento\Framework\Setup\Patch\PatchRevertableInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
-%useDataPatchInterface%%usePatchRevertableInterface%%SchemaPatchInterface%
+
 /**
 * Patch is mechanism, that allows to do atomic upgrade data changes
 */
-class %class% implements %implementsInterfaces%
+class %class% implements
+    %patchInterface%
 {
     /**
      * @var ModuleDataSetupInterface $moduleDataSetup
@@ -34,7 +38,7 @@ class %class% implements %implementsInterfaces%
     public function apply()
     {
     }
-%revertFunction%
+
     /**
      * {@inheritdoc}
      */

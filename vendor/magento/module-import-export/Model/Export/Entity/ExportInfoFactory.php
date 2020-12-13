@@ -84,25 +84,17 @@ class ExportInfoFactory
      * @param string $fileFormat
      * @param string $entity
      * @param string $exportFilter
-     * @param array $skipAttr
      * @return ExportInfoInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function create($fileFormat, $entity, $exportFilter, $skipAttr)
+    public function create($fileFormat, $entity, $exportFilter)
     {
         $writer = $this->getWriter($fileFormat);
-        $entityAdapter = $this->getEntityAdapter(
-            $entity,
-            $fileFormat,
-            $exportFilter,
-            $skipAttr,
-            $writer->getContentType()
-        );
+        $entityAdapter = $this->getEntityAdapter($entity, $fileFormat, $exportFilter, $writer->getContentType());
         $fileName = $this->generateFileName($entity, $entityAdapter, $writer->getFileExtension());
         /** @var ExportInfoInterface $exportInfo */
         $exportInfo = $this->objectManager->create(ExportInfoInterface::class);
         $exportInfo->setExportFilter($this->serializer->serialize($exportFilter));
-        $exportInfo->setSkipAttr($skipAttr);
         $exportInfo->setFileName($fileName);
         $exportInfo->setEntity($entity);
         $exportInfo->setFileFormat($fileFormat);
@@ -138,12 +130,11 @@ class ExportInfoFactory
      * @param string $entity
      * @param string $fileFormat
      * @param string $exportFilter
-     * @param array $skipAttr
      * @param string $contentType
      * @return \Magento\ImportExport\Model\Export\AbstractEntity|AbstractEntity
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getEntityAdapter($entity, $fileFormat, $exportFilter, $skipAttr, $contentType)
+    private function getEntityAdapter($entity, $fileFormat, $exportFilter, $contentType)
     {
         $entities = $this->exportConfig->getEntities();
         if (isset($entities[$entity])) {
@@ -175,15 +166,12 @@ class ExportInfoFactory
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(__('Please enter a correct entity.'));
         }
-        $entityAdapter->setParameters(
-            [
-                'fileFormat' => $fileFormat,
-                'entity' => $entity,
-                'exportFilter' => $exportFilter,
-                'skipAttr' => $skipAttr,
-                'contentType' => $contentType,
-            ]
-        );
+        $entityAdapter->setParameters([
+            'fileFormat' => $fileFormat,
+            'entity' => $entity,
+            'exportFilter' => $exportFilter,
+            'contentType' => $contentType,
+        ]);
         return $entityAdapter;
     }
 

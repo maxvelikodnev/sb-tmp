@@ -20,7 +20,6 @@ class PaymentSectionModifier
         'recommended_solutions',
         'other_paypal_payment_solutions',
         'other_payment_methods',
-        'deprecated_payment_methods',
     ];
 
     /**

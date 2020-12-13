@@ -11,6 +11,5 @@
     <page name="AdminInvoicesPage" url="sales/invoice/" area="admin" module="Magento_Sales">
         <section name="AdminInvoicesGridSection"/>
         <section name="AdminInvoicesFiltersSection"/>
-        <section name="AdminOrderInvoiceViewSection"/>
     </page>
 </pages>

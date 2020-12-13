@@ -5,116 +5,75 @@
  */
 namespace Magento\Quote\Test\Unit\Observer;
 
-use Magento\Framework\Event;
-use Magento\Framework\Event\Observer;
-use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Payment;
-use Magento\Quote\Observer\SubmitObserver;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
-use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Sales\Model\Order\Invoice;
-use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection;
-use Psr\Log\LoggerInterface;
-
-/**
- * Class SubmitObserverTest
- */
 class SubmitObserverTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var SubmitObserver
+     * @var \Magento\Quote\Observer\SubmitObserver
      */
-    private $model;
+    protected $model;
 
     /**
-     * @var LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Psr\Log\LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $loggerMock;
+    protected $loggerMock;
 
     /**
-     * @var OrderSender|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order\Email\Sender\OrderSender|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $orderSenderMock;
+    protected $orderSenderMock;
 
     /**
-     * @var InvoiceSender|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Event\Observer|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $invoiceSender;
+    protected $observerMock;
 
     /**
-     * @var Observer|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Quote\Model\Quote|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $observerMock;
+    protected $quoteMock;
 
     /**
-     * @var Quote|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\Order|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $quoteMock;
+    protected $orderMock;
 
     /**
-     * @var Order|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Quote\Model\Quote\Payment|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $orderMock;
-
-    /**
-     * @var Payment|\PHPUnit_Framework_MockObject_MockObject
-     */
-    private $paymentMock;
+    protected $paymentMock;
 
     protected function setUp()
     {
-        $this->loggerMock = $this->createMock(LoggerInterface::class);
-        $this->quoteMock = $this->createMock(Quote::class);
-        $this->orderMock = $this->createMock(Order::class);
-        $this->paymentMock = $this->createMock(Payment::class);
-        $this->orderSenderMock = $this->createMock(OrderSender::class);
-        $this->invoiceSender = $this->createMock(InvoiceSender::class);
-        $eventMock = $this->getMockBuilder(Event::class)
+        $this->loggerMock = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $this->quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
+        $this->orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
+        $this->paymentMock = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
+        $this->orderSenderMock =
+            $this->createMock(\Magento\Sales\Model\Order\Email\Sender\OrderSender::class);
+        $eventMock = $this->getMockBuilder(\Magento\Framework\Event::class)
             ->disableOriginalConstructor()
             ->setMethods(['getQuote', 'getOrder'])
             ->getMock();
-        $this->observerMock = $this->createPartialMock(Observer::class, ['getEvent']);
+        $this->observerMock = $this->createPartialMock(\Magento\Framework\Event\Observer::class, ['getEvent']);
         $this->observerMock->expects($this->any())->method('getEvent')->willReturn($eventMock);
         $eventMock->expects($this->once())->method('getQuote')->willReturn($this->quoteMock);
         $eventMock->expects($this->once())->method('getOrder')->willReturn($this->orderMock);
         $this->quoteMock->expects($this->once())->method('getPayment')->willReturn($this->paymentMock);
-        $this->model = new SubmitObserver(
+        $this->model = new \Magento\Quote\Observer\SubmitObserver(
             $this->loggerMock,
-            $this->orderSenderMock,
-            $this->invoiceSender
+            $this->orderSenderMock
         );
     }
 
-    /**
-     * Tests successful email sending.
-     */
     public function testSendEmail()
     {
-        $this->paymentMock->method('getOrderPlaceRedirectUrl')->willReturn('');
-        $invoice = $this->createMock(Invoice::class);
-        $invoiceCollection = $this->createMock(Collection::class);
-        $invoiceCollection->method('getItems')
-            ->willReturn([$invoice]);
-
-        $this->orderMock->method('getInvoiceCollection')
-            ->willReturn($invoiceCollection);
-        $this->orderMock->method('getCanSendNewEmailFlag')->willReturn(true);
-        $this->orderSenderMock->expects($this->once())
-            ->method('send')->willReturn(true);
-        $this->invoiceSender->expects($this->once())
-            ->method('send')
-            ->with($invoice)
-            ->willReturn(true);
-        $this->loggerMock->expects($this->never())
-            ->method('critical');
-
+        $this->paymentMock->expects($this->once())->method('getOrderPlaceRedirectUrl')->willReturn('');
+        $this->orderMock->expects($this->once())->method('getCanSendNewEmailFlag')->willReturn(true);
+        $this->orderSenderMock->expects($this->once())->method('send')->willReturn(true);
+        $this->loggerMock->expects($this->never())->method('critical');
         $this->model->execute($this->observerMock);
     }
 
-    /**
-     * Tests failing email sending.
-     */
     public function testFailToSendEmail()
     {
         $this->paymentMock->expects($this->once())->method('getOrderPlaceRedirectUrl')->willReturn('');
@@ -126,9 +85,6 @@ class SubmitObserverTest extends \PHPUnit\Framework\TestCase
         $this->model->execute($this->observerMock);
     }
 
-    /**
-     * Tests send email when redirect.
-     */
     public function testSendEmailWhenRedirectUrlExists()
     {
         $this->paymentMock->expects($this->once())->method('getOrderPlaceRedirectUrl')->willReturn(false);

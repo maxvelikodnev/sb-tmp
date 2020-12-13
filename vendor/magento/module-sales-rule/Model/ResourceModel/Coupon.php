@@ -34,6 +34,14 @@ class Coupon extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb implem
      */
     public function _beforeSave(AbstractModel $object)
     {
+        if (!$object->getExpirationDate()) {
+            $object->setExpirationDate(null);
+        } elseif ($object->getExpirationDate() instanceof \DateTimeInterface) {
+            $object->setExpirationDate(
+                $object->getExpirationDate()->format('Y-m-d H:i:s')
+            );
+        }
+
         // maintain single primary coupon per rule
         $object->setIsPrimary($object->getIsPrimary() ? 1 : null);
 
@@ -43,10 +51,10 @@ class Coupon extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb implem
     /**
      * Load primary coupon (is_primary = 1) for specified rule
      *
+     *
      * @param \Magento\SalesRule\Model\Coupon $object
      * @param \Magento\SalesRule\Model\Rule|int $rule
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function loadPrimaryByRule(\Magento\SalesRule\Model\Coupon $object, $rule)
     {
@@ -116,6 +124,13 @@ class Coupon extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb implem
 
         if ($rule->dataHasChangedFor('uses_per_customer')) {
             $updateArray['usage_per_customer'] = $rule->getUsesPerCustomer();
+        }
+
+        $ruleNewDate = new \DateTime($rule->getToDate());
+        $ruleOldDate = new \DateTime($rule->getOrigData('to_date'));
+
+        if ($ruleNewDate != $ruleOldDate) {
+            $updateArray['expiration_date'] = $rule->getToDate();
         }
 
         if (!empty($updateArray)) {

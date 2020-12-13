@@ -5,27 +5,20 @@
  */
 namespace Magento\Review\Controller\Adminhtml\Product;
 
-use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Review\Controller\Adminhtml\Product as ProductController;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Controller\ResultFactory;
 
-/**
- * Class MassVisibleIn
- */
-class MassVisibleIn extends ProductController implements HttpPostActionInterface
+class MassVisibleIn extends ProductController
 {
-
     /**
-     * Execute action
-     *
      * @return \Magento\Backend\Model\View\Result\Redirect
      */
     public function execute()
     {
         $reviewsIds = $this->getRequest()->getParam('reviews');
         if (!is_array($reviewsIds)) {
-            $this->messageManager->addErrorMessage(__('Please select review(s).'));
+            $this->messageManager->addError(__('Please select review(s).'));
         } else {
             try {
                 $stores = $this->getRequest()->getParam('stores');
@@ -34,13 +27,13 @@ class MassVisibleIn extends ProductController implements HttpPostActionInterface
                     $model->setSelectStores($stores);
                     $model->save();
                 }
-                $this->messageManager->addSuccessMessage(
+                $this->messageManager->addSuccess(
                     __('A total of %1 record(s) have been updated.', count($reviewsIds))
                 );
             } catch (LocalizedException $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addError($e->getMessage());
             } catch (\Exception $e) {
-                $this->messageManager->addExceptionMessage(
+                $this->messageManager->addException(
                     $e,
                     __('Something went wrong while updating these review(s).')
                 );

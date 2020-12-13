@@ -8,7 +8,6 @@ namespace Magento\CatalogSearch\Controller;
 /**
  * @magentoDbIsolation enabled
  * @magentoAppIsolation enabled
- * @magentoDataFixture Magento/CatalogSearch/_files/full_reindex.php
  */
 class ResultTest extends \Magento\TestFramework\TestCase\AbstractController
 {
@@ -32,20 +31,15 @@ class ResultTest extends \Magento\TestFramework\TestCase\AbstractController
         $this->assertContains('Den gesamten Shop durchsuchen...', $responseBody);
     }
 
-    /**
-     * @magentoDbIsolation disabled
-     */
     public function testIndexActionXSSQueryVerification()
     {
-        $escaper = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-            ->get(\Magento\Framework\Escaper::class);
         $this->getRequest()->setParam('q', '<script>alert(1)</script>');
         $this->dispatch('catalogsearch/result');
 
         $responseBody = $this->getResponse()->getBody();
         $data = '<script>alert(1)</script>';
         $this->assertNotContains($data, $responseBody);
-        $this->assertContains($escaper->escapeHtml($data), $responseBody);
+        $this->assertContains(htmlspecialchars($data, ENT_COMPAT, 'UTF-8', false), $responseBody);
     }
 
     /**

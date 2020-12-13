@@ -5,20 +5,12 @@
  */
 namespace Magento\ImportExport\Test\Unit\Block\Adminhtml\Grid\Column\Renderer;
 
-use Magento\Backend\Block\Context;
-use Magento\Backend\Model\Url;
-use Magento\Framework\DataObject;
-use Magento\Framework\Escaper;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
-use Magento\ImportExport\Block\Adminhtml\Grid\Column\Renderer\Download;
 
-/**
- * Test for \Magento\ImportExport\Block\Adminhtml\Grid\Column\Renderer\Download class.
- */
 class DownloadTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Context
+     * @var \Magento\Backend\Block\Context
      */
     protected $context;
 
@@ -28,31 +20,24 @@ class DownloadTest extends \PHPUnit\Framework\TestCase
     protected $objectManagerHelper;
 
     /**
-     * @var Download
+     * @var \Magento\ImportExport\Block\Adminhtml\Grid\Column\Renderer\Download
      */
     protected $download;
-
-    /**
-     * @var Escaper|\PHPUnit_Framework_MockObject_MockObjecti
-     */
-    private $escaperMock;
 
     /**
      * Set up
      */
     protected function setUp()
     {
-        $this->escaperMock = $this->createMock(Escaper::class);
-        $urlModel = $this->createPartialMock(Url::class, ['getUrl']);
+        $urlModel = $this->createPartialMock(\Magento\Backend\Model\Url::class, ['getUrl']);
         $urlModel->expects($this->any())->method('getUrl')->willReturn('url');
-        $this->context = $this->createPartialMock(Context::class, ['getUrlBuilder', 'getEscaper']);
+        $this->context = $this->createPartialMock(\Magento\Backend\Block\Context::class, ['getUrlBuilder']);
         $this->context->expects($this->any())->method('getUrlBuilder')->willReturn($urlModel);
-        $this->context->expects($this->any())->method('getEscaper')->willReturn($this->escaperMock);
         $data = [];
 
         $this->objectManagerHelper = new ObjectManagerHelper($this);
         $this->download = $this->objectManagerHelper->getObject(
-            Download::class,
+            \Magento\ImportExport\Block\Adminhtml\Grid\Column\Renderer\Download::class,
             [
                 'context' => $this->context,
                 'data' => $data
@@ -66,15 +51,7 @@ class DownloadTest extends \PHPUnit\Framework\TestCase
     public function testGetValue()
     {
         $data = ['imported_file' => 'file.csv'];
-        $row = new DataObject($data);
-        $this->escaperMock->expects($this->at(0))
-            ->method('escapeHtml')
-            ->with('file.csv')
-            ->willReturn('file.csv');
-        $this->escaperMock->expects($this->at(1))
-            ->method('escapeHtml')
-            ->with('Download')
-            ->willReturn('Download');
+        $row = new \Magento\Framework\DataObject($data);
         $this->assertEquals('<p> file.csv</p><a href="url">Download</a>', $this->download->_getValue($row));
     }
 }

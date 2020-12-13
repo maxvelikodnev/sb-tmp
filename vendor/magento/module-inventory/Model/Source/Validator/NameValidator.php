@@ -9,8 +9,6 @@ namespace Magento\Inventory\Model\Source\Validator;
 
 use Magento\Framework\Validation\ValidationResult;
 use Magento\Framework\Validation\ValidationResultFactory;
-use Magento\Inventory\Model\Validators\NoSpecialCharsInString;
-use Magento\Inventory\Model\Validators\NotAnEmptyString;
 use Magento\InventoryApi\Api\Data\SourceInterface;
 use Magento\InventoryApi\Model\SourceValidatorInterface;
 
@@ -25,28 +23,11 @@ class NameValidator implements SourceValidatorInterface
     private $validationResultFactory;
 
     /**
-     * @var NotAnEmptyString
-     */
-    private $notAnEmptyString;
-
-    /**
-     * @var NoSpecialCharsInString
-     */
-    private $noSpecialCharsInString;
-
-    /**
      * @param ValidationResultFactory $validationResultFactory
-     * @param NotAnEmptyString $notAnEmptyString
-     * @param NoSpecialCharsInString $noSpecialCharsInString
      */
-    public function __construct(
-        ValidationResultFactory $validationResultFactory,
-        NotAnEmptyString $notAnEmptyString,
-        NoSpecialCharsInString $noSpecialCharsInString
-    ) {
+    public function __construct(ValidationResultFactory $validationResultFactory)
+    {
         $this->validationResultFactory = $validationResultFactory;
-        $this->notAnEmptyString = $notAnEmptyString;
-        $this->noSpecialCharsInString = $noSpecialCharsInString;
     }
 
     /**
@@ -55,12 +36,12 @@ class NameValidator implements SourceValidatorInterface
     public function validate(SourceInterface $source): ValidationResult
     {
         $value = (string)$source->getName();
-        $errors = [
-            $this->notAnEmptyString->execute(SourceInterface::NAME, $value),
-            $this->noSpecialCharsInString->execute($value)
-        ];
-        $errors = !empty($errors) ? array_merge(...$errors) : $errors;
 
+        if ('' === trim($value)) {
+            $errors[] = __('"%field" can not be empty.', ['field' => SourceInterface::NAME]);
+        } else {
+            $errors = [];
+        }
         return $this->validationResultFactory->create(['errors' => $errors]);
     }
 }

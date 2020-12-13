@@ -132,7 +132,7 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
             throw new StateException(__("The parent product doesn't have configurable product options."));
         }
 
-        $attributeData = [];
+        $attributeIds = [];
         foreach ($configurableProductOptions as $configurableProductOption) {
             $attributeCode = $configurableProductOption->getProductAttribute()->getAttributeCode();
             if (!$child->getData($attributeCode)) {
@@ -143,11 +143,9 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
                     )
                 );
             }
-            $attributeData[$configurableProductOption->getAttributeId()] = [
-                'position' => $configurableProductOption->getPosition()
-            ];
+            $attributeIds[] = $configurableProductOption->getAttributeId();
         }
-        $configurableOptionData = $this->getConfigurableAttributesData($attributeData);
+        $configurableOptionData = $this->getConfigurableAttributesData($attributeIds);
 
         /** @var \Magento\ConfigurableProduct\Helper\Product\Options\Factory $optionFactory */
         $optionFactory = $this->getOptionsFactory();
@@ -213,16 +211,16 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
     /**
      * Get Configurable Attribute Data
      *
-     * @param int[] $attributeData
+     * @param int[] $attributeIds
      * @return array
      */
-    private function getConfigurableAttributesData($attributeData)
+    private function getConfigurableAttributesData($attributeIds)
     {
         $configurableAttributesData = [];
         $attributeValues = [];
         $attributes = $this->attributeFactory->create()
             ->getCollection()
-            ->addFieldToFilter('attribute_id', array_keys($attributeData))
+            ->addFieldToFilter('attribute_id', $attributeIds)
             ->getItems();
         foreach ($attributes as $attribute) {
             foreach ($attribute->getOptions() as $option) {
@@ -239,7 +237,6 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
                     'attribute_id' => $attribute->getId(),
                     'code' => $attribute->getAttributeCode(),
                     'label' => $attribute->getStoreLabel(),
-                    'position' => $attributeData[$attribute->getId()]['position'],
                     'values' => $attributeValues,
                 ];
         }

@@ -8,8 +8,6 @@ namespace Magento\Paypal\Model;
 
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\State\InvalidTransitionException;
-use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Helper\Formatter;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\Method\ConfigInterface;
@@ -86,8 +84,6 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
     const RESPONSE_CODE_CAPTURE_ERROR = 111;
 
     const RESPONSE_CODE_VOID_ERROR = 108;
-
-    private const RESPONSE_CODE_AUTHORIZATION_EXPIRED = 10601;
 
     const PNREF = 'pnref';
 
@@ -380,7 +376,7 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws InvalidTransitionException
+     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -414,7 +410,7 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws InvalidTransitionException
+     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -452,7 +448,7 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
      * @param InfoInterface|Payment|Object $payment
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws InvalidTransitionException
+     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
     public function void(\Magento\Payment\Model\InfoInterface $payment)
     {
@@ -495,23 +491,14 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
      *
      * @param InfoInterface|Object $payment
      * @return $this
-     * @throws CommandException
      */
     public function cancel(\Magento\Payment\Model\InfoInterface $payment)
     {
         if (!$payment->getOrder()->getInvoiceCollection()->count()) {
-            try {
-                $this->void($payment);
-            } catch (CommandException $e) {
-                // Ignore error about expiration of authorization transaction.
-                if (strpos($e->getMessage(), (string)self::RESPONSE_CODE_AUTHORIZATION_EXPIRED) === false) {
-                    throw $e;
-                }
-            }
-
+            return $this->void($payment);
         }
 
-        return $this;
+        return false;
     }
 
     /**
@@ -521,7 +508,7 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws InvalidTransitionException
+     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -570,7 +557,7 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
      * @param string $status
      * @return bool
      */
-    protected function _isTransactionUnderReview($status)
+    protected static function _isTransactionUnderReview($status)
     {
         if (in_array($status, [self::RESPONSE_CODE_APPROVED, self::RESPONSE_CODE_DECLINED_BY_MERCHANT])) {
             return false;
@@ -662,22 +649,21 @@ class Payflowpro extends \Magento\Payment\Model\Method\Cc implements GatewayInte
      *
      * @param DataObject $response
      * @return void
-     * @throws CommandException
-     * @throws InvalidTransitionException
+     * @throws \Magento\Payment\Gateway\Command\CommandException
+     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
     public function processErrors(DataObject $response)
     {
-        $resultCode = (int)$response->getResultCode();
-        if ($resultCode === self::RESPONSE_CODE_VOID_ERROR) {
-            throw new InvalidTransitionException(
+        if ($response->getResultCode() == self::RESPONSE_CODE_VOID_ERROR) {
+            throw new \Magento\Framework\Exception\State\InvalidTransitionException(
                 __("The verification transaction can't be voided. ")
             );
-        }
-        if (!in_array($resultCode, [self::RESPONSE_CODE_APPROVED, self::RESPONSE_CODE_FRAUDSERVICE_FILTER])) {
-            throw new CommandException(__($response->getRespmsg()));
-        }
-        if ((int)$response->getOrigresult() === self::RESPONSE_CODE_DECLINED_BY_FILTER) {
-            throw new CommandException(__($response->getRespmsg()));
+        } elseif ($response->getResultCode() != self::RESPONSE_CODE_APPROVED &&
+            $response->getResultCode() != self::RESPONSE_CODE_FRAUDSERVICE_FILTER
+        ) {
+            throw new \Magento\Payment\Gateway\Command\CommandException(__($response->getRespmsg()));
+        } elseif ($response->getOrigresult() == self::RESPONSE_CODE_DECLINED_BY_FILTER) {
+            throw new \Magento\Payment\Gateway\Command\CommandException(__($response->getRespmsg()));
         }
     }
 

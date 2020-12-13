@@ -5,11 +5,12 @@
  */
 namespace Magento\Config\Model\Config\Reader\Source\Deployed;
 
-use Magento\Config\Model\Placeholder\PlaceholderFactory;
-use Magento\Config\Model\Placeholder\PlaceholderInterface;
-use Magento\Framework\App\Config\ScopeCodeResolver;
+use Magento\Config\Model\Config\Reader;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\DeploymentConfig;
+use Magento\Config\Model\Placeholder\PlaceholderInterface;
+use Magento\Config\Model\Placeholder\PlaceholderFactory;
+use Magento\Framework\App\Config\ScopeCodeResolver;
 
 /**
  * Class for checking settings that defined in config file
@@ -67,12 +68,6 @@ class SettingChecker
             $config = $this->config->get($this->resolvePath($scope, $scopeCode) . "/" . $path);
         }
 
-        if (null === $config) {
-            $config = $this->config->get(
-                $this->resolvePath(ScopeConfigInterface::SCOPE_TYPE_DEFAULT, null) . "/" . $path
-            );
-        }
-
         return $config !== null;
     }
 
@@ -83,6 +78,7 @@ class SettingChecker
      *
      * @param string $path
      * @param string $scope
+     * @param string $scopeCode
      * @param string|null $scopeCode
      * @return string|null
      * @since 100.1.2
@@ -101,11 +97,9 @@ class SettingChecker
      */
     public function getEnvValue($placeholder)
     {
-        // phpcs:disable Magento2.Security.Superglobal
         if ($this->placeholder->isApplicable($placeholder) && isset($_ENV[$placeholder])) {
             return $_ENV[$placeholder];
         }
-        // phpcs:enable
 
         return null;
     }

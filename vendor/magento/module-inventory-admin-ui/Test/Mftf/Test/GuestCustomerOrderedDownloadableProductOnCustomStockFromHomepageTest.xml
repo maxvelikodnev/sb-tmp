@@ -13,14 +13,13 @@
             <stories value="Add Order"/>
             <title value="Create an Order with a Downloadable Product assigned to Custom Stock via the Storefront as Guest"/>
             <description value="You should be able to create an Order with a Downloadable Product from the Storefront as Guest."/>
-            <testCaseId value="https://app.hiptest.com/projects/69435/test-plan/folders/419539/scenarios/1680148"/>
+            <testCaseId value="MSI-1300"/>
             <severity value="CRITICAL"/>
             <group value="msi"/>
             <group value="multi_mode"/>
         </annotations>
 
         <before>
-            <magentoCLI stepKey="addDownloadableDomain" command="downloadable:domains:add static.magento.com example.com"/>
             <magentoCLI stepKey="enableGuestCheckoutForDownloadable" command="config:set catalog/downloadable/disable_guest_checkout 0" />
             <magentoCLI stepKey="enableStockManagement" command="config:set cataloginventory/item_options/manage_stock 1"/>
             <createData entity="FullSource1" stepKey="createSource"/>
@@ -42,19 +41,16 @@
             <actionGroup ref="AssignSourceToProductActionGroup" stepKey="assignCustomSource">
                 <argument name="sourceCode" value="$$createSource.source[source_code]$$" />
             </actionGroup>
+            <fillField selector="{{AdminProductSourcesGrid.rowQty('0')}}" userInput="100" stepKey="fillDefaultSourceQtyField"/>
             <fillField selector="{{AdminProductSourcesGrid.rowQty('1')}}" userInput="100" stepKey="fillCustomSourceQtyField"/>
-            <actionGroup ref="UnassignSourceFromProductActionGroup" stepKey="unassignDefaultSourceFromProduct">
-                <argument name="sourceCode" value="{{_defaultSource.name}}"/>
-            </actionGroup>
             <actionGroup ref="AdminFormSaveAndClose" stepKey="saveAndCloseProduct"/>
         </before>
         <after>
-            <magentoCLI stepKey="removeDownloadableDomain" command="downloadable:domains:remove static.magento.com example.com"/>
             <magentoCLI stepKey="disableGuestCheckoutForDownloadable" command="config:set catalog/downloadable/disable_guest_checkout 1" />
             <!-- Assign Sales Channel to Default Stock -->
             <amOnPage url="{{AdminManageStockPage.url}}" stepKey="amOnTheStockGridPage"/>
             <waitForPageLoad time="30" stepKey="waitForStockGridPageLoad"/>
-            <actionGroup ref="SearchAdminDataGridByKeywordActionGroup" stepKey="searchDefaultStockByKeyword">
+            <actionGroup ref="searchAdminDataGridByKeyword" stepKey="searchDefaultStockByKeyword">
                 <argument name="keyword" value="_defaultStock.name"/>
             </actionGroup>
             <click selector="{{AdminGridRow.editByValue(_defaultStock.name)}}"
@@ -67,10 +63,9 @@
             <actionGroup ref="DisableSourceActionGroup" stepKey="disableSource">
                 <argument name="sourceCode" value="$$createSource.source[source_code]$$"/>
             </actionGroup>
-            <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <deleteData createDataKey="createStock" stepKey="deleteStock"/>
-            <deleteData createDataKey="downloadableProduct" stepKey="deleteProduct"/>
             <actionGroup ref="logout" stepKey="logoutOfAdmin"/>
+            <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
+            <deleteData createDataKey="downloadableProduct" stepKey="deleteProduct"/>
         </after>
 
         <amOnPage url="{{StorefrontProductPage.url($$downloadableProduct.custom_attributes[url_key]$$)}}" stepKey="openProductPage"/>

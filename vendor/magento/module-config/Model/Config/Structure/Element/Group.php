@@ -7,8 +7,6 @@
 namespace Magento\Config\Model\Config\Structure\Element;
 
 /**
- * Group element.
- *
  * @api
  * @since 100.0.2
  */

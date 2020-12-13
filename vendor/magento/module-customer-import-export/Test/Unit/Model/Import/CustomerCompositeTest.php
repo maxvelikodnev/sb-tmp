@@ -15,7 +15,7 @@ use Magento\ImportExport\Model\Import;
 use Magento\ImportExport\Model\Import\Source\Csv;
 
 /**
- * The test for Customer composite model
+ * Customer composite test
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -89,12 +89,6 @@ class CustomerCompositeTest extends \PHPUnit\Framework\TestCase
     protected $errorFactory;
 
     /**
-     * @var \Magento\Customer\Model\Indexer\Processor
-     * |\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $indexerProcessor;
-
-    /**
      * Expected prepared data after method CustomerComposite::_prepareRowForDb
      *
      * @var array
@@ -147,7 +141,6 @@ class CustomerCompositeTest extends \PHPUnit\Framework\TestCase
             ->getMock();
 
         $this->_scopeConfigMock = $this->createMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $this->indexerProcessor = $this->createMock(\Magento\Customer\Model\Indexer\Processor::class);
     }
 
     /**
@@ -166,7 +159,6 @@ class CustomerCompositeTest extends \PHPUnit\Framework\TestCase
             $this->_dataFactory,
             $this->_customerFactory,
             $this->_addressFactory,
-            $this->indexerProcessor,
             $data
         );
     }

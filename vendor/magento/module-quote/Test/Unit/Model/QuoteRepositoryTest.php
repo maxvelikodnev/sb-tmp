@@ -9,7 +9,6 @@ use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface;
-use PHPUnit\Framework\MockObject\Matcher\InvokedCount as InvokedCountMatch;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Api\Data\CartInterface;
@@ -285,14 +284,7 @@ class QuoteRepositoryTest extends TestCase
         $this->assertEquals($this->quoteMock, $this->model->get($cartId, $sharedStoreIds));
     }
 
-    /**
-     * Test getForCustomer method
-     *
-     * @param InvokedCountMatch $invokeTimes
-     * @param array $sharedStoreIds
-     * @dataProvider getForCustomerDataProvider
-     */
-    public function testGetForCustomer(InvokedCountMatch $invokeTimes, array $sharedStoreIds)
+    public function testGetForCustomer()
     {
         $cartId = 17;
         $customerId = 23;
@@ -306,7 +298,7 @@ class QuoteRepositoryTest extends TestCase
         $this->storeMock->expects(static::once())
             ->method('getId')
             ->willReturn(1);
-        $this->quoteMock->expects($invokeTimes)
+        $this->quoteMock->expects(static::never())
             ->method('setSharedStoreIds');
         $this->quoteMock->expects(static::once())
             ->method('loadByCustomer')
@@ -320,27 +312,8 @@ class QuoteRepositoryTest extends TestCase
             ->method('load')
             ->with($this->quoteMock);
 
-        static::assertEquals($this->quoteMock, $this->model->getForCustomer($customerId, $sharedStoreIds));
         static::assertEquals($this->quoteMock, $this->model->getForCustomer($customerId));
-    }
-
-    /**
-     * Checking how many times we invoke setSharedStoreIds() in protected method loadQuote()
-     *
-     * @return array
-     */
-    public function getForCustomerDataProvider()
-    {
-        return [
-            [
-                'invoke_number_times' => static::never(),
-                'shared_store_ids' => []
-            ],
-            [
-                'invoke_number_times' => static::once(),
-                'shared_store_ids' => [1]
-            ]
-        ];
+        static::assertEquals($this->quoteMock, $this->model->getForCustomer($customerId));
     }
 
     /**

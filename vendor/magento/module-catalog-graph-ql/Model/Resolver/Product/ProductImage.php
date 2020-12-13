@@ -18,25 +18,6 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
  */
 class ProductImage implements ResolverInterface
 {
-    /** @var array */
-    private static $catalogImageLabelTypes = [
-        'image' => 'image_label',
-        'small_image' => 'small_image_label',
-        'thumbnail' => 'thumbnail_label'
-    ];
-
-    /** @var array */
-    private $imageTypeLabels;
-
-    /**
-     * @param array $imageTypeLabels
-     */
-    public function __construct(
-        array $imageTypeLabels = []
-    ) {
-        $this->imageTypeLabels =  array_replace(self::$catalogImageLabelTypes, $imageTypeLabels);
-    }
-
     /**
      * @inheritdoc
      */
@@ -53,16 +34,11 @@ class ProductImage implements ResolverInterface
 
         /** @var Product $product */
         $product = $value['model'];
-        $label =  $value['name'] ?? null;
-        if (isset($this->imageTypeLabels[$info->fieldName])
-            && !empty($value[$this->imageTypeLabels[$info->fieldName]])) {
-            $label = $value[$this->imageTypeLabels[$info->fieldName]];
-        }
+        $imageType = $field->getName();
 
         return [
             'model' => $product,
-            'image_type' => $field->getName(),
-            'label' => $label
+            'image_type' => $imageType,
         ];
     }
 }

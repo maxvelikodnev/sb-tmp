@@ -10,16 +10,10 @@ use Magento\Review\Controller\Adminhtml\Product as ProductController;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Store\Model\Store;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Review\Model\Review;
 
-/**
- * Review admin controller for POST request.
- */
 class Post extends ProductController implements HttpPostActionInterface
 {
     /**
-     * Create a product review.
-     *
      * @return \Magento\Backend\Model\View\Result\Redirect
      */
     public function execute()
@@ -39,7 +33,7 @@ class Post extends ProductController implements HttpPostActionInterface
             }
             $review = $this->reviewFactory->create()->setData($data);
             try {
-                $review->setEntityId($review->getEntityIdByCode(Review::ENTITY_PRODUCT_CODE))
+                $review->setEntityId(1) // product
                     ->setEntityPkValue($productId)
                     ->setStoreId(Store::DEFAULT_STORE_ID)
                     ->setStatusId($data['status_id'])
@@ -56,7 +50,7 @@ class Post extends ProductController implements HttpPostActionInterface
 
                 $review->aggregate();
 
-                $this->messageManager->addSuccessMessage(__('You saved the review.'));
+                $this->messageManager->addSuccess(__('You saved the review.'));
                 if ($this->getRequest()->getParam('ret') == 'pending') {
                     $resultRedirect->setPath('review/*/pending');
                 } else {
@@ -64,9 +58,9 @@ class Post extends ProductController implements HttpPostActionInterface
                 }
                 return $resultRedirect;
             } catch (LocalizedException $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addError($e->getMessage());
             } catch (\Exception $e) {
-                $this->messageManager->addExceptionMessage($e, __('Something went wrong while saving this review.'));
+                $this->messageManager->addException($e, __('Something went wrong while saving this review.'));
             }
         }
         $resultRedirect->setPath('review/*/');

@@ -42,7 +42,7 @@ class AddCommentTest extends AbstractCreditmemoControllerTest
         $message = $this->transportBuilder->getSentMessage();
         $subject =__('Update to your %1 credit memo', $order->getStore()->getFrontendName())->render();
         $messageConstraint = $this->logicalAnd(
-            new StringContains($order->getCustomerName()),
+            new StringContains($order->getBillingAddress()->getName()),
             new RegularExpression(
                 sprintf(
                     "/Your order #%s has been updated with a status of.*%s/",
@@ -54,7 +54,7 @@ class AddCommentTest extends AbstractCreditmemoControllerTest
         );
 
         $this->assertEquals($message->getSubject(), $subject);
-        $this->assertThat($message->getBody()->getParts()[0]->getRawContent(), $messageConstraint);
+        $this->assertThat($message->getRawMessage(), $messageConstraint);
     }
 
     /**

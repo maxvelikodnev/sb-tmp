@@ -8,7 +8,6 @@ namespace Magento\CatalogInventory\Test\Unit\Model\Quote\Item\QuantityValidator\
 use Magento\CatalogInventory\Model\Quote\Item\QuantityValidator\QuoteItemQtyList;
 
 /**
- * Class StockItemTest
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class StockItemTest extends \PHPUnit\Framework\TestCase
@@ -29,18 +28,10 @@ class StockItemTest extends \PHPUnit\Framework\TestCase
     protected $typeConfig;
 
     /**
-     * @var \Magento\CatalogInventory\Api\StockStateInterface\PHPUnit_Framework_MockObject_MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $stockStateMock;
 
-    /**
-     * @var \Magento\CatalogInventory\Model\StockStateProviderInterface| \PHPUnit_Framework_MockObject_MockObject
-     */
-    private $stockStateProviderMock;
-
-    /**
-     * @inheritdoc
-     */
     protected function setUp()
     {
         $this->quoteItemQtyList = $this
@@ -57,25 +48,17 @@ class StockItemTest extends \PHPUnit\Framework\TestCase
         $this->stockStateMock = $this->getMockBuilder(\Magento\CatalogInventory\Api\StockStateInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
-
-        $this->stockStateProviderMock = $this
-            ->getMockBuilder(\Magento\CatalogInventory\Model\StockStateProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
         $this->model = $objectManagerHelper->getObject(
             \Magento\CatalogInventory\Model\Quote\Item\QuantityValidator\Initializer\StockItem::class,
             [
                 'quoteItemQtyList' => $this->quoteItemQtyList,
                 'typeConfig' => $this->typeConfig,
-                'stockState' => $this->stockStateMock,
-                'stockStateProvider' => $this->stockStateProviderMock
+                'stockState' => $this->stockStateMock
             ]
         );
     }
 
     /**
-     * Test initialize with Subitem
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function testInitializeWithSubitem()
@@ -158,10 +141,6 @@ class StockItemTest extends \PHPUnit\Framework\TestCase
             ->method('checkQuoteItemQty')
             ->withAnyParameters()
             ->will($this->returnValue($result));
-        $this->stockStateProviderMock->expects($this->once())
-            ->method('checkQuoteItemQty')
-            ->withAnyParameters()
-            ->will($this->returnValue($result));
         $product->expects($this->once())
             ->method('getCustomOption')
             ->with('product_type')
@@ -198,16 +177,13 @@ class StockItemTest extends \PHPUnit\Framework\TestCase
         $quoteItem->expects($this->once())->method('setUseOldQty')->with('item')->will($this->returnSelf());
         $result->expects($this->exactly(2))->method('getMessage')->will($this->returnValue('message'));
         $quoteItem->expects($this->once())->method('setMessage')->with('message')->will($this->returnSelf());
-        $result->expects($this->exactly(3))->method('getItemBackorders')->will($this->returnValue('backorders'));
+        $result->expects($this->exactly(2))->method('getItemBackorders')->will($this->returnValue('backorders'));
         $quoteItem->expects($this->once())->method('setBackorders')->with('backorders')->will($this->returnSelf());
         $quoteItem->expects($this->once())->method('setStockStateResult')->with($result)->will($this->returnSelf());
 
         $this->model->initialize($stockItem, $quoteItem, $qty);
     }
 
-    /**
-     * Test initialize without Subitem
-     */
     public function testInitializeWithoutSubitem()
     {
         $qty = 3;
@@ -258,10 +234,6 @@ class StockItemTest extends \PHPUnit\Framework\TestCase
             ->with($productId, 'quote_item_id', 'quote_id', $qty)
             ->will($this->returnValue('summary_qty'));
         $this->stockStateMock->expects($this->once())
-                ->method('checkQuoteItemQty')
-                ->withAnyParameters()
-                ->will($this->returnValue($result));
-        $this->stockStateProviderMock->expects($this->once())
             ->method('checkQuoteItemQty')
             ->withAnyParameters()
             ->will($this->returnValue($result));
@@ -284,7 +256,7 @@ class StockItemTest extends \PHPUnit\Framework\TestCase
         $result->expects($this->once())->method('getHasQtyOptionUpdate')->will($this->returnValue(false));
         $result->expects($this->once())->method('getItemUseOldQty')->will($this->returnValue(null));
         $result->expects($this->once())->method('getMessage')->will($this->returnValue(null));
-        $result->expects($this->exactly(2))->method('getItemBackorders')->will($this->returnValue(null));
+        $result->expects($this->once())->method('getItemBackorders')->will($this->returnValue(null));
 
         $this->model->initialize($stockItem, $quoteItem, $qty);
     }

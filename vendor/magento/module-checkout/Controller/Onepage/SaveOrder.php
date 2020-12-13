@@ -6,14 +6,10 @@
 
 namespace Magento\Checkout\Controller\Onepage;
 
-use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\PaymentException;
 
-/**
- * One Page Checkout saveOrder action
- */
-class SaveOrder extends \Magento\Checkout\Controller\Onepage implements HttpPostActionInterface
+class SaveOrder extends \Magento\Checkout\Controller\Onepage
 {
     /**
      * Create order action
@@ -35,7 +31,7 @@ class SaveOrder extends \Magento\Checkout\Controller\Onepage implements HttpPost
         $result = new DataObject();
         try {
             $agreementsValidator = $this->_objectManager->get(
-                \Magento\Checkout\Api\AgreementsValidatorInterface::class
+                \Magento\CheckoutAgreements\Model\AgreementsValidator::class
             );
             if (!$agreementsValidator->isValid(array_keys($this->getRequest()->getPost('agreement', [])))) {
                 $result->setData('success', false);

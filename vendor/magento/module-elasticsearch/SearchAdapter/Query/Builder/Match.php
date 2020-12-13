@@ -138,12 +138,7 @@ class Match implements QueryInterface
 
         $transformedTypes = [];
         foreach ($matches as $match) {
-            $resolvedField = $this->fieldMapper->getFieldName(
-                $match['field'],
-                ['type' => FieldMapperInterface::TYPE_QUERY]
-            );
-
-            $attributeAdapter = $this->attributeProvider->getByAttributeCode($resolvedField);
+            $attributeAdapter = $this->attributeProvider->getByAttributeCode($match['field']);
             $fieldType = $this->fieldTypeResolver->getFieldType($attributeAdapter);
             $valueTransformer = $this->valueTransformerPool->get($fieldType ?? 'text');
             $valueTransformerHash = \spl_object_hash($valueTransformer);
@@ -156,6 +151,10 @@ class Match implements QueryInterface
                 continue;
             }
 
+            $resolvedField = $this->fieldMapper->getFieldName(
+                $match['field'],
+                ['type' => FieldMapperInterface::TYPE_QUERY]
+            );
             $conditions[] = [
                 'condition' => $queryValue['condition'],
                 'body' => [

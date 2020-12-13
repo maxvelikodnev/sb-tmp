@@ -129,7 +129,7 @@ class PreprocessorTest extends \PHPUnit\Framework\TestCase
             ->getMock();
         $this->connection = $this->getMockBuilder(\Magento\Framework\DB\Adapter\AdapterInterface::class)
             ->disableOriginalConstructor()
-            ->setMethods(['select', 'getIfNullSql', 'quote', 'quoteInto'])
+            ->setMethods(['select', 'getIfNullSql', 'quote'])
             ->getMockForAbstractClass();
         $this->select = $this->getMockBuilder(\Magento\Framework\DB\Select::class)
             ->disableOriginalConstructor()
@@ -222,10 +222,9 @@ class PreprocessorTest extends \PHPUnit\Framework\TestCase
     public function processCategoryIdsDataProvider()
     {
         return [
-            ['5', "category_ids_index.category_id in ('5')"],
-            [3, "category_ids_index.category_id in (3)"],
-            ["' and 1 = 0", "category_ids_index.category_id in ('\' and 1 = 0')"],
-            [['5', '10'], "category_ids_index.category_id in ('5', '10')"]
+            ['5', 'category_ids_index.category_id = 5'],
+            [3, 'category_ids_index.category_id = 3'],
+            ["' and 1 = 0", 'category_ids_index.category_id = 0'],
         ];
     }
 
@@ -251,12 +250,6 @@ class PreprocessorTest extends \PHPUnit\Framework\TestCase
             ->method('getAttribute')
             ->with(\Magento\Catalog\Model\Product::ENTITY, 'category_ids')
             ->will($this->returnValue($this->attribute));
-
-        $this->connection
-            ->expects($this->once())
-            ->method('quoteInto')
-            ->with('category_ids_index.category_id in (?)', $categoryId)
-            ->willReturn($expectedResult);
 
         $actualResult = $this->target->process($this->filter, $isNegation, $query);
         $this->assertSame($expectedResult, $this->removeWhitespaces($actualResult));

@@ -6,7 +6,7 @@
 namespace Magento\Review\Block\Adminhtml;
 
 /**
- * Review edit form.
+ * Review edit form
  */
 class Edit extends \Magento\Backend\Block\Widget\Form\Container
 {
@@ -77,13 +77,7 @@ class Edit extends \Magento\Backend\Block\Widget\Form\Container
                 'previous',
                 [
                     'label' => __('Previous'),
-                    'onclick' => 'setLocation(\'' . $this->getUrl(
-                        'review/*/*',
-                        [
-                            'id' => $prevId,
-                            'ret' => $this->getRequest()->getParam('ret'),
-                        ]
-                    ) . '\')'
+                    'onclick' => 'setLocation(\'' . $this->getUrl('review/*/*', ['id' => $prevId]) . '\')'
                 ],
                 3,
                 10
@@ -99,10 +93,7 @@ class Edit extends \Magento\Backend\Block\Widget\Form\Container
                             'button' => [
                                 'event' => 'save',
                                 'target' => '#edit_form',
-                                'eventData' => ['action' => ['args' => [
-                                    'next_item' => $prevId,
-                                    'ret' => $this->getRequest()->getParam('ret'),
-                                ]]],
+                                'eventData' => ['action' => ['args' => ['next_item' => $prevId]]],
                             ],
                         ],
                     ]
@@ -122,10 +113,7 @@ class Edit extends \Magento\Backend\Block\Widget\Form\Container
                             'button' => [
                                 'event' => 'save',
                                 'target' => '#edit_form',
-                                'eventData' => ['action' => ['args' => [
-                                    'next_item' => $nextId,
-                                    'ret' => $this->getRequest()->getParam('ret'),
-                                ]]],
+                                'eventData' => ['action' => ['args' => ['next_item' => $nextId]]],
                             ],
                         ],
                     ]
@@ -138,13 +126,7 @@ class Edit extends \Magento\Backend\Block\Widget\Form\Container
                 'next',
                 [
                     'label' => __('Next'),
-                    'onclick' => 'setLocation(\'' . $this->getUrl(
-                        'review/*/*',
-                        [
-                            'id' => $nextId,
-                            'ret' => $this->getRequest()->getParam('ret'),
-                        ]
-                    ) . '\')'
+                    'onclick' => 'setLocation(\'' . $this->getUrl('review/*/*', ['id' => $nextId]) . '\')'
                 ],
                 3,
                 105

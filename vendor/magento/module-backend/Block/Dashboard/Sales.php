@@ -39,8 +39,6 @@ class Sales extends \Magento\Backend\Block\Dashboard\Bar
     }
 
     /**
-     * Prepare layout.
-     *
      * @return $this|void
      */
     protected function _prepareLayout()

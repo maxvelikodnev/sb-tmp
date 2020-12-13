@@ -103,9 +103,6 @@ class StateTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expectedState, $this->orderMock->getState());
     }
 
-    /**
-     * @return array
-     */
     public function stateCheckDataProvider()
     {
         return [

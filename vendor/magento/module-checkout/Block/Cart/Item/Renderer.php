@@ -186,8 +186,6 @@ class Renderer extends \Magento\Framework\View\Element\Template implements
     }
 
     /**
-     * Override product url.
-     *
      * @param string $productUrl
      * @return $this
      * @codeCoverageIgnore
@@ -316,7 +314,11 @@ class Renderer extends \Magento\Framework\View\Element\Template implements
     }
 
     /**
-     * Retrieve item messages, return array with keys, text => the message text, type => type of a message
+     * Retrieve item messages
+     * Return array with keys
+     *
+     * text => the message text
+     * type => type of a message
      *
      * @return array
      */
@@ -471,8 +473,6 @@ class Renderer extends \Magento\Framework\View\Element\Template implements
     }
 
     /**
-     * Get price renderer.
-     *
      * @return \Magento\Framework\Pricing\Render
      * @codeCoverageIgnore
      */

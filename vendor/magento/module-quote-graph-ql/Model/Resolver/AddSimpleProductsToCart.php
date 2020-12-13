@@ -47,20 +47,19 @@ class AddSimpleProductsToCart implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        if (empty($args['input']['cart_id'])) {
+        if (!isset($args['input']['cart_id']) || empty($args['input']['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
         $maskedCartId = $args['input']['cart_id'];
 
-        if (empty($args['input']['cart_items'])
+        if (!isset($args['input']['cart_items']) || empty($args['input']['cart_items'])
             || !is_array($args['input']['cart_items'])
         ) {
             throw new GraphQlInputException(__('Required parameter "cart_items" is missing'));
         }
         $cartItems = $args['input']['cart_items'];
 
-        $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
-        $cart = $this->getCartForUser->execute($maskedCartId, $context->getUserId(), $storeId);
+        $cart = $this->getCartForUser->execute($maskedCartId, $context->getUserId());
         $this->addProductsToCart->execute($cart, $cartItems);
 
         return [

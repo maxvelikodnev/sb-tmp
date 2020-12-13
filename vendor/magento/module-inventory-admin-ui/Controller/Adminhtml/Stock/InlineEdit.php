@@ -28,7 +28,7 @@ class InlineEdit extends Action implements HttpPostActionInterface
     /**
      * @see _isAllowed()
      */
-    const ADMIN_RESOURCE = 'Magento_InventoryApi::stock_edit';
+    const ADMIN_RESOURCE = 'Magento_InventoryApi::stock';
 
     /**
      * @var DataObjectHelper

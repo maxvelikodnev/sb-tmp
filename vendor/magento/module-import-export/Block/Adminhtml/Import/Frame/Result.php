@@ -102,7 +102,7 @@ class Result extends \Magento\Backend\Block\Template
                 $this->addError($row);
             }
         } else {
-            $this->_messages['error'][] = $this->escapeHtml($message);
+            $this->_messages['error'][] = $message;
         }
         return $this;
     }
@@ -140,8 +140,7 @@ class Result extends \Magento\Backend\Block\Template
                 $this->addSuccess($row);
             }
         } else {
-            $escapedMessage = $this->escapeHtml($message);
-            $this->_messages['success'][] = $escapedMessage . ($appendImportButton ? $this->getImportButtonHtml() : '');
+            $this->_messages['success'][] = $message . ($appendImportButton ? $this->getImportButtonHtml() : '');
         }
         return $this;
     }

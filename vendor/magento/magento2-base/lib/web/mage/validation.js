@@ -3,14 +3,21 @@
  * See COPYING.txt for license details.
  */
 
-define([
-    'jquery',
-    'moment',
-    'mageUtils',
-    'jquery-ui-modules/widget',
-    'jquery/validate',
-    'mage/translate'
-], function ($, moment, utils) {
+(function (factory) {
+    'use strict';
+
+    if (typeof define === 'function' && define.amd) {
+        define([
+            'jquery',
+            'moment',
+            'jquery/ui',
+            'jquery/validate',
+            'mage/translate'
+        ], factory);
+    } else {
+        factory(jQuery);
+    }
+}(function ($, moment) {
     'use strict';
 
     var creditCartTypes, rules, showLabel, originValidateDelegate;
@@ -198,28 +205,13 @@ define([
     }
 
     /**
-     *
-     * @param {float} qty
-     * @param {float} qtyIncrements
-     * @returns {float}
-     */
-    function resolveModulo(qty, qtyIncrements) {
-        while (qtyIncrements < 1) {
-            qty *= 10;
-            qtyIncrements *= 10;
-        }
-
-        return qty % qtyIncrements;
-    }
-
-    /**
      * Collection of validation rules including rules from additional-methods.js
      * @type {Object}
      */
     rules = {
         'max-words': [
             function (value, element, params) {
-                return this.optional(element) || $.mage.stripHtml(value).match(/\b\w+\b/g).length <= params;
+                return this.optional(element) || $.mage.stripHtml(value).match(/\b\w+\b/g).length < params;
             },
             $.mage.__('Please enter {0} words or less.')
         ],
@@ -552,7 +544,7 @@ define([
         /* eslint-enable max-len */
         'pattern': [
             function (value, element, param) {
-                return this.optional(element) || new RegExp(param).test(value);
+                return this.optional(element) || param.test(value);
             },
             $.mage.__('Invalid format.')
         ],
@@ -998,8 +990,8 @@ define([
                         minValidRange = $.mage.parseNumber(validRange[1]);
                         maxValidRange = $.mage.parseNumber(validRange[2]);
                         result = result &&
-                            (isNaN(minValidRange) || minValue >= minValidRange) &&
-                            (isNaN(maxValidRange) || maxValue <= maxValidRange);
+                        (isNaN(minValidRange) || minValue >= minValidRange) &&
+                        (isNaN(maxValidRange) || maxValue <= maxValidRange);
                     }
                 }
 
@@ -1033,7 +1025,7 @@ define([
         ],
         'validate-date': [
             function (value, params, additionalParams) {
-                var test = moment(value, utils.convertToMomentFormat(additionalParams.dateFormat));
+                var test = moment(value, additionalParams.dateFormat);
 
                 return $.mage.isEmptyNoTrim(value) || test.isValid();
             },
@@ -1123,8 +1115,8 @@ define([
                     options = p.find('input');
 
                 return options.map(function (el) {
-                    return $(el).val();
-                }).length > 0;
+                        return $(el).val();
+                    }).length > 0;
             },
             $.mage.__('Please select one of the options above.')
         ],
@@ -1622,7 +1614,7 @@ define([
                     isMaxAllowedValid = typeof params.maxAllowed === 'undefined' ||
                         qty <= $.mage.parseNumber(params.maxAllowed),
                     isQtyIncrementsValid = typeof params.qtyIncrements === 'undefined' ||
-                        resolveModulo(qty, $.mage.parseNumber(params.qtyIncrements)) === 0.0;
+                        qty % $.mage.parseNumber(params.qtyIncrements) === 0;
 
                 result = qty > 0;
 
@@ -1881,10 +1873,6 @@ define([
                 if (element.siblings('.tooltip').length) {
                     errorPlacement = element.siblings('.tooltip');
                 }
-                //logic for select with tooltip in after element
-                if (element.next().find('.tooltip').length) {
-                    errorPlacement = element.next();
-                }
                 errorPlacement.after(error);
             }
         },
@@ -1932,7 +1920,6 @@ define([
 
         /**
          * Validation listening.
-         *
          * @protected
          */
         _listenFormValidate: function () {
@@ -1945,15 +1932,15 @@ define([
          * @param {jQuery.Event} event
          * @param {Object} validation
          */
-        listenFormValidateHandler: function (event, validation) {
+        listenFormValidateHandler:  function (event, validation) {
             var firstActive = $(validation.errorList[0].element || []),
                 lastActive = $(validation.findLastActive() ||
                     validation.errorList.length && validation.errorList[0].element || []),
-                windowHeight = $(window).height(),
-                parent, successList;
+                parent, windowHeight, successList;
 
             if (lastActive.is(':hidden')) {
                 parent = lastActive.parent();
+                windowHeight = $(window).height();
                 $('html, body').animate({
                     scrollTop: parent.offset().top - windowHeight / 2
                 });
@@ -1971,8 +1958,8 @@ define([
             }
 
             if (firstActive.length) {
-                $('body').stop().animate({
-                    scrollTop: firstActive.offset().top - windowHeight / 2
+                $('html, body').stop().animate({
+                    scrollTop: firstActive.offset().top
                 });
                 firstActive.focus();
             }
@@ -1980,4 +1967,4 @@ define([
     });
 
     return $.mage.validation;
-});
+}));

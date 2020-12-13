@@ -10,7 +10,6 @@ namespace Magento\Sales\Controller\Adminhtml\Order;
 use Magento\Backend\App\Action\Context;
 use Magento\Backend\Model\View\Result\Redirect;
 use Magento\Directory\Model\RegionFactory;
-use Magento\Sales\Api\OrderAddressRepositoryInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\Data\OrderAddressInterface;
@@ -26,14 +25,11 @@ use Magento\Framework\View\Result\LayoutFactory;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\Action\HttpPostActionInterface;
 
 /**
- * Sales address save
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class AddressSave extends Order implements HttpPostActionInterface
+class AddressSave extends Order
 {
     /**
      * Authorization level of a basic admin session
@@ -48,11 +44,6 @@ class AddressSave extends Order implements HttpPostActionInterface
     private $regionFactory;
 
     /**
-     * @var OrderAddressRepositoryInterface
-     */
-    private $orderAddressRepository;
-
-    /**
      * @param Context $context
      * @param Registry $coreRegistry
      * @param FileFactory $fileFactory
@@ -65,7 +56,6 @@ class AddressSave extends Order implements HttpPostActionInterface
      * @param OrderRepositoryInterface $orderRepository
      * @param LoggerInterface $logger
      * @param RegionFactory|null $regionFactory
-     * @param OrderAddressRepositoryInterface|null $orderAddressRepository
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -81,12 +71,9 @@ class AddressSave extends Order implements HttpPostActionInterface
         OrderManagementInterface $orderManagement,
         OrderRepositoryInterface $orderRepository,
         LoggerInterface $logger,
-        RegionFactory $regionFactory = null,
-        OrderAddressRepositoryInterface $orderAddressRepository = null
+        RegionFactory $regionFactory = null
     ) {
         $this->regionFactory = $regionFactory ?: ObjectManager::getInstance()->get(RegionFactory::class);
-        $this->orderAddressRepository = $orderAddressRepository ?: ObjectManager::getInstance()
-            ->get(OrderAddressRepositoryInterface::class);
         parent::__construct(
             $context,
             $coreRegistry,
@@ -120,7 +107,7 @@ class AddressSave extends Order implements HttpPostActionInterface
         if ($data && $address->getId()) {
             $address->addData($data);
             try {
-                $this->orderAddressRepository->save($address);
+                $address->save();
                 $this->_eventManager->dispatch(
                     'admin_sales_order_address_update',
                     [

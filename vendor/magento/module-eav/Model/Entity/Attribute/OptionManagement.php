@@ -3,11 +3,9 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Eav\Model\Entity\Attribute;
 
-use Magento\Eav\Api\Data\AttributeInterface as EavAttributeInterface;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
@@ -41,16 +39,7 @@ class OptionManagement implements \Magento\Eav\Api\AttributeOptionManagementInte
     }
 
     /**
-     * Add option to attribute.
-     *
-     * @param int $entityType
-     * @param string $attributeCode
-     * @param \Magento\Eav\Api\Data\AttributeOptionInterface $option
-     * @return string
-     * @throws InputException
-     * @throws NoSuchEntityException
-     * @throws StateException
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @inheritdoc
      */
     public function add($entityType, $attributeCode, $option)
     {
@@ -73,15 +62,6 @@ class OptionManagement implements \Magento\Eav\Api\AttributeOptionManagementInte
             foreach ($option->getStoreLabels() as $label) {
                 $options['value'][$optionId][$label->getStoreId()] = $label->getLabel();
             }
-        }
-
-        if (!$this->isAttributeOptionLabelExists($attribute, (string) $options['value'][$optionId][0])) {
-            throw new InputException(
-                __(
-                    'Admin store attribute option label "%1" is already exists.',
-                    $options['value'][$optionId][0]
-                )
-            );
         }
 
         if ($option->getIsDefault()) {
@@ -154,10 +134,10 @@ class OptionManagement implements \Magento\Eav\Api\AttributeOptionManagementInte
     /**
      * Validate option
      *
-     * @param EavAttributeInterface $attribute
+     * @param \Magento\Eav\Api\Data\AttributeInterface $attribute
      * @param int $optionId
-     * @return void
      * @throws NoSuchEntityException
+     * @return void
      */
     protected function validateOption($attribute, $optionId)
     {
@@ -187,13 +167,13 @@ class OptionManagement implements \Magento\Eav\Api\AttributeOptionManagementInte
      * Set option value
      *
      * @param \Magento\Eav\Api\Data\AttributeOptionInterface $option
-     * @param EavAttributeInterface $attribute
+     * @param \Magento\Eav\Api\Data\AttributeInterface $attribute
      * @param string $optionLabel
      * @return void
      */
     private function setOptionValue(
         \Magento\Eav\Api\Data\AttributeOptionInterface $option,
-        EavAttributeInterface $attribute,
+        \Magento\Eav\Api\Data\AttributeInterface $attribute,
         string $optionLabel
     ) {
         $optionId = $attribute->getSource()->getOptionId($optionLabel);
@@ -207,29 +187,5 @@ class OptionManagement implements \Magento\Eav\Api\AttributeOptionManagementInte
                 }
             }
         }
-    }
-
-    /**
-     * Checks if the incoming attribute option label for admin store is already exists.
-     *
-     * @param EavAttributeInterface $attribute
-     * @param string $adminStoreLabel
-     * @param int $storeId
-     * @return bool
-     */
-    private function isAttributeOptionLabelExists(
-        EavAttributeInterface $attribute,
-        string $adminStoreLabel,
-        int $storeId = 0
-    ) :bool {
-        $attribute->setStoreId($storeId);
-
-        foreach ($attribute->getSource()->toOptionArray() as $existingAttributeOption) {
-            if ($existingAttributeOption['label'] === $adminStoreLabel) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

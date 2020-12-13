@@ -8,9 +8,6 @@ namespace Magento\Config\Test\Unit\Model\Config\Structure\Element;
 use Magento\Config\Model\Config\Structure\ElementVisibilityInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 
-/**
- * Abstract composite test.
- */
 class AbstractCompositeTest extends \PHPUnit\Framework\TestCase
 {
     /**

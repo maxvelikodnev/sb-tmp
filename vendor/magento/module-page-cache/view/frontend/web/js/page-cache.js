@@ -7,7 +7,7 @@ define([
     'jquery',
     'domReady',
     'consoleLogger',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'mage/cookies'
 ], function ($, domReady, consoleLogger) {
     'use strict';
@@ -112,14 +112,11 @@ define([
          * @private
          */
         _create: function () {
-            var formKey = $.mage.cookies.get('form_key'),
-                options = {
-                    secure: window.cookiesConfig ? window.cookiesConfig.secure : false
-                };
+            var formKey = $.mage.cookies.get('form_key');
 
             if (!formKey) {
                 formKey = generateRandomString(this.options.allowedCharacters, this.options.length);
-                $.mage.cookies.set('form_key', formKey, options);
+                $.mage.cookies.set('form_key', formKey);
             }
             $(this.options.inputSelector).val(formKey);
         }

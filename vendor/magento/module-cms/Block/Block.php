@@ -14,11 +14,6 @@ use Magento\Framework\View\Element\AbstractBlock;
 class Block extends AbstractBlock implements \Magento\Framework\DataObject\IdentityInterface
 {
     /**
-     * Prefix for cache key of CMS block
-     */
-    const CACHE_KEY_PREFIX = 'CMS_BLOCK_';
-
-    /**
      * @var \Magento\Cms\Model\Template\FilterProvider
      */
     protected $_filterProvider;

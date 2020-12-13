@@ -7,9 +7,6 @@ namespace Magento\Downloadable\Test\Unit\Controller\Adminhtml\Product\Initializa
 
 use Magento\Catalog\Api\Data\ProductExtensionInterface;
 
-/**
- * Unit tests for \Magento\Downloadable\Controller\Adminhtml\Product\Initialization\Helper\Plugin\Downloadable.
- */
 class DownloadableTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -37,20 +34,12 @@ class DownloadableTest extends \PHPUnit\Framework\TestCase
      */
     private $extensionAttributesMock;
 
-    /**
-     * @var \Magento\Downloadable\Model\Product\Type|\Magento\Catalog\Api\Data\ProductExtensionInterface
-     */
-    private $downloadableProductTypeMock;
-
-    /**
-     * @inheritdoc
-     */
     protected function setUp()
     {
         $this->requestMock = $this->createMock(\Magento\Framework\App\Request\Http::class);
         $this->productMock = $this->createPartialMock(
             \Magento\Catalog\Model\Product::class,
-            ['setDownloadableData', 'getExtensionAttributes', '__wakeup', 'getTypeInstance']
+            ['setDownloadableData', 'getExtensionAttributes', '__wakeup']
         );
         $this->subjectMock = $this->createMock(
             \Magento\Catalog\Controller\Adminhtml\Product\Initialization\Helper::class
@@ -73,10 +62,6 @@ class DownloadableTest extends \PHPUnit\Framework\TestCase
         $sampleBuilderMock = $this->getMockBuilder(\Magento\Downloadable\Model\Sample\Builder::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->downloadableProductTypeMock = $this->createPartialMock(
-            \Magento\Downloadable\Model\Product\Type::class,
-            ['getLinks', 'getSamples']
-        );
         $this->downloadablePlugin =
             new \Magento\Downloadable\Controller\Adminhtml\Product\Initialization\Helper\Plugin\Downloadable(
                 $this->requestMock,
@@ -101,11 +86,6 @@ class DownloadableTest extends \PHPUnit\Framework\TestCase
         $this->productMock->expects($this->once())
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributesMock);
-        $this->productMock->expects($this->exactly(2))
-            ->method('getTypeInstance')
-            ->willReturn($this->downloadableProductTypeMock);
-        $this->downloadableProductTypeMock->expects($this->once())->method('getLinks')->willReturn([]);
-        $this->downloadableProductTypeMock->expects($this->once())->method('getSamples')->willReturn([]);
         $this->extensionAttributesMock->expects($this->once())
             ->method('setDownloadableProductLinks')
             ->with([]);

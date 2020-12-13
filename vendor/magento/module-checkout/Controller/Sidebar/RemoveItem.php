@@ -7,9 +7,6 @@ namespace Magento\Checkout\Controller\Sidebar;
 
 use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 
-/**
- * Controller for removing quote item from shopping cart.
- */
 class RemoveItem extends \Magento\Framework\App\Action\Action implements HttpPostActionInterface
 {
     /**
@@ -59,7 +56,7 @@ class RemoveItem extends \Magento\Framework\App\Action\Action implements HttpPos
     }
 
     /**
-     * @inheritdoc
+     * @return $this
      */
     public function execute()
     {
@@ -70,17 +67,11 @@ class RemoveItem extends \Magento\Framework\App\Action\Action implements HttpPos
         try {
             $this->sidebar->checkQuoteItem($itemId);
             $this->sidebar->removeQuoteItem($itemId);
-
             return $this->jsonResponse();
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             return $this->jsonResponse($e->getMessage());
-        } catch (\Zend_Db_Exception $e) {
-            $this->logger->critical($e);
-
-            return $this->jsonResponse(__('An unspecified error occurred. Please contact us for assistance.'));
         } catch (\Exception $e) {
             $this->logger->critical($e);
-
             return $this->jsonResponse($e->getMessage());
         }
     }
@@ -101,8 +92,6 @@ class RemoveItem extends \Magento\Framework\App\Action\Action implements HttpPos
     }
 
     /**
-     * Return formKey Validator object instance.
-     *
      * @return \Magento\Framework\Data\Form\FormKey\Validator
      * @deprecated 100.0.9
      */

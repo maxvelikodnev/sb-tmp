@@ -5,15 +5,12 @@
  */
 namespace Magento\Setup\Validator;
 
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Config\ConfigOptionsListConstants as ConfigOption;
 use Magento\Setup\Model\AdminAccount;
-use Magento\Setup\Model\ConfigOptionsList\DriverOptions;
+use Magento\Setup\Model\Installer;
 
 /**
  * Admin user credentials validator
- *
- * @deprecated Starting from Magento 2.3.6 Web Setup Wizard is deprecated
  */
 class AdminCredentialsValidator
 {
@@ -33,28 +30,20 @@ class AdminCredentialsValidator
     private $setupFactory;
 
     /**
-     * @var DriverOptions
-     */
-    private $driverOptions;
-
-    /**
      * Initialize dependencies.
      *
      * @param \Magento\Setup\Model\AdminAccountFactory $adminAccountFactory
      * @param \Magento\Setup\Module\ConnectionFactory $connectionFactory
      * @param \Magento\Setup\Module\SetupFactory $setupFactory
-     * @param DriverOptions|null $driverOptions
      */
     public function __construct(
         \Magento\Setup\Model\AdminAccountFactory $adminAccountFactory,
         \Magento\Setup\Module\ConnectionFactory $connectionFactory,
-        \Magento\Setup\Module\SetupFactory $setupFactory,
-        DriverOptions $driverOptions = null
+        \Magento\Setup\Module\SetupFactory $setupFactory
     ) {
         $this->connectionFactory = $connectionFactory;
         $this->adminAccountFactory = $adminAccountFactory;
         $this->setupFactory = $setupFactory;
-        $this->driverOptions = $driverOptions ?? ObjectManager::getInstance()->get(DriverOptions::class);
     }
 
     /**
@@ -66,17 +55,13 @@ class AdminCredentialsValidator
      */
     public function validate(array $data)
     {
-        $driverOptions = $this->driverOptions->getDriverOptions($data);
-        $dbConnection = $this->connectionFactory->create(
-            [
-                ConfigOption::KEY_NAME => $data[ConfigOption::INPUT_KEY_DB_NAME],
-                ConfigOption::KEY_HOST => $data[ConfigOption::INPUT_KEY_DB_HOST],
-                ConfigOption::KEY_USER => $data[ConfigOption::INPUT_KEY_DB_USER],
-                ConfigOption::KEY_PASSWORD => $data[ConfigOption::INPUT_KEY_DB_PASSWORD],
-                ConfigOption::KEY_PREFIX => $data[ConfigOption::INPUT_KEY_DB_PREFIX],
-                ConfigOption::KEY_DRIVER_OPTIONS => $driverOptions
-            ]
-        );
+        $dbConnection = $this->connectionFactory->create([
+            ConfigOption::KEY_NAME => $data[ConfigOption::INPUT_KEY_DB_NAME],
+            ConfigOption::KEY_HOST => $data[ConfigOption::INPUT_KEY_DB_HOST],
+            ConfigOption::KEY_USER => $data[ConfigOption::INPUT_KEY_DB_USER],
+            ConfigOption::KEY_PASSWORD => $data[ConfigOption::INPUT_KEY_DB_PASSWORD],
+            ConfigOption::KEY_PREFIX => $data[ConfigOption::INPUT_KEY_DB_PREFIX]
+        ]);
 
         $adminAccount = $this->adminAccountFactory->create(
             $dbConnection,

@@ -31,9 +31,8 @@ class ResponseResolver
     }
 
     /**
-     * Get result from $response.
-     *
      * @param \Zend_Http_Response $response
+     *
      * @return bool|string
      */
     public function getResult(\Zend_Http_Response $response)
@@ -42,8 +41,7 @@ class ResponseResolver
         $converterMediaType = $this->converter->getContentMediaType();
 
         /** Content-Type header may not only contain media-type declaration */
-        if ($response->getBody()
-            && is_int(strripos($response->getHeader('Content-Type'), (string) $converterMediaType))) {
+        if ($response->getBody() && is_int(strripos($response->getHeader('Content-Type'), $converterMediaType))) {
             $responseBody = $this->converter->fromBody($response->getBody());
         } else {
             $responseBody = [];

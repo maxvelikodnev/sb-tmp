@@ -14,29 +14,20 @@ use Magento\TestFramework\TestCase\WebapiAbstract;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface;
 
-/**
- * @inheritDoc
- */
 class PreventDefaultSourceDisablingTest extends WebapiAbstract
 {
-    /**
-     * Resource path
+    /**#@+
+     * Service constants
      */
     const RESOURCE_PATH = '/V1/inventory/sources';
-
-    /**
-     * Service name
-     */
     const SERVICE_NAME = 'inventoryApiSourceRepositoryV1';
+    /**#@-*/
 
     /**
      * @var DefaultSourceProviderInterface
      */
     private $defaultSourceProvider;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp(): void
     {
         parent::setUp();

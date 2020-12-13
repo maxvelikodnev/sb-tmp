@@ -447,7 +447,7 @@ class ConfigurablePanel extends AbstractModifier
                                 'smallImage' => '${$.provider}:${$.parentScope}.small_image',
                             ],
                             'uploaderConfig' => [
-                                'url' => $this->urlBuilder->getUrl(
+                                'url' => $this->urlBuilder->addSessionParam()->getUrl(
                                     'catalog/product_gallery/upload'
                                 ),
                             ],

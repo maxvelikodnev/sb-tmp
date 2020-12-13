@@ -56,8 +56,6 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
     {
         $billingAddress = $this->addressMock;
         $comment = 'comment_test';
-        $customerName='Test Customer';
-        $frontendStatusLabel='Processing';
 
         $this->orderMock->expects($this->once())
             ->method('getCustomerIsGuest')
@@ -67,12 +65,6 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
         $this->identityContainerMock->expects($this->once())
             ->method('isEnabled')
             ->will($this->returnValue(true));
-        $this->orderMock->expects($this->any())
-            ->method('getCustomerName')
-            ->willReturn($customerName);
-        $this->orderMock->expects($this->once())
-            ->method('getFrontendStatusLabel')
-            ->willReturn($frontendStatusLabel);
         $this->templateContainerMock->expects($this->once())
             ->method('setTemplateVars')
             ->with(
@@ -84,11 +76,7 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
                         'comment' => $comment,
                         'store' => $this->storeMock,
                         'formattedShippingAddress' => 1,
-                        'formattedBillingAddress' => 1,
-                        'order_data' => [
-                            'customer_name' => $customerName,
-                            'frontend_status_label' => $frontendStatusLabel
-                        ]
+                        'formattedBillingAddress' => 1
                     ]
                 )
             );
@@ -101,8 +89,6 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
     {
         $billingAddress = $this->addressMock;
         $comment = 'comment_test';
-        $customerName='Test Customer';
-        $frontendStatusLabel='Processing';
 
         $this->orderMock->expects($this->once())
             ->method('getCustomerIsGuest')
@@ -112,12 +98,6 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
         $this->identityContainerMock->expects($this->once())
             ->method('isEnabled')
             ->will($this->returnValue(true));
-        $this->orderMock->expects($this->any())
-            ->method('getCustomerName')
-            ->willReturn($customerName);
-        $this->orderMock->expects($this->once())
-            ->method('getFrontendStatusLabel')
-            ->willReturn($frontendStatusLabel);
         $this->templateContainerMock->expects($this->once())
             ->method('setTemplateVars')
             ->with(
@@ -129,11 +109,7 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
                         'comment' => $comment,
                         'store' => $this->storeMock,
                         'formattedShippingAddress' => 1,
-                        'formattedBillingAddress' => 1,
-                        'order_data' => [
-                            'customer_name' => $customerName,
-                            'frontend_status_label' => $frontendStatusLabel
-                        ]
+                        'formattedBillingAddress' => 1
                     ]
                 )
             );
@@ -147,18 +123,10 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
         $isVirtualOrder = true;
         $this->orderMock->setData(\Magento\Sales\Api\Data\OrderInterface::IS_VIRTUAL, $isVirtualOrder);
         $this->stepAddressFormat($this->addressMock, $isVirtualOrder);
-        $customerName='Test Customer';
-        $frontendStatusLabel='Complete';
 
         $this->identityContainerMock->expects($this->once())
             ->method('isEnabled')
             ->will($this->returnValue(false));
-        $this->orderMock->expects($this->any())
-            ->method('getCustomerName')
-            ->willReturn($customerName);
-        $this->orderMock->expects($this->once())
-            ->method('getFrontendStatusLabel')
-            ->willReturn($frontendStatusLabel);
         $this->templateContainerMock->expects($this->once())
             ->method('setTemplateVars')
             ->with(
@@ -170,12 +138,7 @@ class ShipmentCommentSenderTest extends AbstractSenderTest
                         'comment' => '',
                         'store' => $this->storeMock,
                         'formattedShippingAddress' => null,
-                        'formattedBillingAddress' => 1,
-                        'order_data' => [
-                            'customer_name' => $customerName,
-                            'frontend_status_label' => $frontendStatusLabel
-                        ]
-
+                        'formattedBillingAddress' => 1
                     ]
                 )
             );

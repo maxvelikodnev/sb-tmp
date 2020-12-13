@@ -8,7 +8,7 @@ namespace Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 
 /**
- * Credit memo adjustments block
+ * Credit memo adjustmets block
  *
  * @api
  * @since 100.0.2

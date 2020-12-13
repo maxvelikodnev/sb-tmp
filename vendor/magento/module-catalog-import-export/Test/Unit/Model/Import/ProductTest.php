@@ -13,8 +13,8 @@ use Magento\ImportExport\Model\Import;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
- * Test import entity product model
- *
+ * Class ProductTest
+ * @package Magento\CatalogImportExport\Test\Unit\Model\Import
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -284,11 +284,9 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
                 ->getMock();
         $this->storeResolver =
             $this->getMockBuilder(\Magento\CatalogImportExport\Model\Import\Product\StoreResolver::class)
-                ->setMethods(
-                    [
-                        'getStoreCodeToId',
-                    ]
-                )
+                ->setMethods([
+                    'getStoreCodeToId',
+                ])
                 ->disableOriginalConstructor()
                 ->getMock();
         $this->skuProcessor =
@@ -412,7 +410,7 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
         $this->_filesystem->expects($this->once())
             ->method('getDirectoryWrite')
             ->with(DirectoryList::ROOT)
-            ->willReturn($this->_mediaDirectory);
+            ->will($this->returnValue(self::MEDIA_DIRECTORY));
 
         $this->validator->expects($this->any())->method('init');
         return $this;
@@ -547,17 +545,6 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
         $this->_connection->expects($this->once())
             ->method('insertOnDuplicate')
             ->with($testTable, $tableData, ['value']);
-        $attribute = $this->getMockBuilder(\Magento\Eav\Model\Entity\Attribute\AbstractAttribute::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getId'])
-            ->getMockForAbstractClass();
-        $attribute->expects($this->once())->method('getId')->willReturn(1);
-        $resource = $this->getMockBuilder(\Magento\CatalogImportExport\Model\Import\Proxy\Product\ResourceModel::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getAttribute'])
-            ->getMock();
-        $resource->expects($this->once())->method('getAttribute')->willReturn($attribute);
-        $this->_resourceFactory->expects($this->once())->method('create')->willReturn($resource);
         $this->setPropertyValue($this->importProduct, '_oldSku', [$testSku => ['entity_id' => self::ENTITY_ID]]);
         $object = $this->invokeMethod($this->importProduct, '_saveProductAttributes', [$attributesData]);
         $this->assertEquals($this->importProduct, $object);
@@ -609,13 +596,9 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
     public function testGetMultipleValueSeparatorFromParameters()
     {
         $expectedSeparator = 'value';
-        $this->setPropertyValue(
-            $this->importProduct,
-            '_parameters',
-            [
-                \Magento\ImportExport\Model\Import::FIELD_FIELD_MULTIPLE_VALUE_SEPARATOR => $expectedSeparator,
-            ]
-        );
+        $this->setPropertyValue($this->importProduct, '_parameters', [
+            \Magento\ImportExport\Model\Import::FIELD_FIELD_MULTIPLE_VALUE_SEPARATOR => $expectedSeparator,
+        ]);
 
         $this->assertEquals(
             $expectedSeparator,
@@ -635,13 +618,9 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
     public function testGetEmptyAttributeValueConstantFromParameters()
     {
         $expectedSeparator = '__EMPTY__VALUE__TEST__';
-        $this->setPropertyValue(
-            $this->importProduct,
-            '_parameters',
-            [
-                \Magento\ImportExport\Model\Import::FIELD_EMPTY_ATTRIBUTE_VALUE_CONSTANT => $expectedSeparator,
-            ]
-        );
+        $this->setPropertyValue($this->importProduct, '_parameters', [
+            \Magento\ImportExport\Model\Import::FIELD_EMPTY_ATTRIBUTE_VALUE_CONSTANT => $expectedSeparator,
+        ]);
 
         $this->assertEquals(
             $expectedSeparator,
@@ -653,12 +632,9 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
     {
         $importProduct = $this->getMockBuilder(Product::class)
             ->disableOriginalConstructor()
-            ->setMethods(
-                [
-                    'setParameters',
-                    '_deleteProducts'
-                ]
-            )
+            ->setMethods([
+                'setParameters', '_deleteProducts'
+            ])
             ->getMock();
 
         $importProduct->expects($this->once())->method('setParameters')->with(
@@ -788,13 +764,9 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
             'key 3' => 'val',
         ];
         $expectedResult = array_keys($productValue);
-        $this->setPropertyValue(
-            $this->importProduct,
-            'websitesCache',
-            [
-                $productSku => $productValue
-            ]
-        );
+        $this->setPropertyValue($this->importProduct, 'websitesCache', [
+            $productSku => $productValue
+        ]);
 
         $actualResult = $this->importProduct->getProductWebsites($productSku);
 
@@ -813,13 +785,9 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
             'key 3' => 'val',
         ];
         $expectedResult = array_keys($productValue);
-        $this->setPropertyValue(
-            $this->importProduct,
-            'categoriesCache',
-            [
-                $productSku => $productValue
-            ]
-        );
+        $this->setPropertyValue($this->importProduct, 'categoriesCache', [
+            $productSku => $productValue
+        ]);
 
         $actualResult = $this->importProduct->getProductCategories($productSku);
 
@@ -1144,13 +1112,9 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
             ->disableOriginalConstructor()
             ->getMock();
         $productType->expects($this->once())->method('isRowValid')->with($expectedRowData);
-        $this->setPropertyValue(
-            $importProduct,
-            '_productTypeModels',
-            [
-                $newSku['type_id'] => $productType
-            ]
-        );
+        $this->setPropertyValue($importProduct, '_productTypeModels', [
+            $newSku['type_id'] => $productType
+        ]);
 
         //suppress option validation
         $this->_rewriteGetOptionEntityInImportProduct($importProduct);
@@ -1266,56 +1230,6 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
     }
 
     /**
-     * @param bool $isRead
-     * @param bool $isWrite
-     * @param string $message
-     * @dataProvider fillUploaderObjectDataProvider
-     */
-    public function testFillUploaderObject($isRead, $isWrite, $message)
-    {
-        $fileUploaderMock = $this
-            ->getMockBuilder(\Magento\CatalogImportExport\Model\Import\Uploader::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $fileUploaderMock
-            ->method('setTmpDir')
-            ->with('pub/media/import')
-            ->willReturn($isRead);
-
-        $fileUploaderMock
-            ->method('setDestDir')
-            ->with('pub/media/catalog/product')
-            ->willReturn($isWrite);
-
-        $this->_mediaDirectory
-            ->method('getRelativePath')
-            ->willReturnMap(
-                [
-                    ['import', 'import'],
-                    ['catalog/product', 'catalog/product'],
-                ]
-            );
-
-        $this->_mediaDirectory
-            ->method('create')
-            ->with('pub/media/catalog/product');
-
-        $this->_uploaderFactory
-            ->expects($this->once())
-            ->method('create')
-            ->willReturn($fileUploaderMock);
-
-        try {
-            $this->importProduct->getUploader();
-            $this->assertNotNull($this->getPropertyValue($this->importProduct, '_fileUploader'));
-        } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            $this->assertNull($this->getPropertyValue($this->importProduct, '_fileUploader'));
-            $this->assertEquals($message, $e->getMessage());
-        }
-    }
-
-    /**
      * Test that errors occurred during importing images are logged.
      *
      * @param string $fileName
@@ -1359,20 +1273,6 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
             $expectedFileName,
             $actualFileName
         );
-    }
-
-    /**
-     * Data provider for testFillUploaderObject.
-     *
-     * @return array
-     */
-    public function fillUploaderObjectDataProvider()
-    {
-        return [
-            [false, true, 'File directory \'pub/media/import\' is not readable.'],
-            [true, false, 'File directory \'pub/media/catalog/product\' is not writable.'],
-            [true, true, ''],
-        ];
     }
 
     /**

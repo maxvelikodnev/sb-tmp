@@ -16,9 +16,6 @@ use Magento\Braintree\Gateway\Config\PayPal\Config;
 
 /**
  * Class QuoteUpdater
- *
- * @deprecated Starting from Magento 2.3.6 Braintree payment method core integration is deprecated
- * in favor of official payment integration available on the marketplace
  */
 class QuoteUpdater extends AbstractHelper
 {
@@ -176,14 +173,14 @@ class QuoteUpdater extends AbstractHelper
      */
     private function updateAddressData(Address $address, array $addressData)
     {
-        $extendedAddress = isset($addressData['line2'])
-            ? $addressData['line2']
+        $extendedAddress = isset($addressData['extendedAddress'])
+            ? $addressData['extendedAddress']
             : null;
 
-        $address->setStreet([$addressData['line1'], $extendedAddress]);
-        $address->setCity($addressData['city']);
-        $address->setRegionCode($addressData['state']);
-        $address->setCountryId($addressData['countryCode']);
+        $address->setStreet([$addressData['streetAddress'], $extendedAddress]);
+        $address->setCity($addressData['locality']);
+        $address->setRegionCode($addressData['region']);
+        $address->setCountryId($addressData['countryCodeAlpha2']);
         $address->setPostcode($addressData['postalCode']);
 
         // PayPal's address supposes not saving against customer account

@@ -4,30 +4,26 @@
  * See COPYING.txt for license details.
  */
 -->
-<!--@subject {{trans "Update to your %store_name invoice" store_name=$store.frontend_name}} @-->
+<!--@subject {{trans "Update to your %store_name invoice" store_name=$store.getFrontendName()}} @-->
 <!--@vars {
-"var order_data.customer_name":"Guest Customer Name",
-"var comment|escape|nl2br":"Invoice Comment",
+"var billing.getName()":"Guest Customer Name",
+"var comment":"Invoice Comment",
 "var invoice.increment_id":"Invoice Id",
 "var order.increment_id":"Order Id",
-"var order_data.frontend_status_label":"Order Status",
-"var store.frontend_name":"Store Frontend Name",
-"var store_phone":"Store Phone",
-"var store_email":"Store Email",
-"var store_hours":"Store Hours"
+"var order.getFrontendStatusLabel()":"Order Status"
 } @-->
 {{template config_path="design/email/header_template"}}
 
 <table>
     <tr class="email-intro">
         <td>
-            <p class="greeting">{{trans "%name," name=$order_data.customer_name}}</p>
+            <p class="greeting">{{trans "%name," name=$billing.getName()}}</p>
             <p>
                 {{trans
                     "Your order #%increment_id has been updated with a status of <strong>%order_status</strong>."
 
                     increment_id=$order.increment_id
-                    order_status=$order_data.frontend_status_label
+                    order_status=$order.getFrontendStatusLabel()
                 |raw}}
             </p>
             <p>

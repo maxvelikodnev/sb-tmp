@@ -7,7 +7,7 @@ define([
     'jquery',
     'Magento_Ui/js/modal/confirm',
     'Magento_Customer/js/customer-data',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'mage/mage'
 ], function ($, confirm, customerData) {
     'use strict';

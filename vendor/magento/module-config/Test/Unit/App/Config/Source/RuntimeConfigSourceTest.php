@@ -5,46 +5,41 @@
  */
 namespace Magento\Config\Test\Unit\App\Config\Source;
 
-use ArrayIterator;
 use Magento\Config\App\Config\Source\RuntimeConfigSource;
-use Magento\Config\Model\ResourceModel\Config\Data\Collection;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Config\Scope\Converter;
 use Magento\Framework\App\Config\ScopeCodeResolver;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
-use Magento\Framework\App\DeploymentConfig;
-use Magento\Framework\DB\Adapter\TableNotFoundException;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Test Class for retrieving runtime configuration from database.
+ * @package Magento\Config\Test\Unit\App\Config\Source
  */
-class RuntimeConfigSourceTest extends TestCase
+class RuntimeConfigSourceTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var CollectionFactory|MockObject
+     * @var CollectionFactory|\PHPUnit_Framework_MockObject_MockObject
      */
     private $collectionFactory;
 
     /**
-     * @var ScopeCodeResolver|MockObject
+     * @var ScopeCodeResolver|\PHPUnit_Framework_MockObject_MockObject
      */
     private $scopeCodeResolver;
 
     /**
-     * @var Converter|MockObject
+     * @var Converter|\PHPUnit_Framework_MockObject_MockObject
      */
     private $converter;
 
     /**
-     * @var Value|MockObject
+     * @var Value|\PHPUnit_Framework_MockObject_MockObject
      */
     private $configItem;
 
     /**
-     * @var Value|MockObject
+     * @var Value|\PHPUnit_Framework_MockObject_MockObject
      */
     private $configItemTwo;
 
@@ -52,10 +47,6 @@ class RuntimeConfigSourceTest extends TestCase
      * @var RuntimeConfigSource
      */
     private $configSource;
-    /**
-     * @var DeploymentConfig|MockObject
-     */
-    private $deploymentConfig;
 
     public function setUp()
     {
@@ -77,29 +68,20 @@ class RuntimeConfigSourceTest extends TestCase
             ->disableOriginalConstructor()
             ->setMethods(['getScope', 'getPath', 'getValue', 'getScopeId'])
             ->getMock();
-        $this->deploymentConfig = $this->createPartialMock(DeploymentConfig::class, ['isDbAvailable']);
         $this->configSource = new RuntimeConfigSource(
             $this->collectionFactory,
             $this->scopeCodeResolver,
-            $this->converter,
-            $this->deploymentConfig
+            $this->converter
         );
     }
 
     public function testGet()
     {
-        $this->deploymentConfig->method('isDbAvailable')
-            ->willReturn(true);
-        $collection = $this->createPartialMock(Collection::class, ['load', 'getIterator']);
-        $collection->method('load')
-            ->willReturn($collection);
-        $collection->method('getIterator')
-            ->willReturn(new ArrayIterator([$this->configItem, $this->configItemTwo]));
         $scope = 'websites';
         $scopeCode = 'myWebsites';
         $this->collectionFactory->expects($this->once())
             ->method('create')
-            ->willReturn($collection);
+            ->willReturn([$this->configItem, $this->configItemTwo]);
         $this->configItem->expects($this->exactly(2))
             ->method('getScope')
             ->willReturn(ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
@@ -150,23 +132,5 @@ class RuntimeConfigSourceTest extends TestCase
             ],
             $this->configSource->get()
         );
-    }
-
-    public function testGetWhenDbIsNotAvailable()
-    {
-        $this->deploymentConfig->method('isDbAvailable')->willReturn(false);
-        $this->assertEquals([], $this->configSource->get());
-    }
-
-    public function testGetWhenDbIsEmpty()
-    {
-        $this->deploymentConfig->method('isDbAvailable')
-            ->willReturn(true);
-        $collection = $this->createPartialMock(Collection::class, ['load']);
-        $collection->method('load')
-            ->willThrowException($this->createMock(TableNotFoundException::class));
-        $this->collectionFactory->method('create')
-            ->willReturn($collection);
-        $this->assertEquals([], $this->configSource->get());
     }
 }

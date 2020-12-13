@@ -157,9 +157,7 @@ class ExportDataHandler implements ExportDataHandlerInterface
     private function prepareFileDirectory(WriteInterface $directory, $path)
     {
         $directory->delete($path);
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         if (dirname($path) !== '.') {
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction
             $directory->create(dirname($path));
         }
 
@@ -178,7 +176,6 @@ class ExportDataHandler implements ExportDataHandlerInterface
         $this->archive->pack(
             $source,
             $destination,
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction
             is_dir($source) ?: false
         );
 

@@ -64,7 +64,7 @@ class AttributeTest extends \PHPUnit\Framework\TestCase
         );
         $this->attributeMock = $this->createPartialMock(
             \Magento\Catalog\Model\ResourceModel\Eav\Attribute::class,
-            ['dataHasChangedFor', 'isObjectNew', 'getIsSearchable', 'getData']
+            ['dataHasChangedFor', 'isObjectNew', 'getIsSearchable']
         );
         $this->config =  $this->getMockBuilder(\Magento\Framework\Search\Request\Config::class)
             ->disableOriginalConstructor()
@@ -85,7 +85,7 @@ class AttributeTest extends \PHPUnit\Framework\TestCase
             ->method('isObjectNew')
             ->willReturn(true);
         $this->attributeMock->expects($this->once())
-            ->method('getData')
+            ->method('dataHasChangedFor')
             ->with('is_searchable')
             ->willReturn(true);
         $this->assertEquals(
@@ -102,52 +102,27 @@ class AttributeTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    /**
-     * Test afterSave with invalidation.
-     *
-     * @param bool $saveNeedInvalidation
-     * @param bool $saveIsNew
-     * @dataProvider afterSaveDataProvider
-     */
-    public function testAfterSaveWithInvalidation(bool $saveNeedInvalidation, bool $saveIsNew)
+    public function testAfterSaveWithInvalidation()
     {
         $model = $this->objectManager->getObject(
             Attribute::class,
             [
                 'indexerRegistry' => $this->indexerRegistryMock,
                 'config' => $this->config,
-                'saveNeedInvalidation' => $saveNeedInvalidation,
-                'saveIsNew' => $saveIsNew,
+                'saveNeedInvalidation' => true,
+                'saveIsNew' => true
             ]
         );
 
-        if ($saveNeedInvalidation) {
-            $this->indexerMock->expects($this->once())->method('invalidate');
-            $this->prepareIndexer();
-        }
-
-        if ($saveIsNew || $saveNeedInvalidation) {
-            $this->config->expects($this->once())
-                ->method('reset');
-        }
+        $this->indexerMock->expects($this->once())->method('invalidate');
+        $this->prepareIndexer();
+        $this->config->expects($this->once())
+            ->method('reset');
 
         $this->assertEquals(
             $this->subjectMock,
             $model->afterSave($this->subjectMock, $this->subjectMock)
         );
-    }
-
-    /**
-     * @return array
-     */
-    public function afterSaveDataProvider(): array
-    {
-        return [
-            'save_new_with_invalidation' => ['saveNeedInvalidation' => true, 'isNew' => true],
-            'save_new_without_invalidation' => ['saveNeedInvalidation' => false, 'isNew' => true],
-            'update_existing_with_inalidation' => ['saveNeedInvalidation' => true, 'isNew' => false],
-            'update_existing_without_inalidation' => ['saveNeedInvalidation' => false, 'isNew' => false],
-        ];
     }
 
     public function testBeforeDelete()

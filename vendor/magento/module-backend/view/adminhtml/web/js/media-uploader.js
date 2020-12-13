@@ -37,14 +37,14 @@ define([
                 progressTmpl = mageTemplate('[data-template="uploader"]'),
                 isResizeEnabled = this.options.isResizeEnabled,
                 resizeConfiguration = {
-                    action: 'resizeImage',
+                    action: 'resize',
                     maxWidth: this.options.maxWidth,
                     maxHeight: this.options.maxHeight
                 };
 
             if (!isResizeEnabled) {
                 resizeConfiguration = {
-                    action: 'resizeImage'
+                    action: 'resize'
                 };
             }
 
@@ -131,13 +131,13 @@ define([
             });
 
             this.element.find('input[type=file]').fileupload('option', {
-                processQueue: [{
-                    action: 'loadImage',
+                process: [{
+                    action: 'load',
                     fileTypes: /^image\/(gif|jpeg|png)$/
                 },
                 resizeConfiguration,
                 {
-                    action: 'saveImage'
+                    action: 'save'
                 }]
             });
         }

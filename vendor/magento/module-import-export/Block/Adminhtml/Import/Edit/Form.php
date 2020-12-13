@@ -5,7 +5,6 @@
  */
 namespace Magento\ImportExport\Block\Adminhtml\Import\Edit;
 
-use Magento\Framework\App\ObjectManager;
 use Magento\ImportExport\Model\Import;
 use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface;
 
@@ -34,11 +33,6 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
     protected $_behaviorFactory;
 
     /**
-     * @var Import\ImageDirectoryBaseProvider
-     */
-    private $imagesDirectoryProvider;
-
-    /**
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Data\FormFactory $formFactory
@@ -46,7 +40,6 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
      * @param \Magento\ImportExport\Model\Source\Import\EntityFactory $entityFactory
      * @param \Magento\ImportExport\Model\Source\Import\Behavior\Factory $behaviorFactory
      * @param array $data
-     * @param Import\ImageDirectoryBaseProvider|null $imageDirProvider
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
@@ -55,15 +48,12 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
         \Magento\ImportExport\Model\Import $importModel,
         \Magento\ImportExport\Model\Source\Import\EntityFactory $entityFactory,
         \Magento\ImportExport\Model\Source\Import\Behavior\Factory $behaviorFactory,
-        array $data = [],
-        ?Import\ImageDirectoryBaseProvider $imageDirProvider = null
+        array $data = []
     ) {
         $this->_entityFactory = $entityFactory;
         $this->_behaviorFactory = $behaviorFactory;
         parent::__construct($context, $registry, $formFactory, $data);
         $this->_importModel = $importModel;
-        $this->imagesDirectoryProvider = $imageDirProvider
-            ?? ObjectManager::getInstance()->get(Import\ImageDirectoryBaseProvider::class);
     }
 
     /**
@@ -241,15 +231,8 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
                 'class' => 'input-text',
                 'note' => __(
-                    $this->escapeHtml(
-                        'For Type "Local Server" use relative path to &lt;Magento root directory&gt;/'
-                        .$this->imagesDirectoryProvider->getDirectoryRelativePath()
-                        .', e.g. <i>product_images</i>, <i>import_images/batch1</i>.<br><br>'
-                        .'For example, in case <i>product_images</i>, files should be placed into '
-                        .'<i>&lt;Magento root directory&gt;/'
-                        .$this->imagesDirectoryProvider->getDirectoryRelativePath() . '/product_images</i> folder.',
-                        ['i', 'br']
-                    )
+                    'For Type "Local Server" use relative path to Magento installation,
+                                e.g. var/export, var/import, var/export/some/dir'
                 ),
             ]
         );

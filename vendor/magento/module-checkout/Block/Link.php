@@ -41,8 +41,6 @@ class Link extends \Magento\Framework\View\Element\Html\Link
     }
 
     /**
-     * Get href.
-     *
      * @return string
      * @codeCoverageIgnore
      */

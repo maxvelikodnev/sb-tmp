@@ -20,19 +20,10 @@ function refreshCouponCodesGrid(grid, gridMassAction, transport) {
 
 function generateCouponCodes(idPrefix, generateUrl, grid) {
     $(idPrefix + 'information_fieldset').removeClassName('ignore-validate');
-    var listInvalidElement = [];
     var validationResult = $(idPrefix + 'information_fieldset').select('input',
             'select', 'textarea').collect( function(elm) {
-        var validateOneElementResult = jQuery.validator.validateSingleElement(elm);
-        if (!validateOneElementResult) {
-            listInvalidElement.push(elm);
-        }
-        return validateOneElementResult;
+        return jQuery.validator.validateElement(elm);
     }).all();
-    if (listInvalidElement.length) {
-        listInvalidElement[0].focus();
-    }
-
     $(idPrefix + 'information_fieldset').addClassName('ignore-validate');
 
     if (!validationResult) {
@@ -64,7 +55,7 @@ function generateCouponCodes(idPrefix, generateUrl, grid) {
                 try {
                     response = JSON.parse(transport.responseText);
                 } catch (e) {
-                    console.warn('An error occurred while parsing response');
+                    console.warn('An error occured while parsing response');
                 }
             }
             if (couponCodesGrid) {
@@ -86,11 +77,6 @@ function generateCouponCodes(idPrefix, generateUrl, grid) {
     });
 }
 
-function validateCouponGenerate(elm) {
-    jQuery.validator.validateSingleElement(elm);
-}
-
-window.validateCouponGenerate = validateCouponGenerate;
 window.generateCouponCodes = generateCouponCodes;
 window.refreshCouponCodesGrid = refreshCouponCodesGrid;
 });

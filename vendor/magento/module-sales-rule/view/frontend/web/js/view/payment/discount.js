@@ -9,19 +9,18 @@ define([
     'uiComponent',
     'Magento_Checkout/js/model/quote',
     'Magento_SalesRule/js/action/set-coupon-code',
-    'Magento_SalesRule/js/action/cancel-coupon',
-    'Magento_SalesRule/js/model/coupon'
-], function ($, ko, Component, quote, setCouponCodeAction, cancelCouponAction, coupon) {
+    'Magento_SalesRule/js/action/cancel-coupon'
+], function ($, ko, Component, quote, setCouponCodeAction, cancelCouponAction) {
     'use strict';
 
     var totals = quote.getTotals(),
-        couponCode = coupon.getCouponCode(),
-        isApplied = coupon.getIsApplied();
+        couponCode = ko.observable(null),
+        isApplied;
 
     if (totals()) {
         couponCode(totals()['coupon_code']);
     }
-    isApplied(couponCode() != null);
+    isApplied = ko.observable(couponCode() != null);
 
     return Component.extend({
         defaults: {

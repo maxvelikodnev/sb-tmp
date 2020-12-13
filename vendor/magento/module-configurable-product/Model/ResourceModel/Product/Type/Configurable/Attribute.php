@@ -1,5 +1,7 @@
 <?php
 /**
+ * Catalog super product attribute resource model
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
@@ -9,9 +11,6 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute as Con
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Store\Model\Store;
 
-/**
- * Catalog super product attribute resource model.
- */
 class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
@@ -53,7 +52,7 @@ class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * Initialize connection and define tables
+     * Inititalize connection and define tables
      *
      * @return void
      */
@@ -190,7 +189,8 @@ class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * @inheritDoc
+     * @param \Magento\Framework\Model\AbstractModel $object
+     * @return $this
      */
     protected function _afterLoad(\Magento\Framework\Model\AbstractModel $object)
     {

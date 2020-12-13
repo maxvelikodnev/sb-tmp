@@ -3,10 +3,8 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-namespace Magento\Backend\Block\Widget\Grid\Massaction;
 
-use Magento\Framework\Data\Collection\AbstractDb;
-use Magento\Framework\DB\Select;
+namespace Magento\Backend\Block\Widget\Grid\Massaction;
 
 /**
  * Grid widget massaction block
@@ -15,7 +13,7 @@ use Magento\Framework\DB\Select;
  * @deprecated 100.2.0 in favour of UI component implementation
  * @method \Magento\Quote\Model\Quote setHideFormElement(boolean $value) Hide Form element to prevent IE errors
  * @method boolean getHideFormElement()
- * @author Magento Core Team <core@magentocommerce.com>
+ * @author      Magento Core Team <core@magentocommerce.com>
  * @TODO MAGETWO-31510: Remove deprecated class
  * @since 100.0.2
  */
@@ -158,7 +156,7 @@ class Extended extends \Magento\Backend\Block\Widget
      */
     public function getCount()
     {
-        return count($this->_items);
+        return sizeof($this->_items);
     }
 
     /**
@@ -250,8 +248,6 @@ class Extended extends \Magento\Backend\Block\Widget
     }
 
     /**
-     * Get mass action javascript code
-     *
      * @return string
      */
     public function getJavaScript()
@@ -268,8 +264,6 @@ class Extended extends \Magento\Backend\Block\Widget
     }
 
     /**
-     * Get grid ids in JSON format
-     *
      * @return string
      */
     public function getGridIdsJson()
@@ -287,24 +281,15 @@ class Extended extends \Magento\Backend\Block\Widget
             $massActionIdField = $this->getParentBlock()->getMassactionIdField();
         }
 
-        if ($allIdsCollection instanceof AbstractDb) {
-            $idsSelect = clone $allIdsCollection->getSelect();
-            $idsSelect->reset(Select::ORDER);
-            $idsSelect->reset(Select::LIMIT_COUNT);
-            $idsSelect->reset(Select::LIMIT_OFFSET);
-            $idsSelect->reset(Select::COLUMNS);
-            $idsSelect->columns($massActionIdField);
-            $idList = $allIdsCollection->getConnection()->fetchCol($idsSelect);
-        } else {
-            $idList = $allIdsCollection->setPageSize(0)->getColumnValues($massActionIdField);
-        }
+        $gridIds = $allIdsCollection->setPageSize(0)->getColumnValues($massActionIdField);
 
-        return implode(',', $idList);
+        if (!empty($gridIds)) {
+            return join(",", $gridIds);
+        }
+        return '';
     }
 
     /**
-     * Retrieve massaction block js object name
-     *
      * @return string
      */
     public function getHtmlId()

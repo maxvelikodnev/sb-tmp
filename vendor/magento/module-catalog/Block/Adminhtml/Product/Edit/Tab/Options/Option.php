@@ -7,20 +7,13 @@
 /**
  * Customers defined options
  */
-declare(strict_types=1);
-
 namespace Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Options;
 
 use Magento\Backend\Block\Widget;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
-use Magento\Store\Model\Store;
 
 /**
- * Block for rendering option of product
- *
- * Class \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Options\Option
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Option extends Widget
@@ -112,8 +105,6 @@ class Option extends Widget
     }
 
     /**
-     * Get Item Count
-     *
      * @return int
      */
     public function getItemCount()
@@ -122,8 +113,6 @@ class Option extends Widget
     }
 
     /**
-     * Set Item Count
-     *
      * @param int $itemCount
      * @return $this
      */
@@ -153,8 +142,6 @@ class Option extends Widget
     }
 
     /**
-     * Set Product
-     *
      * @param Product $product
      * @return $this
      */
@@ -195,8 +182,6 @@ class Option extends Widget
     }
 
     /**
-     * Prepare Layout
-     *
      * @return $this
      */
     protected function _prepareLayout()
@@ -209,8 +194,6 @@ class Option extends Widget
     }
 
     /**
-     * Get Add Button Id
-     *
      * @return mixed
      */
     public function getAddButtonId()
@@ -220,8 +203,6 @@ class Option extends Widget
     }
 
     /**
-     * Get Type Select Html
-     *
      * @return mixed
      */
     public function getTypeSelectHtml()
@@ -243,8 +224,6 @@ class Option extends Widget
     }
 
     /**
-     * Get Require Select Html
-     *
      * @return mixed
      */
     public function getRequireSelectHtml()
@@ -293,8 +272,6 @@ class Option extends Widget
     }
 
     /**
-     * Get Option Values
-     *
      * @return \Magento\Framework\DataObject[]
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
@@ -330,7 +307,7 @@ class Option extends Widget
                 $value['sort_order'] = $option->getSortOrder();
                 $value['can_edit_price'] = $this->getCanEditPrice();
 
-                if ($this->getProduct()->getStoreId() != Store::DEFAULT_STORE_ID) {
+                if ($this->getProduct()->getStoreId() != '0') {
                     $value['checkboxScopeTitle'] = $this->getCheckboxScopeHtml(
                         $option->getOptionId(),
                         'title',
@@ -340,7 +317,49 @@ class Option extends Widget
                 }
 
                 if ($option->getGroupByType() == ProductCustomOptionInterface::OPTION_GROUP_SELECT) {
-                    $value = $this->getOptionValueOfGroupSelect($value, $option, $showPrice, $scope);
+                    $i = 0;
+                    $itemCount = 0;
+                    foreach ($option->getValues() as $_value) {
+                        /* @var $_value \Magento\Catalog\Model\Product\Option\Value */
+                        $value['optionValues'][$i] = [
+                            'item_count' => max($itemCount, $_value->getOptionTypeId()),
+                            'option_id' => $_value->getOptionId(),
+                            'option_type_id' => $_value->getOptionTypeId(),
+                            'title' => $_value->getTitle(),
+                            'price' => $showPrice ? $this->getPriceValue(
+                                $_value->getPrice(),
+                                $_value->getPriceType()
+                            ) : '',
+                            'price_type' => $showPrice ? $_value->getPriceType() : 0,
+                            'sku' => $_value->getSku(),
+                            'sort_order' => $_value->getSortOrder(),
+                        ];
+
+                        if ($this->getProduct()->getStoreId() != '0') {
+                            $value['optionValues'][$i]['checkboxScopeTitle'] = $this->getCheckboxScopeHtml(
+                                $_value->getOptionId(),
+                                'title',
+                                $_value->getStoreTitle() === null,
+                                $_value->getOptionTypeId()
+                            );
+                            $value['optionValues'][$i]['scopeTitleDisabled'] = $_value->getStoreTitle() === null
+                                ? 'disabled'
+                                : null;
+                            if ($scope == \Magento\Store\Model\Store::PRICE_SCOPE_WEBSITE) {
+                                $value['optionValues'][$i]['checkboxScopePrice'] = $this->getCheckboxScopeHtml(
+                                    $_value->getOptionId(),
+                                    'price',
+                                    $_value->getstorePrice() === null,
+                                    $_value->getOptionTypeId(),
+                                    ['$(this).up(1).previous()']
+                                );
+                                $value['optionValues'][$i]['scopePriceDisabled'] = $_value->getStorePrice() === null
+                                    ? 'disabled'
+                                    : null;
+                            }
+                        }
+                        $i++;
+                    }
                 } else {
                     $value['price'] = $showPrice ? $this->getPriceValue(
                         $option->getPrice(),
@@ -352,7 +371,7 @@ class Option extends Widget
                     $value['file_extension'] = $option->getFileExtension();
                     $value['image_size_x'] = $option->getImageSizeX();
                     $value['image_size_y'] = $option->getImageSizeY();
-                    if ($this->getProduct()->getStoreId() != Store::DEFAULT_STORE_ID
+                    if ($this->getProduct()->getStoreId() != '0'
                         && $scope == \Magento\Store\Model\Store::PRICE_SCOPE_WEBSITE
                     ) {
                         $value['checkboxScopePrice'] = $this->getCheckboxScopeHtml(
@@ -369,63 +388,6 @@ class Option extends Widget
         }
 
         return $this->_values;
-    }
-
-    /**
-     * Get Option Value Of Group Select
-     *
-     * @param array $value
-     * @param \Magento\Catalog\Model\Product\Option $option
-     * @param boolean $showPrice
-     * @param int $scope
-     * @return array
-     */
-    private function getOptionValueOfGroupSelect($value, $option, $showPrice, $scope)
-    {
-        $i = 0;
-        $itemCount = 0;
-        foreach ($option->getValues() as $_value) {
-            /* @var $_value \Magento\Catalog\Model\Product\Option\Value */
-            $value['optionValues'][$i] = [
-                'item_count' => max($itemCount, $_value->getOptionTypeId()),
-                'option_id' => $_value->getOptionId(),
-                'option_type_id' => $_value->getOptionTypeId(),
-                'title' => $_value->getTitle(),
-                'price' => $showPrice ? $this->getPriceValue(
-                    $_value->getPrice(),
-                    $_value->getPriceType()
-                ) : '',
-                'price_type' => $showPrice ? $_value->getPriceType() : 0,
-                'sku' => $_value->getSku(),
-                'sort_order' => $_value->getSortOrder(),
-            ];
-
-            if ($this->getProduct()->getStoreId() != Store::DEFAULT_STORE_ID) {
-                $value['optionValues'][$i]['checkboxScopeTitle'] = $this->getCheckboxScopeHtml(
-                    $_value->getOptionId(),
-                    'title',
-                    $_value->getStoreTitle() === null,
-                    $_value->getOptionTypeId()
-                );
-                $value['optionValues'][$i]['scopeTitleDisabled'] = $_value->getStoreTitle() === null
-                    ? 'disabled'
-                    : null;
-                if ($scope == \Magento\Store\Model\Store::PRICE_SCOPE_WEBSITE) {
-                    $value['optionValues'][$i]['checkboxScopePrice'] = $this->getCheckboxScopeHtml(
-                        $_value->getOptionId(),
-                        'price',
-                        $_value->getstorePrice() === null,
-                        $_value->getOptionTypeId(),
-                        ['$(this).up(1).previous()']
-                    );
-                    $value['optionValues'][$i]['scopePriceDisabled'] = $_value->getStorePrice() === null
-                        ? 'disabled'
-                        : null;
-                }
-            }
-            $i++;
-        }
-        return $value;
     }
 
     /**
@@ -469,8 +431,6 @@ class Option extends Widget
     }
 
     /**
-     * Get Price Value
-     *
      * @param float $value
      * @param string $type
      * @return string
@@ -478,9 +438,9 @@ class Option extends Widget
     public function getPriceValue($value, $type)
     {
         if ($type == 'percent') {
-            return number_format((float)$value, 2, null, '');
+            return number_format($value, 2, null, '');
         } elseif ($type == 'fixed') {
-            return number_format((float)$value, 2, null, '');
+            return number_format($value, 2, null, '');
         }
     }
 

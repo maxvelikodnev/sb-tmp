@@ -18,6 +18,7 @@
         <section name="AdminProductAttributesSection"/>
         <section name="AdminProductFormRelatedUpSellCrossSellSection"/>
         <section name="AdminProductFormAdvancedPricingSection"/>
+        <section name="AdminProductFormAdvancedInventorySection"/>
         <section name="AdminAddAttributeModalSection"/>
     </page>
 </pages>

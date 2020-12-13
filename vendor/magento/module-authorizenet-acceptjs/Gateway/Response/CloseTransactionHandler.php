@@ -14,9 +14,6 @@ use Magento\Sales\Model\Order\Payment;
 
 /**
  * Processes payment information from a void transaction response
- *
- * @deprecated 100.3.3 Starting from Magento 2.3.4 Authorize.net payment method core integration is deprecated in favor of
- * official payment integration available on the marketplace
  */
 class CloseTransactionHandler implements HandlerInterface
 {
@@ -26,18 +23,11 @@ class CloseTransactionHandler implements HandlerInterface
     private $subjectReader;
 
     /**
-     * @var bool
-     */
-    private $closeTransaction;
-
-    /**
      * @param SubjectReader $subjectReader
-     * @param bool $closeTransaction
      */
-    public function __construct(SubjectReader $subjectReader, bool $closeTransaction = true)
+    public function __construct(SubjectReader $subjectReader)
     {
         $this->subjectReader = $subjectReader;
-        $this->closeTransaction = $closeTransaction;
     }
 
     /**
@@ -49,20 +39,8 @@ class CloseTransactionHandler implements HandlerInterface
         $payment = $paymentDO->getPayment();
 
         if ($payment instanceof Payment) {
-            $payment->setIsTransactionClosed($this->closeTransaction);
-            $payment->setShouldCloseParentTransaction($this->shouldCloseParentTransaction($payment));
+            $payment->setIsTransactionClosed(true);
+            $payment->setShouldCloseParentTransaction(true);
         }
-    }
-
-    /**
-     * Whether parent transaction should be closed.
-     *
-     * @param Payment $payment
-     * @return bool
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function shouldCloseParentTransaction(Payment $payment)
-    {
-        return true;
     }
 }

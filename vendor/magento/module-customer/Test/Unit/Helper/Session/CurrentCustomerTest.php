@@ -6,9 +6,6 @@
 
 namespace Magento\Customer\Test\Unit\Helper\Session;
 
-/**
- * Current customer test.
- */
 class CurrentCustomerTest extends \PHPUnit\Framework\TestCase
 {
     /**

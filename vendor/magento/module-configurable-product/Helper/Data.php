@@ -14,7 +14,6 @@ use Magento\Catalog\Model\Product\Image;
 
 /**
  * Class Data
- *
  * Helper class for getting options
  * @api
  * @since 100.0.2
@@ -88,9 +87,8 @@ class Data
                 $productAttribute = $attribute->getProductAttribute();
                 $productAttributeId = $productAttribute->getId();
                 $attributeValue = $product->getData($productAttribute->getAttributeCode());
-                if ($product->isSalable()) {
-                    $options[$productAttributeId][$attributeValue][] = $productId;
-                }
+
+                $options[$productAttributeId][$attributeValue][] = $productId;
                 $options['index'][$productId][$productAttributeId] = $attributeValue;
             }
         }

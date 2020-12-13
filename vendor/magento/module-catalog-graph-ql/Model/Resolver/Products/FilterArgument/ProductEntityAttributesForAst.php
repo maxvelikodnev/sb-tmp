@@ -17,25 +17,19 @@ use Magento\Framework\GraphQl\Query\Resolver\Argument\FieldEntityAttributesInter
  */
 class ProductEntityAttributesForAst implements FieldEntityAttributesInterface
 {
-    private const PRODUCT_BASE_TYPE = 'SimpleProduct';
-
-    private const PRODUCT_FILTER_INPUT = 'ProductAttributeFilterInput';
-
     /**
      * @var ConfigInterface
      */
     private $config;
 
     /**
-     * Additional attributes that are not retrieved by getting fields from ProductInterface
-     *
      * @var array
      */
     private $additionalAttributes = ['min_price', 'max_price', 'category_id'];
 
     /**
      * @param ConfigInterface $config
-     * @param string[] $additionalAttributes
+     * @param array $additionalAttributes
      */
     public function __construct(
         ConfigInterface $config,
@@ -46,18 +40,13 @@ class ProductEntityAttributesForAst implements FieldEntityAttributesInterface
     }
 
     /**
-     * @inheritdoc
-     *
-     * Gather all the product entity attributes that can be filtered by search criteria.
-     * Example format ['attributeNameInGraphQl' => ['type' => 'String'. 'fieldName' => 'attributeNameInSearchCriteria']]
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getEntityAttributes() : array
     {
-        $productTypeSchema = $this->config->getConfigElement(self::PRODUCT_BASE_TYPE);
+        $productTypeSchema = $this->config->getConfigElement('SimpleProduct');
         if (!$productTypeSchema instanceof Type) {
-            throw new \LogicException(__(self::PRODUCT_BASE_TYPE . " type not defined in schema."));
+            throw new \LogicException(__("SimpleProduct type not defined in schema."));
         }
 
         $fields = [];
@@ -66,43 +55,14 @@ class ProductEntityAttributesForAst implements FieldEntityAttributesInterface
             $configElement = $this->config->getConfigElement($interface['interface']);
 
             foreach ($configElement->getFields() as $field) {
-                $fields[$field->getName()] = [
-                    'type' => 'String',
-                    'fieldName' => $field->getName(),
-                ];
+                $fields[$field->getName()] = 'String';
             }
         }
 
-        $productAttributeFilterFields = $this->getProductAttributeFilterFields();
-        $fields = array_merge($fields, $productAttributeFilterFields);
-
-        foreach ($this->additionalAttributes as $attributeName) {
-            $fields[$attributeName] = [
-                'type' => 'String',
-                'fieldName' => $attributeName,
-            ];
+        foreach ($this->additionalAttributes as $attribute) {
+            $fields[$attribute] = 'String';
         }
 
-        return $fields;
-    }
-
-    /**
-     * Get fields from ProductAttributeFilterInput
-     *
-     * @return array
-     */
-    private function getProductAttributeFilterFields()
-    {
-        $filterFields = [];
-
-        $productAttributeFilterSchema = $this->config->getConfigElement(self::PRODUCT_FILTER_INPUT);
-        $productAttributeFilterFields = $productAttributeFilterSchema->getFields();
-        foreach ($productAttributeFilterFields as $filterField) {
-            $filterFields[$filterField->getName()] = [
-                'type' => 'String',
-                'fieldName' => $filterField->getName(),
-            ];
-        }
-        return $filterFields;
+        return array_keys($fields);
     }
 }

@@ -10,7 +10,6 @@ use Magento\Framework\Exception\LocalizedException;
 
 /**
  * System Configuration Abstract Controller
- * phpcs:disable Magento2.Classes.AbstractApi
  * @api
  * @since 100.0.2
  *

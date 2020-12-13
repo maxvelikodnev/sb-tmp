@@ -3,9 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-declare(strict_types=1);
-
 namespace Magento\CatalogUrlRewrite\Model\ResourceModel\Category;
 
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
@@ -52,7 +49,7 @@ class Product extends AbstractDb
     public function saveMultiple(array $insertData)
     {
         $connection = $this->getConnection();
-        if (count($insertData) <= self::CHUNK_SIZE) {
+        if (sizeof($insertData) <= self::CHUNK_SIZE) {
             return $connection->insertMultiple($this->getTable(self::TABLE_NAME), $insertData);
         }
         $data = array_chunk($insertData, self::CHUNK_SIZE);
@@ -101,13 +98,10 @@ class Product extends AbstractDb
     private function prepareSelect($data)
     {
         $select = $this->getConnection()->select();
-        $select->from(DbStorage::TABLE_NAME);
-        $select->join(
-            self::TABLE_NAME,
-            DbStorage::TABLE_NAME . '.url_rewrite_id = ' . self::TABLE_NAME . '.url_rewrite_id'
-        );
+        $select->from($this->getTable(DbStorage::TABLE_NAME), 'url_rewrite_id');
+
         foreach ($data as $column => $value) {
-            $select->where(DbStorage::TABLE_NAME . '.' . $column . ' IN (?)', $value);
+            $select->where($this->getConnection()->quoteIdentifier($column) . ' IN (?)', $value);
         }
         return $select;
     }

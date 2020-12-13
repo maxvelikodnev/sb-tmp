@@ -11,7 +11,6 @@ use Magento\Analytics\Model\Config\Backend\Baseurl\SubscriptionUpdateHandler;
 use Magento\Analytics\Model\Connector;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
-use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\FlagManager;
 
 class UpdateTest extends \PHPUnit\Framework\TestCase
@@ -46,9 +45,6 @@ class UpdateTest extends \PHPUnit\Framework\TestCase
      */
     private $update;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp()
     {
         $this->connectorMock =  $this->getMockBuilder(Connector::class)
@@ -78,7 +74,6 @@ class UpdateTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @return void
-     * @throws NotFoundException
      */
     public function testExecuteWithoutToken()
     {
@@ -87,12 +82,12 @@ class UpdateTest extends \PHPUnit\Framework\TestCase
             ->with(SubscriptionUpdateHandler::SUBSCRIPTION_UPDATE_REVERSE_COUNTER_FLAG_CODE)
             ->willReturn(10);
         $this->connectorMock
-            ->expects($this->never())
+            ->expects($this->once())
             ->method('execute')
             ->with('update')
             ->willReturn(false);
         $this->analyticsTokenMock
-            ->expects($this->any())
+            ->expects($this->once())
             ->method('isTokenExist')
             ->willReturn(false);
         $this->addFinalOutputAsserts();
@@ -125,7 +120,6 @@ class UpdateTest extends \PHPUnit\Framework\TestCase
      * @param $counterData
      * @return void
      * @dataProvider executeWithEmptyReverseCounterDataProvider
-     * @throws NotFoundException
      */
     public function testExecuteWithEmptyReverseCounter($counterData)
     {
@@ -165,7 +159,6 @@ class UpdateTest extends \PHPUnit\Framework\TestCase
      * @param bool $functionResult
      * @return void
      * @dataProvider executeRegularScenarioDataProvider
-     * @throws NotFoundException
      */
     public function testExecuteRegularScenario(
         int $reverseCount,
@@ -177,10 +170,6 @@ class UpdateTest extends \PHPUnit\Framework\TestCase
             ->method('getFlagData')
             ->with(SubscriptionUpdateHandler::SUBSCRIPTION_UPDATE_REVERSE_COUNTER_FLAG_CODE)
             ->willReturn($reverseCount);
-        $this->flagManagerMock
-            ->expects($this->once())
-            ->method('saveFlag')
-            ->with(SubscriptionUpdateHandler::SUBSCRIPTION_UPDATE_REVERSE_COUNTER_FLAG_CODE, $reverseCount - 1);
         $this->connectorMock
             ->expects($this->once())
             ->method('execute')

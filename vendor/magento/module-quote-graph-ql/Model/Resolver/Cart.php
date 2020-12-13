@@ -37,14 +37,13 @@ class Cart implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        if (empty($args['cart_id'])) {
+        if (!isset($args['cart_id']) || empty($args['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
         $maskedCartId = $args['cart_id'];
 
         $currentUserId = $context->getUserId();
-        $storeId = $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
-        $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
+        $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId);
 
         return [
             'model' => $cart,

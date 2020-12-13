@@ -5,21 +5,13 @@
  */
 namespace Magento\Quote\Observer;
 
-use Magento\Framework\Event\Observer;
-use Magento\Framework\Event\ObserverInterface;
-use Magento\Quote\Model\Quote;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Psr\Log\LoggerInterface;
+use Magento\Framework\Event\ObserverInterface;
 
-/**
- * Class responsive for sending order and invoice emails when it's created through storefront.
- */
 class SubmitObserver implements ObserverInterface
 {
     /**
-     * @var LoggerInterface
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
@@ -29,37 +21,27 @@ class SubmitObserver implements ObserverInterface
     private $orderSender;
 
     /**
-     * @var InvoiceSender
-     */
-    private $invoiceSender;
-
-    /**
-     * @param LoggerInterface $logger
+     * @param \Psr\Log\LoggerInterface $logger
      * @param OrderSender $orderSender
-     * @param InvoiceSender $invoiceSender
      */
     public function __construct(
-        LoggerInterface $logger,
-        OrderSender $orderSender,
-        InvoiceSender $invoiceSender
+        \Psr\Log\LoggerInterface $logger,
+        OrderSender $orderSender
     ) {
         $this->logger = $logger;
         $this->orderSender = $orderSender;
-        $this->invoiceSender = $invoiceSender;
     }
 
     /**
-     * Send order and invoice email.
-     *
-     * @param Observer $observer
+     * @param \Magento\Framework\Event\Observer $observer
      *
      * @return void
      */
-    public function execute(Observer $observer)
+    public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        /** @var  Quote $quote */
+        /** @var  \Magento\Quote\Model\Quote $quote */
         $quote = $observer->getEvent()->getQuote();
-        /** @var  Order $order */
+        /** @var  \Magento\Sales\Model\Order $order */
         $order = $observer->getEvent()->getOrder();
 
         /**
@@ -69,10 +51,6 @@ class SubmitObserver implements ObserverInterface
         if (!$redirectUrl && $order->getCanSendNewEmailFlag()) {
             try {
                 $this->orderSender->send($order);
-                $invoice = current($order->getInvoiceCollection()->getItems());
-                if ($invoice) {
-                    $this->invoiceSender->send($invoice);
-                }
             } catch (\Exception $e) {
                 $this->logger->critical($e);
             }

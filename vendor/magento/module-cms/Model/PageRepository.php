@@ -7,27 +7,22 @@
 namespace Magento\Cms\Model;
 
 use Magento\Cms\Api\Data;
-use Magento\Cms\Api\Data\PageInterface;
-use Magento\Cms\Api\Data\PageInterfaceFactory;
-use Magento\Cms\Api\Data\PageSearchResultsInterface;
 use Magento\Cms\Api\PageRepositoryInterface;
-use Magento\Cms\Model\Api\SearchCriteria\PageCollectionProcessor;
-use Magento\Cms\Model\Page\IdentityMap;
-use Magento\Cms\Model\ResourceModel\Page as ResourcePage;
-use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Framework\Api\DataObjectHelper;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
-use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\Route\Config;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Reflection\DataObjectProcessor;
+use Magento\Cms\Model\ResourceModel\Page as ResourcePage;
+use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\AuthorizationInterface;
+use Magento\Authorization\Model\UserContextInterface;
 
 /**
- * Cms page repository
+ * Class PageRepository
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class PageRepository implements PageRepositoryInterface
@@ -63,12 +58,12 @@ class PageRepository implements PageRepositoryInterface
     protected $dataObjectProcessor;
 
     /**
-     * @var PageInterfaceFactory
+     * @var \Magento\Cms\Api\Data\PageInterfaceFactory
      */
     protected $dataPageFactory;
 
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     private $storeManager;
 
@@ -78,41 +73,37 @@ class PageRepository implements PageRepositoryInterface
     private $collectionProcessor;
 
     /**
-     * @var IdentityMap
+     * @var UserContextInterface
      */
-    private $identityMap;
+    private $userContext;
 
     /**
-     * @var Config
+     * @var AuthorizationInterface
      */
-    private $routeConfig;
+    private $authorization;
 
     /**
      * @param ResourcePage $resource
      * @param PageFactory $pageFactory
-     * @param PageInterfaceFactory $dataPageFactory
+     * @param Data\PageInterfaceFactory $dataPageFactory
      * @param PageCollectionFactory $pageCollectionFactory
      * @param Data\PageSearchResultsInterfaceFactory $searchResultsFactory
      * @param DataObjectHelper $dataObjectHelper
      * @param DataObjectProcessor $dataObjectProcessor
      * @param StoreManagerInterface $storeManager
      * @param CollectionProcessorInterface $collectionProcessor
-     * @param IdentityMap|null $identityMap
-     * @param Config|null $routeConfig
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         ResourcePage $resource,
         PageFactory $pageFactory,
-        PageInterfaceFactory $dataPageFactory,
+        Data\PageInterfaceFactory $dataPageFactory,
         PageCollectionFactory $pageCollectionFactory,
         Data\PageSearchResultsInterfaceFactory $searchResultsFactory,
         DataObjectHelper $dataObjectHelper,
         DataObjectProcessor $dataObjectProcessor,
         StoreManagerInterface $storeManager,
-        CollectionProcessorInterface $collectionProcessor = null,
-        ?IdentityMap $identityMap = null,
-        ?Config $routeConfig = null
+        CollectionProcessorInterface $collectionProcessor = null
     ) {
         $this->resource = $resource;
         $this->pageFactory = $pageFactory;
@@ -123,54 +114,77 @@ class PageRepository implements PageRepositoryInterface
         $this->dataObjectProcessor = $dataObjectProcessor;
         $this->storeManager = $storeManager;
         $this->collectionProcessor = $collectionProcessor ?: $this->getCollectionProcessor();
-        $this->identityMap = $identityMap ?? ObjectManager::getInstance()
-                ->get(IdentityMap::class);
-        $this->routeConfig = $routeConfig ?? ObjectManager::getInstance()
-                ->get(Config::class);
     }
 
     /**
-     * Validate new layout update values.
+     * Get user context.
      *
-     * @param PageInterface $page
-     * @return void
-     * @throws \InvalidArgumentException
+     * @return UserContextInterface
      */
-    private function validateLayoutUpdate(PageInterface $page): void
+    private function getUserContext(): UserContextInterface
     {
-        //Persisted data
-        $savedPage = $page->getId() ? $this->getById($page->getId()) : null;
-        //Custom layout update can be removed or kept as is.
-        if ($page->getCustomLayoutUpdateXml()
-            && (!$savedPage || $page->getCustomLayoutUpdateXml() !== $savedPage->getCustomLayoutUpdateXml())
-        ) {
-            throw new \InvalidArgumentException('Custom layout updates must be selected from a file');
+        if (!$this->userContext) {
+            $this->userContext = ObjectManager::getInstance()->get(UserContextInterface::class);
         }
-        if ($page->getLayoutUpdateXml()
-            && (!$savedPage || $page->getLayoutUpdateXml() !== $savedPage->getLayoutUpdateXml())
-        ) {
-            throw new \InvalidArgumentException('Custom layout updates must be selected from a file');
+
+        return $this->userContext;
+    }
+
+    /**
+     * Get authorization service.
+     *
+     * @return AuthorizationInterface
+     */
+    private function getAuthorization(): AuthorizationInterface
+    {
+        if (!$this->authorization) {
+            $this->authorization = ObjectManager::getInstance()->get(AuthorizationInterface::class);
         }
+
+        return $this->authorization;
     }
 
     /**
      * Save Page data
      *
-     * @param PageInterface|Page $page
+     * @param \Magento\Cms\Api\Data\PageInterface|Page $page
      * @return Page
      * @throws CouldNotSaveException
      */
-    public function save(PageInterface $page)
+    public function save(\Magento\Cms\Api\Data\PageInterface $page)
     {
         if ($page->getStoreId() === null) {
             $storeId = $this->storeManager->getStore()->getId();
             $page->setStoreId($storeId);
         }
         try {
-            $this->validateLayoutUpdate($page);
-            $this->validateRoutesDuplication($page);
+            //Validate changing of design.
+            $userType = $this->getUserContext()->getUserType();
+            if ((
+                    $userType === UserContextInterface::USER_TYPE_ADMIN
+                    || $userType === UserContextInterface::USER_TYPE_INTEGRATION
+                )
+                && !$this->getAuthorization()->isAllowed('Magento_Cms::save_design')
+            ) {
+                if (!$page->getId()) {
+                    $page->setLayoutUpdateXml(null);
+                    $page->setPageLayout(null);
+                    $page->setCustomTheme(null);
+                    $page->setCustomLayoutUpdateXml(null);
+                    $page->setCustomThemeTo(null);
+                    $page->setCustomThemeFrom(null);
+                } else {
+                    $savedPage = $this->getById($page->getId());
+                    $page->setLayoutUpdateXml($savedPage->getLayoutUpdateXml());
+                    $page->setPageLayout($savedPage->getPageLayout());
+                    $page->setCustomTheme($savedPage->getCustomTheme());
+                    $page->setCustomLayoutUpdateXml($savedPage->getCustomLayoutUpdateXml());
+                    $page->setCustomThemeTo($savedPage->getCustomThemeTo());
+                    $page->setCustomThemeFrom($savedPage->getCustomThemeFrom());
+                }
+            }
+
             $this->resource->save($page);
-            $this->identityMap->add($page);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(
                 __('Could not save the page: %1', $exception->getMessage()),
@@ -185,7 +199,7 @@ class PageRepository implements PageRepositoryInterface
      *
      * @param string $pageId
      * @return Page
-     * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getById($pageId)
     {
@@ -194,8 +208,6 @@ class PageRepository implements PageRepositoryInterface
         if (!$page->getId()) {
             throw new NoSuchEntityException(__('The CMS page with the "%1" ID doesn\'t exist.', $pageId));
         }
-        $this->identityMap->add($page);
-
         return $page;
     }
 
@@ -204,15 +216,17 @@ class PageRepository implements PageRepositoryInterface
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
-     * @param SearchCriteriaInterface $criteria
-     * @return PageSearchResultsInterface
+     * @param \Magento\Framework\Api\SearchCriteriaInterface $criteria
+     * @return \Magento\Cms\Api\Data\PageSearchResultsInterface
      */
-    public function getList(SearchCriteriaInterface $criteria)
+    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $criteria)
     {
+        /** @var \Magento\Cms\Model\ResourceModel\Page\Collection $collection */
         $collection = $this->pageCollectionFactory->create();
 
         $this->collectionProcessor->process($criteria, $collection);
 
+        /** @var Data\PageSearchResultsInterface $searchResults */
         $searchResults = $this->searchResultsFactory->create();
         $searchResults->setSearchCriteria($criteria);
         $searchResults->setItems($collection->getItems());
@@ -223,19 +237,19 @@ class PageRepository implements PageRepositoryInterface
     /**
      * Delete Page
      *
-     * @param PageInterface $page
+     * @param \Magento\Cms\Api\Data\PageInterface $page
      * @return bool
      * @throws CouldNotDeleteException
      */
-    public function delete(PageInterface $page)
+    public function delete(\Magento\Cms\Api\Data\PageInterface $page)
     {
         try {
             $this->resource->delete($page);
-            $this->identityMap->remove($page->getId());
         } catch (\Exception $exception) {
-            throw new CouldNotDeleteException(
-                __('Could not delete the page: %1', $exception->getMessage())
-            );
+            throw new CouldNotDeleteException(__(
+                'Could not delete the page: %1',
+                $exception->getMessage()
+            ));
         }
         return true;
     }
@@ -262,26 +276,10 @@ class PageRepository implements PageRepositoryInterface
     private function getCollectionProcessor()
     {
         if (!$this->collectionProcessor) {
-            // phpstan:ignore "Class Magento\Cms\Model\Api\SearchCriteria\PageCollectionProcessor not found."
-            $this->collectionProcessor = ObjectManager::getInstance()
-                ->get(PageCollectionProcessor::class);
-        }
-        return $this->collectionProcessor;
-    }
-
-    /**
-     * Checks that page identifier doesn't duplicate existed routes
-     *
-     * @param PageInterface $page
-     * @return void
-     * @throws CouldNotSaveException
-     */
-    private function validateRoutesDuplication($page): void
-    {
-        if ($this->routeConfig->getRouteByFrontName($page->getIdentifier(), 'frontend')) {
-            throw new CouldNotSaveException(
-                __('The value specified in the URL Key field would generate a URL that already exists.')
+            $this->collectionProcessor = \Magento\Framework\App\ObjectManager::getInstance()->get(
+                'Magento\Cms\Model\Api\SearchCriteria\PageCollectionProcessor'
             );
         }
+        return $this->collectionProcessor;
     }
 }

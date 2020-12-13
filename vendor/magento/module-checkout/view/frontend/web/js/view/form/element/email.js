@@ -145,19 +145,12 @@ define([
             var loginFormSelector = 'form[data-role=email-with-possible-login]',
                 usernameSelector = loginFormSelector + ' input[name=username]',
                 loginForm = $(loginFormSelector),
-                validator,
-                valid;
+                validator;
 
             loginForm.validation();
 
             if (focused === false && !!this.email()) {
-                valid = !!$(usernameSelector).valid();
-
-                if (valid) {
-                    $(usernameSelector).removeAttr('aria-invalid aria-describedby');
-                }
-
-                return valid;
+                return !!$(usernameSelector).valid();
             }
 
             validator = loginForm.validate();

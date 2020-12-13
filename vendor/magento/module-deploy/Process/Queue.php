@@ -10,9 +10,9 @@ namespace Magento\Deploy\Process;
 use Magento\Deploy\Package\Package;
 use Magento\Deploy\Service\DeployPackage;
 use Magento\Framework\App\ResourceConnection;
+use Psr\Log\LoggerInterface;
 use Magento\Framework\App\State as AppState;
 use Magento\Framework\Locale\ResolverInterface as LocaleResolver;
-use Psr\Log\LoggerInterface;
 
 /**
  * Deployment Queue
@@ -29,7 +29,7 @@ class Queue
     /**
      * Default max execution time
      */
-    const DEFAULT_MAX_EXEC_TIME = 900;
+    const DEFAULT_MAX_EXEC_TIME = 400;
 
     /**
      * @var array
@@ -97,11 +97,6 @@ class Queue
     private $lastJobStarted = 0;
 
     /**
-     * @var int
-     */
-    private $logDelay;
-
-    /**
      * @param AppState $appState
      * @param LocaleResolver $localeResolver
      * @param ResourceConnection $resourceConnection
@@ -162,57 +157,29 @@ class Queue
      * Process jobs
      *
      * @return int
-     * @throws TimeoutException
      */
     public function process()
     {
         $returnStatus = 0;
-        $this->logDelay = 10;
         $this->start = $this->lastJobStarted = time();
         $packages = $this->packages;
         while (count($packages) && $this->checkTimeout()) {
             foreach ($packages as $name => $packageJob) {
-                // Unsets each member of $packages array (passed by reference) as each is executed
                 $this->assertAndExecute($name, $packages, $packageJob);
             }
-
-            $this->refreshStatus();
-
-            if ($this->isCanBeParalleled()) {
-                // in parallel mode sleep before trying to check status and run new jobs
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                usleep(500000); // 0.5 sec (less sleep == less time waste)
-
-                foreach ($this->inProgress as $name => $package) {
-                    if ($this->isDeployed($package)) {
-                        unset($this->inProgress[$name]);
-                    }
+            $this->logger->info('.');
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            sleep(3);
+            foreach ($this->inProgress as $name => $package) {
+                if ($this->isDeployed($package)) {
+                    unset($this->inProgress[$name]);
                 }
             }
         }
 
         $this->awaitForAllProcesses();
 
-        if (!empty($packages)) {
-            throw new TimeoutException('Not all packages are deployed.');
-        }
-
         return $returnStatus;
-    }
-
-    /**
-     * Refresh current status in console once in 10 iterations (once in 5 sec)
-     *
-     * @return void
-     */
-    private function refreshStatus(): void
-    {
-        if ($this->logDelay >= 10) {
-            $this->logger->info('.');
-            $this->logDelay = 0;
-        } else {
-            $this->logDelay++;
-        }
     }
 
     /**
@@ -257,8 +224,12 @@ class Queue
      * @param bool $dependenciesNotFinished
      * @return void
      */
-    private function executePackage(Package $package, string $name, array &$packages, bool $dependenciesNotFinished)
-    {
+    private function executePackage(
+        Package $package,
+        string $name,
+        array &$packages,
+        bool $dependenciesNotFinished
+    ) {
         if (!$dependenciesNotFinished
             && !$this->isDeployed($package)
             && ($this->maxProcesses < 2 || (count($this->inProgress) < $this->maxProcesses))
@@ -281,12 +252,9 @@ class Queue
                     unset($this->inProgress[$name]);
                 }
             }
-
-            $this->refreshStatus();
-
-            // sleep before checking parallel jobs status
+            $this->logger->info('.');
             // phpcs:ignore Magento2.Functions.DiscouragedFunction
-            usleep(500000); // 0.5 sec (less sleep == less time waste)
+            sleep(5);
         }
         if ($this->isCanBeParalleled()) {
             // close connections only if ran with forks
@@ -370,41 +338,14 @@ class Queue
     {
         if ($this->isCanBeParalleled()) {
             if ($package->getState() === null) {
-                $pid = $this->getPid($package);
-
-                // When $pid comes back as null the child process for this package has not yet started; prevents both
-                // hanging until timeout expires (which was behaviour in 2.2.x) and the type error from strict_types
-                if ($pid === null) {
-                    return false;
-                }
-
                 // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                $result = pcntl_waitpid($pid, $status, WNOHANG);
-                if ($result === $pid) {
+                $pid = pcntl_waitpid($this->getPid($package) ?? 0, $status, WNOHANG);
+                if ($pid === $this->getPid($package)) {
                     $package->setState(Package::STATE_COMPLETED);
-                    // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                    $exitStatus = pcntl_wexitstatus($status);
-
-                    $this->logger->info(
-                        "Exited: " . $package->getPath() . "(status: $exitStatus)",
-                        [
-                            'process' => $package->getPath(),
-                            'status' => $exitStatus,
-                        ]
-                    );
 
                     unset($this->inProgress[$package->getPath()]);
                     // phpcs:ignore Magento2.Functions.DiscouragedFunction
                     return pcntl_wexitstatus($status) === 0;
-                } elseif ($result === -1) {
-                    // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                    $errno = pcntl_errno();
-                    // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                    $strerror = pcntl_strerror($errno);
-
-                    throw new \RuntimeException(
-                        "Error encountered checking child process status (PID: $pid): $strerror (errno: $errno)"
-                    );
                 }
                 return false;
             }
@@ -439,30 +380,15 @@ class Queue
      * Protect against zombie process
      *
      * @throws \RuntimeException
-     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      * @return void
      */
     public function __destruct()
     {
         foreach ($this->inProgress as $package) {
-            $pid = $this->getPid($package);
-            $this->logger->info(
-                "Reaping child process: {$package->getPath()} (PID: $pid)",
-                [
-                    'process' => $package->getPath(),
-                    'pid' => $pid,
-                ]
-            );
-
             // phpcs:ignore Magento2.Functions.DiscouragedFunction
-            if (pcntl_waitpid($pid, $status) === -1) {
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                $errno = pcntl_errno();
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                $strerror = pcntl_strerror($errno);
-
+            if (pcntl_waitpid($this->getPid($package), $status) === -1) {
                 throw new \RuntimeException(
-                    "Error encountered waiting for child process (PID: $pid): $strerror (errno: $errno)"
+                    'Error while waiting for package deployed: ' . $this->getPid($package) . '; Status: ' . $status
                 );
             }
         }

@@ -41,8 +41,7 @@ class Action extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Action
      */
     protected function _getEscapedValue($value)
     {
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction
-        return addcslashes($this->escapeHtml($value), '\\\'');
+        return addcslashes(htmlspecialchars($value), '\\\'');
     }
 
     /**

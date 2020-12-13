@@ -7,22 +7,17 @@
  */
 define([
     'jquery',
-    'jquery-ui-modules/widget',
+    'jquery/ui',
     'Magento_Catalog/js/price-box'
 ], function ($) {
     'use strict';
 
-    /**
-     * Downloadable widget
-     */
     $.widget('mage.downloadable', {
         options: {
             priceHolderSelector: '.price-box'
         },
 
-        /**
-         *  @inheritdoc
-         */
+        /** @inheritdoc */
         _create: function () {
             var self = this;
 
@@ -43,8 +38,6 @@ define([
                     });
                 }
             });
-
-            this._reloadPrice();
         },
 
         /**
@@ -70,32 +63,6 @@ define([
                     }
                 }
             });
-
-            this.reloadAllCheckText();
-        },
-
-        /**
-         * Reload all-elements-checkbox's label
-         * @private
-         */
-        reloadAllCheckText: function () {
-            var allChecked = true,
-                allElementsCheck = $(this.options.allElements),
-                allElementsLabel = $('label[for="' + allElementsCheck.attr('id') + '"] > span');
-
-            $(this.options.linkElement).each(function () {
-                if (!this.checked) {
-                    allChecked = false;
-                }
-            });
-
-            if (allChecked) {
-                allElementsLabel.text(allElementsCheck.attr('data-checked'));
-                allElementsCheck.prop('checked', true);
-            } else {
-                allElementsLabel.text(allElementsCheck.attr('data-notchecked'));
-                allElementsCheck.prop('checked', false);
-            }
         }
     });
 

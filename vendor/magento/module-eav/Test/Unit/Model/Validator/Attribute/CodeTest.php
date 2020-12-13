@@ -61,10 +61,7 @@ class CodeTest extends TestCase
             ], [
                 'more_than_60_chars_more_than_60_chars_more_than_60_chars_more',
                 false
-            ], [
-                'container_attribute',
-                false,
-            ],
+            ]
         ];
     }
 }

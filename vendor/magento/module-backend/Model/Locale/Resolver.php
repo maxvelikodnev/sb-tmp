@@ -7,10 +7,8 @@ namespace Magento\Backend\Model\Locale;
 
 /**
  * Backend locale model
- *
  * @api
  * @since 100.0.2
- * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
 class Resolver extends \Magento\Framework\Locale\Resolver
 {
@@ -42,7 +40,7 @@ class Resolver extends \Magento\Framework\Locale\Resolver
      * @param Manager $localeManager
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\Validator\Locale $localeValidator
-     * @param string|null $locale
+     * @param null $locale
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -78,7 +76,7 @@ class Resolver extends \Magento\Framework\Locale\Resolver
         $sessionLocale = $this->_session->getSessionLocale();
         $userLocale = $this->_localeManager->getUserInterfaceLocale();
 
-        $localeCodes = array_filter([$forceLocale, $locale, $sessionLocale, $userLocale]);
+        $localeCodes = array_filter([$forceLocale, $sessionLocale, $userLocale]);
 
         if (count($localeCodes)) {
             $locale = reset($localeCodes);

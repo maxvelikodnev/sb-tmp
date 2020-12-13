@@ -106,9 +106,7 @@ class AdvancedPricingTest extends AbstractModifierTest
      */
     protected function createModel()
     {
-        return $this->objectManager->getObject(
-            AdvancedPricing::class,
-            [
+        return $this->objectManager->getObject(AdvancedPricing::class, [
             'locator' => $this->locatorMock,
             'storeManager' => $this->storeManagerMock,
             'groupRepository' => $this->groupRepositoryMock,
@@ -116,8 +114,7 @@ class AdvancedPricingTest extends AbstractModifierTest
             'searchCriteriaBuilder' => $this->searchCriteriaBuilderMock,
             'moduleManager' => $this->moduleManagerMock,
             'directoryHelper' => $this->directoryHelperMock
-            ]
-        );
+        ]);
     }
 
     public function testModifyMeta()

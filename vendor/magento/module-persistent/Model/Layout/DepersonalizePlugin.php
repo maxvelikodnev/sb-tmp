@@ -3,51 +3,54 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Persistent\Model\Layout;
 
-use Magento\Framework\View\LayoutInterface;
 use Magento\PageCache\Model\DepersonalizeChecker;
-use Magento\Persistent\Model\Session as PersistentSession;
 
 /**
- * Depersonalize customer data.
+ * Class DepersonalizePlugin
  */
 class DepersonalizePlugin
 {
     /**
      * @var DepersonalizeChecker
      */
-    private $depersonalizeChecker;
+    protected $depersonalizeChecker;
 
     /**
-     * @var PersistentSession
+     * @var \Magento\Persistent\Model\Session
      */
-    private $persistentSession;
+    protected $persistentSession;
 
     /**
+     * Constructor
+     *
      * @param DepersonalizeChecker $depersonalizeChecker
-     * @param PersistentSession $persistentSession
+     * @param \Magento\Persistent\Model\Session $persistentSession
      */
     public function __construct(
         DepersonalizeChecker $depersonalizeChecker,
-        PersistentSession $persistentSession
+        \Magento\Persistent\Model\Session $persistentSession
     ) {
-        $this->depersonalizeChecker = $depersonalizeChecker;
         $this->persistentSession = $persistentSession;
+        $this->depersonalizeChecker = $depersonalizeChecker;
     }
 
     /**
-     * Change sensitive customer data if the depersonalization is needed.
+     * After generate Xml
      *
-     * @param LayoutInterface $subject
-     * @return void
+     * @param \Magento\Framework\View\LayoutInterface $subject
+     * @param \Magento\Framework\View\LayoutInterface $result
+     * @return \Magento\Framework\View\LayoutInterface
      */
-    public function afterGenerateElements(LayoutInterface $subject)
-    {
+    public function afterGenerateXml(
+        \Magento\Framework\View\LayoutInterface $subject,
+        \Magento\Framework\View\LayoutInterface $result
+    ) {
         if ($this->depersonalizeChecker->checkIfDepersonalize($subject)) {
             $this->persistentSession->setCustomerId(null);
         }
+
+        return $result;
     }
 }

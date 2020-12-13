@@ -1,5 +1,6 @@
 <?php
 /**
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
@@ -9,9 +10,6 @@ use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterf
 use Magento\Framework\App\TemplateTypesInterface;
 use Magento\Framework\Exception\LocalizedException;
 
-/**
- * An action that saves a template.
- */
 class Save extends \Magento\Newsletter\Controller\Adminhtml\Template implements HttpPostActionInterface
 {
     /**
@@ -34,7 +32,9 @@ class Save extends \Magento\Newsletter\Controller\Adminhtml\Template implements 
         }
 
         try {
-            $template->setTemplateSubject(
+            $template->addData(
+                $request->getParams()
+            )->setTemplateSubject(
                 $request->getParam('subject')
             )->setTemplateCode(
                 $request->getParam('code')

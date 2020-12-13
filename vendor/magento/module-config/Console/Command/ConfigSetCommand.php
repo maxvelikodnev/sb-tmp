@@ -114,13 +114,13 @@ class ConfigSetCommand extends Command
                 ),
                 new InputOption(
                     static::OPTION_LOCK_ENV,
-                    'e',
+                    'le',
                     InputOption::VALUE_NONE,
                     'Lock value which prevents modification in the Admin (will be saved in app/etc/env.php)'
                 ),
                 new InputOption(
                     static::OPTION_LOCK_CONFIG,
-                    'c',
+                    'lc',
                     InputOption::VALUE_NONE,
                     'Lock and share value with other installations, prevents modification in the Admin '
                     . '(will be saved in app/etc/config.php)'
@@ -139,10 +139,8 @@ class ConfigSetCommand extends Command
     /**
      * Creates and run appropriate processor, depending on input options.
      *
-     * @param InputInterface $input
-     * @param OutputInterface $output
+     * {@inheritdoc}
      * @since 101.0.0
-     * @return int|null
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

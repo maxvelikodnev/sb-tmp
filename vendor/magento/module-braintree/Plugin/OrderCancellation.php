@@ -17,9 +17,6 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 /**
  * Cancels an order and an authorization transaction.
- *
- * @deprecated Starting from Magento 2.3.6 Braintree payment method core integration is deprecated
- * in favor of official payment integration available on the marketplace
  */
 class OrderCancellation
 {
@@ -75,9 +72,7 @@ class OrderCancellation
             ];
             if (in_array($payment->getMethod(), $paymentCodes)) {
                 $incrementId = $quote->getReservedOrderId();
-                if ($incrementId) {
-                    $this->orderCancellationService->execute($incrementId);
-                }
+                $this->orderCancellationService->execute($incrementId);
             }
 
             throw $e;

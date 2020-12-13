@@ -3,8 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Sales\Test\Unit\Model\ResourceModel;
 
 use Magento\Framework\Model\ResourceModel\Db\VersionControl\RelationComposite;
@@ -200,7 +198,7 @@ class OrderTest extends \PHPUnit\Framework\TestCase
             ->with('10000001')
             ->willReturnSelf();
         $this->orderMock->expects($this->once())
-            ->method('getEntityId')
+            ->method('getIncrementId')
             ->willReturn(null);
         $this->orderMock->expects($this->once())
             ->method('getData')

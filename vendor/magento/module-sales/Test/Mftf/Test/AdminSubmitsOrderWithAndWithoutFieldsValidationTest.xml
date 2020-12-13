@@ -13,7 +13,6 @@
             <stories value="Create orders"/>
             <title value="Fields validation is required to create an order from Admin Panel"/>
             <description value="Admin should not be able to submit orders without invalid address fields"/>
-            <severity value="AVERAGE"/>
             <group value="sales"/>
         </annotations>
         <before>
@@ -25,7 +24,7 @@
         <after>
             <deleteData createDataKey="createSimpleProduct" stepKey="deleteProduct"/>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="amOnLogoutPage"/>
         </after>
         <!--Create order via Admin-->
         <actionGroup ref="LoginAsAdmin" stepKey="loginAsAdmin"/>

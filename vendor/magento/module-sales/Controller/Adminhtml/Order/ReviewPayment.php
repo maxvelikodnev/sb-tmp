@@ -3,17 +3,11 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-declare(strict_types=1);
-
 namespace Magento\Sales\Controller\Adminhtml\Order;
 
-use Magento\Framework\App\Action\HttpGetActionInterface as HttpGetActionInterface;
+use Magento\Backend\App\Action;
 
-/**
- * Class \Magento\Sales\Controller\Adminhtml\Order\ReviewPayment
- */
-class ReviewPayment extends \Magento\Sales\Controller\Adminhtml\Order implements HttpGetActionInterface
+class ReviewPayment extends \Magento\Sales\Controller\Adminhtml\Order
 {
     /**
      * Authorization level of a basic admin session
@@ -27,7 +21,7 @@ class ReviewPayment extends \Magento\Sales\Controller\Adminhtml\Order implements
      *
      * Either denies or approves a payment that is in "review" state
      *
-     * @return \Magento\Framework\Controller\Result\Redirect
+     * @return \Magento\Backend\Model\View\Result\Redirect
      */
     public function execute()
     {
@@ -56,26 +50,21 @@ class ReviewPayment extends \Magento\Sales\Controller\Adminhtml\Order implements
                         }
                         break;
                     default:
-                        throw new \Magento\Framework\Exception\NotFoundException(
-                            __('Action "%1" is not supported.', $action)
-                        );
+                        throw new \Exception(sprintf('Action "%s" is not supported.', $action));
                 }
                 $this->orderRepository->save($order);
                 $this->messageManager->addSuccessMessage($message);
+            } else {
+                $resultRedirect->setPath('sales/*/');
+                return $resultRedirect;
             }
-            // phpcs:ignore Magento2.Exceptions.ThrowCatch
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
+        } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('We can\'t update the payment right now.'));
             $this->logger->critical($e);
         }
-
-        if ($order) {
-            $resultRedirect->setPath('sales/order/view', ['order_id' => $order->getEntityId()]);
-        } else {
-            $resultRedirect->setPath('sales/*/');
-        }
-
+        $resultRedirect->setPath('sales/order/view', ['order_id' => $order->getEntityId()]);
         return $resultRedirect;
     }
 }

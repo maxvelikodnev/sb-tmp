@@ -98,35 +98,19 @@ class LocaleResolverTest extends \PHPUnit\Framework\TestCase
     /**
      * Test getLocale method
      *
-     * @param string $locale
-     * @param string $expectedLocale
-     * @dataProvider getLocaleDataProvider
+     * @return void
      */
-    public function testGetLocale(string $locale, string $expectedLocale)
+    public function testGetLocale()
     {
-        $allowedLocales = 'en_US,en_GB,en_AU,da_DK,fr_FR,fr_CA,de_DE,zh_HK,it_IT,zh_CN,zh_TW,nl_NL';
-        $this->resolverMock->method('getLocale')
-            ->willReturn($locale);
-        $this->configMock->method('getValue')
-            ->with('supported_locales')
+        $locale = 'en_TEST';
+        $allowedLocales = 'en_US,en_GB,en_AU,da_DK,fr_FR,fr_CA,de_DE,zh_HK,it_IT,nl_NL';
+        $this->resolverMock->expects($this->once())->method('getLocale')->willReturn($locale);
+        $this->configMock->expects($this->once())->method('getValue')->with('supported_locales')
             ->willReturn($allowedLocales);
+
+        $expected = 'en_US';
         $actual = $this->localeResolver->getLocale();
-
-        self::assertEquals($expectedLocale, $actual);
-    }
-
-    /**
-     * @return array
-     */
-    public function getLocaleDataProvider(): array
-    {
-        return [
-            ['locale' => 'zh_Hans_CN', 'expectedLocale' => 'zh_CN'],
-            ['locale' => 'zh_Hant_HK', 'expectedLocale' => 'zh_HK'],
-            ['locale' => 'zh_Hant_TW', 'expectedLocale' => 'zh_TW'],
-            ['locale' => 'fr_FR', 'expectedLocale' => 'fr_FR'],
-            ['locale' => 'unknown', 'expectedLocale' => 'en_US'],
-        ];
+        self::assertEquals($expected, $actual);
     }
 
     /**

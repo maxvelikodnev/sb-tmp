@@ -34,8 +34,6 @@ define([
                 }
 
                 this._super();
-            } else {
-                this.form().focusInvalid();
             }
         }
     });

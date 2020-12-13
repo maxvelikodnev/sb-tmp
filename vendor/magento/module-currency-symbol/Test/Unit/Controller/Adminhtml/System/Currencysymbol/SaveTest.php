@@ -5,136 +5,132 @@
  */
 namespace Magento\CurrencySymbol\Test\Unit\Controller\Adminhtml\System\Currencysymbol;
 
-use Magento\Backend\Helper\Data;
-use Magento\Backend\Model\View\Result\Redirect;
-use Magento\Backend\Model\View\Result\RedirectFactory;
-use Magento\CurrencySymbol\Controller\Adminhtml\System\Currencysymbol\Save;
-use Magento\CurrencySymbol\Model\System\Currencysymbol;
-use Magento\CurrencySymbol\Model\System\CurrencysymbolFactory;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\App\Response\RedirectInterface;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Filter\FilterManager;
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 
 /**
- * Test ot to save currency symbol controller
+ * Class SaveTest
  */
-class SaveTest extends TestCase
+class SaveTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Save
+     * @var \Magento\CurrencySymbol\Controller\Adminhtml\System\Currencysymbol\Save
      */
     protected $action;
 
     /**
-     * @var RedirectFactory|MockObject
-     */
-    private $resultRedirectFactory;
-
-    /**
-     * @var RequestInterface|MockObject
+     * @var \Magento\Framework\App\RequestInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $requestMock;
 
     /**
-     * @var ResponseInterface|MockObject
+     * @var \Magento\Framework\App\ResponseInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $responseMock;
 
     /**
-     * @var ManagerInterface|MockObject
+     * @var \Magento\Framework\ObjectManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $objectManagerMock;
+
+    /**
+     * @var \Magento\CurrencySymbol\Model\System\Currencysymbol|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $currencySymbolMock;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $messageManagerMock;
 
     /**
-     * @var RedirectInterface|MockObject
+     * @var \Magento\Framework\App\Response\RedirectInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $redirectMock;
 
     /**
-     * @var Data|MockObject
+     * @var \Magento\Backend\Helper\Data|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $helperMock;
 
     /**
-     * @var FilterManager|MockObject
+     * @var \Magento\Framework\Filter\FilterManager|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $filterManager;
+    protected $filterManagerMock;
 
-    /**
-     * @var CurrencysymbolFactory|MockObject
-     */
-    private $currencySymbolFactory;
-
-    /**
-     * @inheritdoc
-     */
     protected function setUp()
     {
         $objectManager = new ObjectManager($this);
-        $this->requestMock = $this->createMock(RequestInterface::class);
-        $this->helperMock = $this->createMock(Data::class);
-        $this->redirectMock = $this->createMock(RedirectInterface::class);
+
+        $this->requestMock = $this->createMock(\Magento\Framework\App\RequestInterface::class);
+
+        $this->helperMock = $this->createMock(\Magento\Backend\Helper\Data::class);
+
+        $this->redirectMock = $this->createMock(\Magento\Framework\App\Response\RedirectInterface::class);
+
         $this->responseMock = $this->createPartialMock(
-            ResponseInterface::class,
+            \Magento\Framework\App\ResponseInterface::class,
             ['setRedirect', 'sendResponse']
         );
-        $this->messageManagerMock = $this->createMock(ManagerInterface::class);
-        $this->resultRedirectFactory = $this->createMock(RedirectFactory::class);
-        $this->filterManager = $this->createPartialMock(
-            FilterManager::class,
+
+        $this->currencySymbolMock = $this->createMock(\Magento\CurrencySymbol\Model\System\Currencysymbol::class);
+
+        $this->filterManagerMock = $this->createPartialMock(
+            \Magento\Framework\Filter\FilterManager::class,
             ['stripTags']
         );
-        $this->currencySymbolFactory = $this->createMock(CurrencysymbolFactory::class);
 
+        $this->objectManagerMock = $this->createMock(\Magento\Framework\ObjectManagerInterface::class);
+
+        $this->messageManagerMock = $this->createMock(\Magento\Framework\Message\ManagerInterface::class);
         $this->action = $objectManager->getObject(
-            Save::class,
+            \Magento\CurrencySymbol\Controller\Adminhtml\System\Currencysymbol\Save::class,
             [
                 'request' => $this->requestMock,
                 'response' => $this->responseMock,
+                'objectManager' => $this->objectManagerMock,
                 'redirect' => $this->redirectMock,
                 'helper' => $this->helperMock,
-                'messageManager' => $this->messageManagerMock,
-                'resultRedirectFactory' => $this->resultRedirectFactory,
-                'filterManager' => $this->filterManager,
-                'currencySymbolFactory' => $this->currencySymbolFactory,
+                'messageManager' => $this->messageManagerMock
             ]
         );
     }
 
-    /**
-     * Test to Save custom Currency symbol
-     */
     public function testExecute()
     {
         $firstElement = 'firstElement';
         $symbolsDataArray = [$firstElement];
+        $redirectUrl = 'redirectUrl';
 
         $this->requestMock->expects($this->once())
             ->method('getParam')
             ->with('custom_currency_symbol')
             ->willReturn($symbolsDataArray);
 
-        $currencySymbol = $this->createMock(Currencysymbol::class);
-        $currencySymbol->expects($this->once())->method('setCurrencySymbolsData')->with($symbolsDataArray);
-        $this->currencySymbolFactory->method('create')->willReturn($currencySymbol);
-        $this->filterManager->expects($this->once())
+        $this->helperMock->expects($this->once())->method('getUrl')->with('*');
+        $this->redirectMock->expects($this->once())->method('getRedirectUrl')->willReturn($redirectUrl);
+
+        $this->currencySymbolMock->expects($this->once())->method('setCurrencySymbolsData')->with($symbolsDataArray);
+        $this->responseMock->expects($this->once())->method('setRedirect');
+
+        $this->filterManagerMock->expects($this->once())
             ->method('stripTags')
             ->with($firstElement)
             ->willReturn($firstElement);
 
+        $this->objectManagerMock->expects($this->once())
+            ->method('create')
+            ->with(\Magento\CurrencySymbol\Model\System\Currencysymbol::class)
+            ->willReturn($this->currencySymbolMock);
+
+        $this->objectManagerMock->expects($this->once())
+            ->method('get')
+            ->with(\Magento\Framework\Filter\FilterManager::class)
+            ->willReturn($this->filterManagerMock);
+
         $this->messageManagerMock->expects($this->once())
-            ->method('addSuccessMessage')
+            ->method('addSuccess')
             ->with(__('You applied the custom currency symbols.'));
 
-        $redirect = $this->createMock(Redirect::class);
-        $redirect->expects($this->once())->method('setPath')->with('*')->willReturnSelf();
-        $this->resultRedirectFactory->method('create')->willReturn($redirect);
-
-        $this->assertEquals($redirect, $this->action->execute());
+        $this->action->execute();
     }
 }

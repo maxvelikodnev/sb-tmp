@@ -12,9 +12,6 @@ use Magento\InventorySalesApi\Api\IsProductSalableForRequestedQtyInterface;
 use Magento\InventorySalesApi\Api\Data\ProductSalableResultInterface;
 use Magento\InventorySalesApi\Api\Data\ProductSalabilityErrorInterface;
 
-/**
- * Verify items are salable for requested quantity.
- */
 class CheckItemsQuantity
 {
     /**

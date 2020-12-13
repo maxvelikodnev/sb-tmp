@@ -9,8 +9,6 @@ use Magento\Checkout\Controller\Express\RedirectLoginInterface;
 use Magento\Framework\App\Action\Action as AppAction;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\ObjectManager;
-use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
 /**
@@ -101,11 +99,6 @@ abstract class AbstractExpress extends AppAction implements
     protected $_customerUrl;
 
     /**
-     * @var CartRepositoryInterface
-     */
-    private $quoteRepository;
-
-    /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Checkout\Model\Session $checkoutSession
@@ -114,7 +107,6 @@ abstract class AbstractExpress extends AppAction implements
      * @param \Magento\Framework\Session\Generic $paypalSession
      * @param \Magento\Framework\Url\Helper\Data $urlHelper
      * @param \Magento\Customer\Model\Url $customerUrl
-     * @param CartRepositoryInterface $quoteRepository
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -124,8 +116,7 @@ abstract class AbstractExpress extends AppAction implements
         \Magento\Paypal\Model\Express\Checkout\Factory $checkoutFactory,
         \Magento\Framework\Session\Generic $paypalSession,
         \Magento\Framework\Url\Helper\Data $urlHelper,
-        \Magento\Customer\Model\Url $customerUrl,
-        CartRepositoryInterface $quoteRepository = null
+        \Magento\Customer\Model\Url $customerUrl
     ) {
         $this->_customerSession = $customerSession;
         $this->_checkoutSession = $checkoutSession;
@@ -137,7 +128,6 @@ abstract class AbstractExpress extends AppAction implements
         parent::__construct($context);
         $parameters = ['params' => [$this->_configMethod]];
         $this->_config = $this->_objectManager->create($this->_configType, $parameters);
-        $this->quoteRepository = $quoteRepository ?: ObjectManager::getInstance()->get(CartRepositoryInterface::class);
     }
 
     /**
@@ -243,12 +233,7 @@ abstract class AbstractExpress extends AppAction implements
     protected function _getQuote()
     {
         if (!$this->_quote) {
-            if ($this->_getSession()->getQuoteId()) {
-                $this->_quote = $this->quoteRepository->get($this->_getSession()->getQuoteId());
-                $this->_getCheckoutSession()->replaceQuote($this->_quote);
-            } else {
-                $this->_quote = $this->_getCheckoutSession()->getQuote();
-            }
+            $this->_quote = $this->_getCheckoutSession()->getQuote();
         }
         return $this->_quote;
     }
@@ -258,7 +243,7 @@ abstract class AbstractExpress extends AppAction implements
      */
     public function getCustomerBeforeAuthUrl()
     {
-        return null;
+        return;
     }
 
     /**

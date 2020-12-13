@@ -5,11 +5,11 @@
  */
 namespace Magento\AdvancedPricingImportExport\Model\Export;
 
-use Magento\AdvancedPricingImportExport\Model\Import\AdvancedPricing as ImportAdvancedPricing;
-use Magento\Catalog\Model\Product as CatalogProduct;
-use Magento\CatalogImportExport\Model\Import\Product as ImportProduct;
 use Magento\ImportExport\Model\Export;
 use Magento\Store\Model\Store;
+use Magento\CatalogImportExport\Model\Import\Product as ImportProduct;
+use Magento\AdvancedPricingImportExport\Model\Import\AdvancedPricing as ImportAdvancedPricing;
+use Magento\Catalog\Model\Product as CatalogProduct;
 
 /**
  * Export Advanced Pricing
@@ -150,8 +150,6 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
     }
 
     /**
-     * Init type models
-     *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -174,9 +172,7 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
             }
             if ($model->isSuitable()) {
                 $this->_productTypeModels[$productTypeName] = $model;
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $this->_disabledAttrs = array_merge($this->_disabledAttrs, $model->getDisabledAttrs());
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $this->_indexValueAttributes = array_merge(
                     $this->_indexValueAttributes,
                     $model->getIndexValueAttributes()
@@ -201,7 +197,6 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
     public function export()
     {
         //Execution time may be very long
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         set_time_limit(0);
 
         $writer = $this->getWriter();
@@ -216,7 +211,6 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
             if ($entityCollection->count() == 0) {
                 break;
             }
-            $entityCollection->clear();
             $exportData = $this->getExportData();
             foreach ($exportData as $dataRow) {
                 $writer->writeRow($dataRow);
@@ -240,6 +234,16 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
 
         foreach ($collection as $attribute) {
             if (in_array($attribute->getAttributeCode(), $this->_disabledAttrs)) {
+                if (isset($this->_parameters[\Magento\ImportExport\Model\Export::FILTER_ELEMENT_SKIP])) {
+                    if ($attribute->getAttributeCode() == ImportAdvancedPricing::COL_TIER_PRICE
+                        && in_array(
+                            $attribute->getId(),
+                            $this->_parameters[\Magento\ImportExport\Model\Export::FILTER_ELEMENT_SKIP]
+                        )
+                    ) {
+                        $this->_passTierPrice = 1;
+                    }
+                }
                 $collection->removeItemByKey($attribute->getId());
             }
         }
@@ -359,7 +363,6 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
         $linkedTierPricesData = [];
         foreach ($tierPricesData as $tierPriceData) {
             $sku = $productLinkIdToSkuMap[$tierPriceData['product_link_id']];
-            // phpcs:ignore Magento2.Performance.ForeachArrayMerge
             $linkedTierPricesData[] = array_merge(
                 $tierPriceData,
                 [ImportAdvancedPricing::COL_SKU => $sku]
@@ -468,7 +471,7 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
             ImportAdvancedPricing::COL_TIER_PRICE_QTY => 'ap.qty',
             ImportAdvancedPricing::COL_TIER_PRICE => 'ap.value',
             ImportAdvancedPricing::COL_TIER_PRICE_PERCENTAGE_VALUE => 'ap.percentage_value',
-            'product_link_id' => 'ap.' . $productEntityLinkField,
+            'product_link_id' => 'ap.' .$productEntityLinkField,
         ];
         if ($exportFilter && array_key_exists('tier_price', $exportFilter)) {
             if (!empty($exportFilter['tier_price'][0])) {
@@ -485,7 +488,7 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
                 $selectFields
             )
             ->where(
-                'ap.' . $productEntityLinkField . ' IN (?)',
+                'ap.'.$productEntityLinkField.' IN (?)',
                 $productIds
             );
 
@@ -599,7 +602,7 @@ class AdvancedPricing extends \Magento\CatalogImportExport\Model\Export\Product
             }
 
             if ($storeName && $currencyCode) {
-                $code = $storeName . ' [' . $currencyCode . ']';
+                $code = $storeName.' ['.$currencyCode.']';
             } else {
                 $code = $storeName;
             }

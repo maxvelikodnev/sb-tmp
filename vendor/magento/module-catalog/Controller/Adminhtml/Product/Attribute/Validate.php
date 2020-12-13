@@ -1,29 +1,19 @@
 <?php
 /**
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Catalog\Controller\Adminhtml\Product\Attribute;
 
-use Magento\Backend\App\Action\Context;
 use Magento\Catalog\Controller\Adminhtml\Product\Attribute as AttributeAction;
-use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
-use Magento\Eav\Model\Entity\Attribute\Set;
 use Magento\Eav\Model\Validator\Attribute\Code as AttributeCodeValidator;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Cache\FrontendInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\DataObject;
-use Magento\Framework\Escaper;
-use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\FormData;
-use Magento\Framework\View\LayoutFactory;
-use Magento\Framework\View\Result\PageFactory;
 
 /**
  * Product attribute validate controller.
@@ -35,12 +25,12 @@ class Validate extends AttributeAction implements HttpGetActionInterface, HttpPo
     const DEFAULT_MESSAGE_KEY = 'message';
 
     /**
-     * @var JsonFactory
+     * @var \Magento\Framework\Controller\Result\JsonFactory
      */
     protected $resultJsonFactory;
 
     /**
-     * @var LayoutFactory
+     * @var \Magento\Framework\View\LayoutFactory
      */
     protected $layoutFactory;
 
@@ -60,36 +50,28 @@ class Validate extends AttributeAction implements HttpGetActionInterface, HttpPo
     private $attributeCodeValidator;
 
     /**
-     * @var Escaper
-     */
-    private $escaper;
-
-    /**
      * Constructor
      *
-     * @param Context $context
-     * @param FrontendInterface $attributeLabelCache
-     * @param Registry $coreRegistry
-     * @param PageFactory $resultPageFactory
-     * @param JsonFactory $resultJsonFactory
-     * @param LayoutFactory $layoutFactory
+     * @param \Magento\Backend\App\Action\Context $context
+     * @param \Magento\Framework\Cache\FrontendInterface $attributeLabelCache
+     * @param \Magento\Framework\Registry $coreRegistry
+     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
+     * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
+     * @param \Magento\Framework\View\LayoutFactory $layoutFactory
      * @param array $multipleAttributeList
      * @param FormData|null $formDataSerializer
      * @param AttributeCodeValidator|null $attributeCodeValidator
-     * @param Escaper $escaper
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        Context $context,
-        FrontendInterface $attributeLabelCache,
-        Registry $coreRegistry,
-        PageFactory $resultPageFactory,
-        JsonFactory $resultJsonFactory,
-        LayoutFactory $layoutFactory,
+        \Magento\Backend\App\Action\Context $context,
+        \Magento\Framework\Cache\FrontendInterface $attributeLabelCache,
+        \Magento\Framework\Registry $coreRegistry,
+        \Magento\Framework\View\Result\PageFactory $resultPageFactory,
+        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
+        \Magento\Framework\View\LayoutFactory $layoutFactory,
         array $multipleAttributeList = [],
         FormData $formDataSerializer = null,
-        AttributeCodeValidator $attributeCodeValidator = null,
-        Escaper $escaper = null
+        AttributeCodeValidator $attributeCodeValidator = null
     ) {
         parent::__construct($context, $attributeLabelCache, $coreRegistry, $resultPageFactory);
         $this->resultJsonFactory = $resultJsonFactory;
@@ -97,16 +79,15 @@ class Validate extends AttributeAction implements HttpGetActionInterface, HttpPo
         $this->multipleAttributeList = $multipleAttributeList;
         $this->formDataSerializer = $formDataSerializer ?: ObjectManager::getInstance()
             ->get(FormData::class);
-        $this->attributeCodeValidator = $attributeCodeValidator ?: ObjectManager::getInstance()
-            ->get(AttributeCodeValidator::class);
-        $this->escaper = $escaper ?: ObjectManager::getInstance()
-            ->get(Escaper::class);
+        $this->attributeCodeValidator = $attributeCodeValidator ?: ObjectManager::getInstance()->get(
+            AttributeCodeValidator::class
+        );
     }
 
     /**
      * @inheritdoc
      *
-     * @return ResultInterface
+     * @return \Magento\Framework\Controller\ResultInterface
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
@@ -118,32 +99,22 @@ class Validate extends AttributeAction implements HttpGetActionInterface, HttpPo
             $optionsData = $this->formDataSerializer
                 ->unserialize($this->getRequest()->getParam('serialized_options', '[]'));
         } catch (\InvalidArgumentException $e) {
-            $message = __(
-                "The attribute couldn't be validated due to an error. Verify your information and try again. "
-                . "If the error persists, please try again later."
-            );
+            $message = __("The attribute couldn't be validated due to an error. Verify your information and try again. "
+                . "If the error persists, please try again later.");
             $this->setMessageToResponse($response, [$message]);
             $response->setError(true);
         }
 
         $attributeCode = $this->getRequest()->getParam('attribute_code');
         $frontendLabel = $this->getRequest()->getParam('frontend_label');
+        $attributeCode = $attributeCode ?: $this->generateCode($frontendLabel[0]);
         $attributeId = $this->getRequest()->getParam('attribute_id');
-
-        if ($attributeId) {
-            $attribute = $this->_objectManager->create(
-                Attribute::class
-            )->load($attributeId);
-            $attributeCode = $attribute->getAttributeCode();
-        } else {
-            $attributeCode = $attributeCode ?: $this->generateCode($frontendLabel[0]);
-            $attribute = $this->_objectManager->create(
-                Attribute::class
-            )->loadByCode(
-                $this->_entityTypeId,
-                $attributeCode
-            );
-        }
+        $attribute = $this->_objectManager->create(
+            \Magento\Catalog\Model\ResourceModel\Eav\Attribute::class
+        )->loadByCode(
+            $this->_entityTypeId,
+            $attributeCode
+        );
 
         if ($attribute->getId() && !$attributeId || $attributeCode === 'product_type' || $attributeCode === 'type_id') {
             $message = strlen($this->getRequest()->getParam('attribute_code'))
@@ -163,11 +134,11 @@ class Validate extends AttributeAction implements HttpGetActionInterface, HttpPo
 
         if ($this->getRequest()->has('new_attribute_set_name')) {
             $setName = $this->getRequest()->getParam('new_attribute_set_name');
-            /** @var $attributeSet Set */
-            $attributeSet = $this->_objectManager->create(Set::class);
+            /** @var $attributeSet \Magento\Eav\Model\Entity\Attribute\Set */
+            $attributeSet = $this->_objectManager->create(\Magento\Eav\Model\Entity\Attribute\Set::class);
             $attributeSet->setEntityTypeId($this->_entityTypeId)->load($setName, 'attribute_set_name');
             if ($attributeSet->getId()) {
-                $setName = $this->escaper->escapeHtml($setName);
+                $setName = $this->_objectManager->get(\Magento\Framework\Escaper::class)->escapeHtml($setName);
                 $this->messageManager->addErrorMessage(__('An attribute set named \'%1\' already exists.', $setName));
 
                 $layout = $this->layoutFactory->create();
@@ -270,7 +241,7 @@ class Validate extends AttributeAction implements HttpGetActionInterface, HttpPo
     private function checkEmptyOption(DataObject $response, array $optionsForCheck = null)
     {
         foreach ($optionsForCheck as $optionValues) {
-            if (isset($optionValues[0]) && trim((string)$optionValues[0]) == '') {
+            if (isset($optionValues[0]) && $optionValues[0] == '') {
                 $this->setMessageToResponse($response, [__("The value of Admin scope can't be empty.")]);
                 $response->setError(true);
             }

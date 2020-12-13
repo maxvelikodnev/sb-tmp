@@ -282,15 +282,9 @@ define([
          * @private
          */
         _onGetVideoInformationClick: function () {
-            var videoForm = this.element.find(this._videoFormSelector);
-
-            videoForm.validation();
-
-            if (this.element.find(this._videoUrlSelector).valid()) {
-                this._onlyVideoPlayer = false;
-                this._isEditPage = false;
-                this._videoUrlWidget.trigger('update_video_information');
-            }
+            this._onlyVideoPlayer = false;
+            this._isEditPage = false;
+            this._videoUrlWidget.trigger('update_video_information');
         },
 
         /**
@@ -305,14 +299,6 @@ define([
          * @private
          */
         _onGetVideoInformationStartRequest: function () {
-            var videoForm = this.element.find(this._videoFormSelector);
-
-            try {
-                videoForm.validation('clearError');
-            } catch (e) {
-                // Do nothing
-            }
-
             this._videoRequestComplete = false;
         },
 
@@ -580,13 +566,7 @@ define([
          * @private
          */
         _onImageLoaded: function (result, file, oldFile, callback) {
-            var data;
-
-            try {
-                data = JSON.parse(result);
-            } catch (e) {
-                data = result;
-            }
+            var data = JSON.parse(result);
 
             if (this.element.find('#video_url').parent().find('.image-upload-error').length > 0) {
                 this.element.find('.image-upload-error').remove();

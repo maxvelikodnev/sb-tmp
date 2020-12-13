@@ -57,31 +57,29 @@ class AttributeOptions implements ResolverInterface
         array $args = null
     ) : Value {
 
-        return $this->valueFactory->create(
-            function () use ($value) {
-                $entityType = $this->getEntityType($value);
-                $attributeCode = $this->getAttributeCode($value);
+        return $this->valueFactory->create(function () use ($value) {
+            $entityType = $this->getEntityType($value);
+            $attributeCode = $this->getAttributeCode($value);
 
-                $optionsData = $this->getAttributeOptionsData($entityType, $attributeCode);
-                return $optionsData;
-            }
-        );
+            $optionsData = $this->getAttributeOptionsData($entityType, $attributeCode);
+            return $optionsData;
+        });
     }
 
     /**
      * Get entity type
      *
      * @param array $value
-     * @return string
+     * @return int
      * @throws LocalizedException
      */
-    private function getEntityType(array $value): string
+    private function getEntityType(array $value): int
     {
         if (!isset($value['entity_type'])) {
             throw new LocalizedException(__('"Entity type should be specified'));
         }
 
-        return $value['entity_type'];
+        return (int)$value['entity_type'];
     }
 
     /**
@@ -103,13 +101,13 @@ class AttributeOptions implements ResolverInterface
     /**
      * Get attribute options data
      *
-     * @param string $entityType
+     * @param int $entityType
      * @param string $attributeCode
      * @return array
      * @throws GraphQlInputException
      * @throws GraphQlNoSuchEntityException
      */
-    private function getAttributeOptionsData(string $entityType, string $attributeCode): array
+    private function getAttributeOptionsData(int $entityType, string $attributeCode): array
     {
         try {
             $optionsData = $this->attributeOptionsDataProvider->getData($entityType, $attributeCode);

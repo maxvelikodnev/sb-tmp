@@ -8,9 +8,6 @@
 
 namespace Magento\Catalog\Test\Unit\Block\Product;
 
-/**
- * Class ViewTest
- */
 class ViewTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -28,9 +25,6 @@ class ViewTest extends \PHPUnit\Framework\TestCase
      */
     protected $registryMock;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp()
     {
         $helper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
@@ -42,9 +36,6 @@ class ViewTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    /**
-     * @return void
-     */
     public function testShouldRenderQuantity()
     {
         $productMock = $this->createMock(\Magento\Catalog\Model\Product::class);
@@ -70,26 +61,28 @@ class ViewTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(false, $this->view->shouldRenderQuantity());
     }
 
-    /**
-     * @return void
-     */
     public function testGetIdentities()
     {
         $productTags = ['cat_p_1'];
         $product = $this->createMock(\Magento\Catalog\Model\Product::class);
+        $category = $this->createMock(\Magento\Catalog\Model\Category::class);
 
         $product->expects($this->once())
             ->method('getIdentities')
             ->will($this->returnValue($productTags));
+        $category->expects($this->once())
+            ->method('getId')
+            ->will($this->returnValue(1));
         $this->registryMock->expects($this->any())
             ->method('registry')
             ->will(
                 $this->returnValueMap(
                     [
                         ['product', $product],
+                        ['current_category', $category],
                     ]
                 )
             );
-        $this->assertEquals($productTags, $this->view->getIdentities());
+        $this->assertEquals(['cat_p_1', 'cat_c_1'], $this->view->getIdentities());
     }
 }

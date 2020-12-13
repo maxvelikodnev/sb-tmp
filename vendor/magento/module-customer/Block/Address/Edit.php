@@ -5,8 +5,7 @@
  */
 namespace Magento\Customer\Block\Address;
 
-use Magento\Customer\Api\AddressMetadataInterface;
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -49,7 +48,7 @@ class Edit extends \Magento\Directory\Block\Data
     protected $dataObjectHelper;
 
     /**
-     * @var AddressMetadataInterface
+     * @var \Magento\Customer\Api\AddressMetadataInterface
      */
     private $addressMetadata;
 
@@ -68,7 +67,7 @@ class Edit extends \Magento\Directory\Block\Data
      * @param \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer
      * @param \Magento\Framework\Api\DataObjectHelper $dataObjectHelper
      * @param array $data
-     * @param AddressMetadataInterface|null $addressMetadata
+     * @param \Magento\Customer\Api\AddressMetadataInterface|null $addressMetadata
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -85,14 +84,14 @@ class Edit extends \Magento\Directory\Block\Data
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         \Magento\Framework\Api\DataObjectHelper $dataObjectHelper,
         array $data = [],
-        AddressMetadataInterface $addressMetadata = null
+        \Magento\Customer\Api\AddressMetadataInterface $addressMetadata = null
     ) {
         $this->_customerSession = $customerSession;
         $this->_addressRepository = $addressRepository;
         $this->addressDataFactory = $addressDataFactory;
         $this->currentCustomer = $currentCustomer;
         $this->dataObjectHelper = $dataObjectHelper;
-        $this->addressMetadata = $addressMetadata ?: ObjectManager::getInstance()->get(AddressMetadataInterface::class);
+        $this->addressMetadata = $addressMetadata;
         parent::__construct(
             $context,
             $directoryHelper,

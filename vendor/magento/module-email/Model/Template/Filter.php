@@ -6,10 +6,8 @@
 namespace Magento\Email\Model\Template;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Exception\MailException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
-use Magento\Framework\Filter\VariableResolverInterface;
+use Magento\Framework\Filesystem\Directory\ReadInterface;
 use Magento\Framework\View\Asset\ContentProcessorException;
 use Magento\Framework\View\Asset\ContentProcessorInterface;
 
@@ -45,7 +43,6 @@ class Filter extends \Magento\Framework\Filter\Template
      * Whether to allow SID in store directive: NO
      *
      * @var bool
-     * @deprecated 101.0.5 SID is not being used as query parameter anymore.
      */
     protected $_useSessionInUrl = false;
 
@@ -53,7 +50,6 @@ class Filter extends \Magento\Framework\Filter\Template
      * Modifier Callbacks
      *
      * @var array
-     * @deprecated 101.0.4 Use the new Directive Processor interfaces
      */
     protected $_modifiers = ['nl2br' => ''];
 
@@ -169,19 +165,14 @@ class Filter extends \Magento\Framework\Filter\Template
     protected $configVariables;
 
     /**
-     * @var Css\Processor
+     * @var \Magento\Email\Model\Template\Css\Processor
      */
     private $cssProcessor;
 
     /**
-     * @var Filesystem
+     * @var ReadInterface
      */
     private $pubDirectory;
-
-    /**
-     * @var \Magento\Framework\Filesystem\Directory\Read
-     */
-    private $pubDirectoryRead;
 
     /**
      * @param \Magento\Framework\Stdlib\StringUtils $string
@@ -199,10 +190,7 @@ class Filter extends \Magento\Framework\Filter\Template
      * @param \Magento\Variable\Model\Source\Variables $configVariables
      * @param array $variables
      * @param \Magento\Framework\Css\PreProcessor\Adapter\CssInliner|null $cssInliner
-     * @param array $directiveProcessors
-     * @param VariableResolverInterface|null $variableResolver
-     * @param Css\Processor|null $cssProcessor
-     * @param Filesystem|null $pubDirectory
+     *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -220,11 +208,7 @@ class Filter extends \Magento\Framework\Filter\Template
         \Pelago\Emogrifier $emogrifier,
         \Magento\Variable\Model\Source\Variables $configVariables,
         $variables = [],
-        \Magento\Framework\Css\PreProcessor\Adapter\CssInliner $cssInliner = null,
-        array $directiveProcessors = [],
-        VariableResolverInterface $variableResolver = null,
-        Css\Processor $cssProcessor = null,
-        Filesystem $pubDirectory = null
+        \Magento\Framework\Css\PreProcessor\Adapter\CssInliner $cssInliner = null
     ) {
         $this->_escaper = $escaper;
         $this->_assetRepo = $assetRepo;
@@ -240,12 +224,8 @@ class Filter extends \Magento\Framework\Filter\Template
         $this->emogrifier = $emogrifier;
         $this->cssInliner = $cssInliner ?: \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Magento\Framework\Css\PreProcessor\Adapter\CssInliner::class);
-        $this->cssProcessor = $cssProcessor ?: ObjectManager::getInstance()
-            ->get(Css\Processor::class);
-        $this->pubDirectory = $pubDirectory ?: ObjectManager::getInstance()
-            ->get(Filesystem::class);
         $this->configVariables = $configVariables;
-        parent::__construct($string, $variables, $directiveProcessors, $variableResolver);
+        parent::__construct($string, $variables);
     }
 
     /**
@@ -265,14 +245,10 @@ class Filter extends \Magento\Framework\Filter\Template
      *
      * @param bool $flag
      * @return $this
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     * @deprecated 101.0.5 SID query parameter is not used in URLs anymore.
      */
     public function setUseSessionInUrl($flag)
     {
-        // phpcs:disable Magento2.Functions.DiscouragedFunction
-        trigger_error('Session ID is not used as URL parameter anymore.', E_USER_DEPRECATED);
-
+        $this->_useSessionInUrl = $flag;
         return $this;
     }
 
@@ -345,14 +321,32 @@ class Filter extends \Magento\Framework\Filter\Template
     }
 
     /**
-     * Sets pub directory
+     * Get Css processor
      *
-     * @param string $dirType
-     * @return void
+     * @deprecated 100.1.2
+     * @return Css\Processor
      */
-    private function setPubDirectory($dirType)
+    private function getCssProcessor()
     {
-        $this->pubDirectoryRead = $this->pubDirectory->getDirectoryRead($dirType);
+        if (!$this->cssProcessor) {
+            $this->cssProcessor = ObjectManager::getInstance()->get(Css\Processor::class);
+        }
+        return $this->cssProcessor;
+    }
+
+    /**
+     * Get pub directory
+     *
+     * @deprecated 100.1.2
+     * @param string $dirType
+     * @return ReadInterface
+     */
+    private function getPubDirectory($dirType)
+    {
+        if (!$this->pubDirectory) {
+            $this->pubDirectory = ObjectManager::getInstance()->get(Filesystem::class)->getDirectoryRead($dirType);
+        }
+        return $this->pubDirectory;
     }
 
     /**
@@ -526,7 +520,6 @@ class Filter extends \Magento\Framework\Filter\Template
      */
     public function mediaDirective($construction)
     {
-        // phpcs:disable Magento2.Functions.DiscouragedFunction
         $params = $this->getParameters(html_entity_decode($construction[2], ENT_QUOTES));
         return $this->_storeManager->getStore()
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . $params['url'];
@@ -619,7 +612,7 @@ class Filter extends \Magento\Framework\Filter\Template
         if (preg_match(self::TRANS_DIRECTIVE_REGEX, $value, $matches) !== 1) {
             return ['', []];  // malformed directive body; return without breaking list
         }
-        // phpcs:disable Magento2.Functions.DiscouragedFunction
+
         $text = stripslashes($matches[2]);
 
         $params = [];
@@ -645,10 +638,7 @@ class Filter extends \Magento\Framework\Filter\Template
             return $construction[0];
         }
 
-        list($directive, $modifiers) = $this->explodeModifiers(
-            $construction[2] . ($construction['filters'] ?? ''),
-            'escape'
-        );
+        list($directive, $modifiers) = $this->explodeModifiers($construction[2], 'escape');
         return $this->applyModifiers($this->getVariable($directive, ''), $modifiers);
     }
 
@@ -665,7 +655,6 @@ class Filter extends \Magento\Framework\Filter\Template
      * @param string $value
      * @param string $default assumed modifier if none present
      * @return array
-     * @deprecated 101.0.4 Use the new FilterApplier or Directive Processor interfaces
      */
     protected function explodeModifiers($value, $default = null)
     {
@@ -684,7 +673,6 @@ class Filter extends \Magento\Framework\Filter\Template
      * @param string $value
      * @param string $modifiers
      * @return string
-     * @deprecated 101.0.4 Use the new FilterApplier or Directive Processor interfaces
      */
     protected function applyModifiers($value, $modifiers)
     {
@@ -700,7 +688,7 @@ class Filter extends \Magento\Framework\Filter\Template
                     $callback = $modifier;
                 }
                 array_unshift($params, $value);
-                $value = $callback(...$params);
+                $value = call_user_func_array($callback, $params);
             }
         }
         return $value;
@@ -712,13 +700,12 @@ class Filter extends \Magento\Framework\Filter\Template
      * @param string $value
      * @param string $type
      * @return string
-     * @deprecated 101.0.4 Use the new FilterApplier or Directive Processor interfaces
      */
     public function modifierEscape($value, $type = 'html')
     {
         switch ($type) {
             case 'html':
-                return $this->_escaper->escapeHtml($value);
+                return htmlspecialchars($value, ENT_QUOTES);
 
             case 'htmlentities':
                 return htmlentities($value, ENT_QUOTES);
@@ -740,32 +727,27 @@ class Filter extends \Magento\Framework\Filter\Template
      *     {{protocol store="1"}} - Optional parameter which gets protocol from provide store based on store ID or code
      *
      * @param string[] $construction
+     * @throws \Magento\Framework\Exception\MailException
      * @return string
-     * @throws MailException
-     * @throws NoSuchEntityException
      */
     public function protocolDirective($construction)
     {
         $params = $this->getParameters($construction[2]);
-
         $store = null;
         if (isset($params['store'])) {
             try {
                 $store = $this->_storeManager->getStore($params['store']);
             } catch (\Exception $e) {
-                throw new MailException(
+                throw new \Magento\Framework\Exception\MailException(
                     __('Requested invalid store "%1"', $params['store'])
                 );
             }
         }
-
         $isSecure = $this->_storeManager->getStore($store)->isCurrentlySecure();
         $protocol = $isSecure ? 'https' : 'http';
         if (isset($params['url'])) {
             return $protocol . '://' . $params['url'];
         } elseif (isset($params['http']) && isset($params['https'])) {
-            $this->validateProtocolDirectiveHttpScheme($params);
-
             if ($isSecure) {
                 return $params['https'];
             }
@@ -773,37 +755,6 @@ class Filter extends \Magento\Framework\Filter\Template
         }
 
         return $protocol;
-    }
-
-    /**
-     * Validate protocol directive HTTP parameters.
-     *
-     * @param string[] $params
-     * @return void
-     * @throws MailException
-     */
-    private function validateProtocolDirectiveHttpScheme(array $params) : void
-    {
-        $parsed_http = parse_url($params['http']);
-        $parsed_https = parse_url($params['https']);
-
-        if (empty($parsed_http)) {
-            throw new MailException(
-                __('Contents of %1 could not be loaded or is empty', $params['http'])
-            );
-        } elseif (empty($parsed_https)) {
-            throw new MailException(
-                __('Contents of %1 could not be loaded or is empty', $params['https'])
-            );
-        } elseif ($parsed_http['scheme'] !== 'http') {
-            throw new MailException(
-                __('Contents of %1 could not be loaded or is empty', $params['http'])
-            );
-        } elseif ($parsed_https['scheme'] !== 'https') {
-            throw new MailException(
-                __('Contents of %1 could not be loaded or is empty', $params['https'])
-            );
-        }
     }
 
     /**
@@ -892,7 +843,7 @@ class Filter extends \Magento\Framework\Filter\Template
             return '/* ' . __('"file" parameter must be specified') . ' */';
         }
 
-        $css = $this->cssProcessor->process(
+        $css = $this->getCssProcessor()->process(
             $this->getCssFilesContent([$params['file']])
         );
 
@@ -995,9 +946,9 @@ class Filter extends \Magento\Framework\Filter\Template
         try {
             foreach ($files as $file) {
                 $asset = $this->_assetRepo->createAsset($file, $designParams);
-                $this->setPubDirectory($asset->getContext()->getBaseDirType());
-                if ($this->pubDirectoryRead->isExist($asset->getPath())) {
-                    $css .= $this->pubDirectoryRead->readFile($asset->getPath());
+                $pubDirectory = $this->getPubDirectory($asset->getContext()->getBaseDirType());
+                if ($pubDirectory->isExist($asset->getPath())) {
+                    $css .= $pubDirectory->readFile($asset->getPath());
                 } else {
                     $css .= $asset->getContent();
                 }
@@ -1012,7 +963,7 @@ class Filter extends \Magento\Framework\Filter\Template
     }
 
     /**
-     * Apply Inline CSS
+     * Apply inline css
      *
      * Merge HTML and CSS and return HTML that has CSS styles applied "inline" to the HTML tags. This is necessary
      * in order to support all email clients.
@@ -1027,7 +978,7 @@ class Filter extends \Magento\Framework\Filter\Template
         $cssToInline = $this->getCssFilesContent(
             $this->getInlineCssFiles()
         );
-        $cssToInline = $this->cssProcessor->process($cssToInline);
+        $cssToInline = $this->getCssProcessor()->process($cssToInline);
 
         // Only run Emogrify if HTML and CSS contain content
         if ($html && $cssToInline) {

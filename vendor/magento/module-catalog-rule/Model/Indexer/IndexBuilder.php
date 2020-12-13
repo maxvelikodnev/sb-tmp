@@ -7,7 +7,6 @@
 namespace Magento\CatalogRule\Model\Indexer;
 
 use Magento\Catalog\Model\Product;
-use Magento\CatalogRule\Model\ResourceModel\Rule\Collection as RuleCollection;
 use Magento\CatalogRule\Model\ResourceModel\Rule\CollectionFactory as RuleCollectionFactory;
 use Magento\CatalogRule\Model\Rule;
 use Magento\Framework\App\ObjectManager;
@@ -16,8 +15,6 @@ use Magento\CatalogRule\Model\Indexer\IndexBuilder\ProductLoader;
 use Magento\CatalogRule\Model\Indexer\IndexerTableSwapperInterface as TableSwapper;
 
 /**
- * Catalog rule index builder
- *
  * @api
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
@@ -242,22 +239,7 @@ class IndexBuilder
      */
     public function reindexById($id)
     {
-        try {
-            $this->cleanProductIndex([$id]);
-
-            $products = $this->productLoader->getProducts([$id]);
-            $activeRules = $this->getActiveRules();
-            foreach ($products as $product) {
-                $this->applyRules($activeRules, $product);
-            }
-
-            $this->reindexRuleGroupWebsite->execute();
-        } catch (\Exception $e) {
-            $this->critical($e);
-            throw new \Magento\Framework\Exception\LocalizedException(
-                __('Catalog rule indexing failed. See details in exception log.')
-            );
-        }
+        $this->reindexByIds([$id]);
     }
 
     /**
@@ -288,21 +270,14 @@ class IndexBuilder
      */
     protected function doReindexByIds($ids)
     {
-        $this->cleanProductIndex($ids);
+        $this->cleanByIds($ids);
 
-        /** @var Rule[] $activeRules */
-        $activeRules = $this->getActiveRules()->getItems();
-        foreach ($activeRules as $rule) {
-            $rule->setProductsFilter($ids);
-            $this->reindexRuleProduct->execute($rule, $this->batchCount);
+        $products = $this->productLoader->getProducts($ids);
+        foreach ($this->getActiveRules() as $rule) {
+            foreach ($products as $product) {
+                $this->applyRule($rule, $product);
+            }
         }
-
-        foreach ($ids as $productId) {
-            $this->cleanProductPriceIndex([$productId]);
-            $this->reindexRuleProductPrice->execute($this->batchCount, $productId);
-        }
-
-        $this->reindexRuleGroupWebsite->execute();
     }
 
     /**
@@ -348,30 +323,6 @@ class IndexBuilder
     }
 
     /**
-     * Clean product index
-     *
-     * @param array $productIds
-     * @return void
-     */
-    private function cleanProductIndex(array $productIds): void
-    {
-        $where = ['product_id IN (?)' => $productIds];
-        $this->connection->delete($this->getTable('catalogrule_product'), $where);
-    }
-
-    /**
-     * Clean product price index
-     *
-     * @param array $productIds
-     * @return void
-     */
-    private function cleanProductPriceIndex(array $productIds): void
-    {
-        $where = ['product_id IN (?)' => $productIds];
-        $this->connection->delete($this->getTable('catalogrule_product_price'), $where);
-    }
-
-    /**
      * Clean by product ids
      *
      * @param array $productIds
@@ -379,27 +330,48 @@ class IndexBuilder
      */
     protected function cleanByIds($productIds)
     {
-        $this->cleanProductIndex($productIds);
-        $this->cleanProductPriceIndex($productIds);
+        $query = $this->connection->deleteFromSelect(
+            $this->connection
+                ->select()
+                ->from($this->resource->getTableName('catalogrule_product'), 'product_id')
+                ->distinct()
+                ->where('product_id IN (?)', $productIds),
+            $this->resource->getTableName('catalogrule_product')
+        );
+        $this->connection->query($query);
+
+        $query = $this->connection->deleteFromSelect(
+            $this->connection->select()
+                ->from($this->resource->getTableName('catalogrule_product_price'), 'product_id')
+                ->distinct()
+                ->where('product_id IN (?)', $productIds),
+            $this->resource->getTableName('catalogrule_product_price')
+        );
+        $this->connection->query($query);
     }
 
     /**
-     * Assign product to rule
-     *
      * @param Rule $rule
-     * @param int $productEntityId
-     * @param array $websiteIds
-     * @return void
+     * @param Product $product
+     * @return $this
+     * @throws \Exception
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    private function assignProductToRule(Rule $rule, int $productEntityId, array $websiteIds): void
+    protected function applyRule(Rule $rule, $product)
     {
-        $ruleId = (int) $rule->getId();
-        $ruleProductTable = $this->getTable('catalogrule_product');
+        $ruleId = $rule->getId();
+        $productEntityId = $product->getId();
+        $websiteIds = array_intersect($product->getWebsiteIds(), $rule->getWebsiteIds());
+
+        if (!$rule->validate($product)) {
+            return $this;
+        }
+
         $this->connection->delete(
-            $ruleProductTable,
+            $this->resource->getTableName('catalogrule_product'),
             [
-                'rule_id = ?' => $ruleId,
-                'product_id = ?' => $productEntityId,
+                $this->connection->quoteInto('rule_id = ?', $ruleId),
+                $this->connection->quoteInto('product_id = ?', $productEntityId)
             ]
         );
 
@@ -413,80 +385,43 @@ class IndexBuilder
         $actionStop = $rule->getStopRulesProcessing();
 
         $rows = [];
-        foreach ($websiteIds as $websiteId) {
-            foreach ($customerGroupIds as $customerGroupId) {
-                $rows[] = [
-                    'rule_id' => $ruleId,
-                    'from_time' => $fromTime,
-                    'to_time' => $toTime,
-                    'website_id' => $websiteId,
-                    'customer_group_id' => $customerGroupId,
-                    'product_id' => $productEntityId,
-                    'action_operator' => $actionOperator,
-                    'action_amount' => $actionAmount,
-                    'action_stop' => $actionStop,
-                    'sort_order' => $sortOrder,
-                ];
+        try {
+            foreach ($websiteIds as $websiteId) {
+                foreach ($customerGroupIds as $customerGroupId) {
+                    $rows[] = [
+                        'rule_id' => $ruleId,
+                        'from_time' => $fromTime,
+                        'to_time' => $toTime,
+                        'website_id' => $websiteId,
+                        'customer_group_id' => $customerGroupId,
+                        'product_id' => $productEntityId,
+                        'action_operator' => $actionOperator,
+                        'action_amount' => $actionAmount,
+                        'action_stop' => $actionStop,
+                        'sort_order' => $sortOrder,
+                    ];
 
-                if (count($rows) == $this->batchCount) {
-                    $this->connection->insertMultiple($ruleProductTable, $rows);
-                    $rows = [];
+                    if (count($rows) == $this->batchCount) {
+                        $this->connection->insertMultiple($this->getTable('catalogrule_product'), $rows);
+                        $rows = [];
+                    }
                 }
             }
-        }
-        if ($rows) {
-            $this->connection->insertMultiple($ruleProductTable, $rows);
-        }
-    }
 
-    /**
-     * Apply rule
-     *
-     * @param Rule $rule
-     * @param Product $product
-     * @return $this
-     * @throws \Exception
-     * @deprecated 101.1.5
-     * @see ReindexRuleProduct::execute
-     * @SuppressWarnings(PHPMD.NPathComplexity)
-     */
-    protected function applyRule(Rule $rule, $product)
-    {
-        if ($rule->validate($product)) {
-            $websiteIds = array_intersect($product->getWebsiteIds(), $rule->getWebsiteIds());
-            $this->assignProductToRule($rule, $product->getId(), $websiteIds);
+            if (!empty($rows)) {
+                $this->connection->insertMultiple($this->resource->getTableName('catalogrule_product'), $rows);
+            }
+        } catch (\Exception $e) {
+            throw $e;
         }
-        $this->reindexRuleProductPrice->execute($this->batchCount, $product->getId());
+
+        $this->reindexRuleProductPrice->execute($this->batchCount, $product);
         $this->reindexRuleGroupWebsite->execute();
 
         return $this;
     }
 
     /**
-     * Apply rules
-     *
-     * @param RuleCollection $ruleCollection
-     * @param Product $product
-     * @return void
-     */
-    private function applyRules(RuleCollection $ruleCollection, Product $product): void
-    {
-        foreach ($ruleCollection as $rule) {
-            if (!$rule->validate($product)) {
-                continue;
-            }
-
-            $websiteIds = array_intersect($product->getWebsiteIds(), $rule->getWebsiteIds());
-            $this->assignProductToRule($rule, $product->getId(), $websiteIds);
-        }
-
-        $this->cleanProductPriceIndex([$product->getId()]);
-        $this->reindexRuleProductPrice->execute($this->batchCount, $product->getId());
-    }
-
-    /**
-     * Retrieve table name
-     *
      * @param string $tableName
      * @return string
      */
@@ -496,8 +431,6 @@ class IndexBuilder
     }
 
     /**
-     * Update rule product data
-     *
      * @param Rule $rule
      * @return $this
      * @deprecated 101.0.0
@@ -523,8 +456,6 @@ class IndexBuilder
     }
 
     /**
-     * Apply all rules
-     *
      * @param Product|null $product
      * @throws \Exception
      * @return $this
@@ -534,7 +465,7 @@ class IndexBuilder
      */
     protected function applyAllRules(Product $product = null)
     {
-        $this->reindexRuleProductPrice->execute($this->batchCount, $product->getId());
+        $this->reindexRuleProductPrice->execute($this->batchCount, $product);
         $this->reindexRuleGroupWebsite->execute();
         return $this;
     }
@@ -564,10 +495,8 @@ class IndexBuilder
     }
 
     /**
-     * Calculate rule product price
-     *
      * @param array $ruleData
-     * @param array $productData
+     * @param null $productData
      * @return float
      * @deprecated 101.0.0
      * @see ProductPriceCalculator::calculate
@@ -578,8 +507,6 @@ class IndexBuilder
     }
 
     /**
-     * Get rule products statement
-     *
      * @param int $websiteId
      * @param Product|null $product
      * @return \Zend_Db_Statement_Interface
@@ -589,12 +516,10 @@ class IndexBuilder
      */
     protected function getRuleProductsStmt($websiteId, Product $product = null)
     {
-        return $this->ruleProductsSelectBuilder->build((int) $websiteId, (int) $product->getId());
+        return $this->ruleProductsSelectBuilder->build($websiteId, $product);
     }
 
     /**
-     * Save rule product prices
-     *
      * @param array $arrData
      * @return $this
      * @throws \Exception
@@ -610,7 +535,7 @@ class IndexBuilder
     /**
      * Get active rules
      *
-     * @return RuleCollection
+     * @return array
      */
     protected function getActiveRules()
     {
@@ -620,7 +545,7 @@ class IndexBuilder
     /**
      * Get active rules
      *
-     * @return RuleCollection
+     * @return array
      */
     protected function getAllRules()
     {
@@ -628,8 +553,6 @@ class IndexBuilder
     }
 
     /**
-     * Get product
-     *
      * @param int $productId
      * @return Product
      */
@@ -642,8 +565,6 @@ class IndexBuilder
     }
 
     /**
-     * Log critical exception
-     *
      * @param \Exception $e
      * @return void
      */

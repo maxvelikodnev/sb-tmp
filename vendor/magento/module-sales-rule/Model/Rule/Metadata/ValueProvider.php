@@ -5,14 +5,11 @@
  */
 namespace Magento\SalesRule\Model\Rule\Metadata;
 
+use Magento\SalesRule\Model\Rule;
+use Magento\Store\Model\System\Store;
 use Magento\Customer\Api\GroupRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Convert\DataObject;
-use Magento\SalesRule\Model\Rule;
-use Magento\SalesRule\Model\Rule\Action\SimpleActionOptionsProvider;
-use Magento\SalesRule\Model\RuleFactory;
-use Magento\Store\Model\System\Store;
 
 /**
  * Metadata provider for sales rule edit form.
@@ -40,14 +37,9 @@ class ValueProvider
     protected $objectConverter;
 
     /**
-     * @var RuleFactory
+     * @var \Magento\SalesRule\Model\RuleFactory
      */
     protected $salesRuleFactory;
-
-    /**
-     * @var SimpleActionOptionsProvider
-     */
-    private $simpleActionOptionsProvider;
 
     /**
      * Initialize dependencies.
@@ -56,24 +48,20 @@ class ValueProvider
      * @param GroupRepositoryInterface $groupRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param DataObject $objectConverter
-     * @param RuleFactory $salesRuleFactory
-     * @param SimpleActionOptionsProvider|null $simpleActionOptionsProvider
+     * @param \Magento\SalesRule\Model\RuleFactory $salesRuleFactory
      */
     public function __construct(
         Store $store,
         GroupRepositoryInterface $groupRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         DataObject $objectConverter,
-        RuleFactory $salesRuleFactory,
-        SimpleActionOptionsProvider $simpleActionOptionsProvider = null
+        \Magento\SalesRule\Model\RuleFactory $salesRuleFactory
     ) {
         $this->store = $store;
         $this->groupRepository = $groupRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->objectConverter = $objectConverter;
         $this->salesRuleFactory = $salesRuleFactory;
-        $this->simpleActionOptionsProvider = $simpleActionOptionsProvider ?:
-            ObjectManager::getInstance()->get(SimpleActionOptionsProvider::class);
     }
 
     /**
@@ -83,10 +71,15 @@ class ValueProvider
      * @return array
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
-    public function getMetadataValues(Rule $rule)
+    public function getMetadataValues(\Magento\SalesRule\Model\Rule $rule)
     {
         $customerGroups = $this->groupRepository->getList($this->searchCriteriaBuilder->create())->getItems();
-        $applyOptions = $this->simpleActionOptionsProvider->toOptionArray();
+        $applyOptions = [
+            ['label' => __('Percent of product price discount'), 'value' =>  Rule::BY_PERCENT_ACTION],
+            ['label' => __('Fixed amount discount'), 'value' => Rule::BY_FIXED_ACTION],
+            ['label' => __('Fixed amount discount for whole cart'), 'value' => Rule::CART_FIXED_ACTION],
+            ['label' => __('Buy X get Y free (discount amount is Y)'), 'value' => Rule::BUY_X_GET_Y_ACTION]
+        ];
 
         $couponTypesOptions = [];
         $couponTypes = $this->salesRuleFactory->create()->getCouponTypes();

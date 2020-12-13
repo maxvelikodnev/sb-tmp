@@ -129,9 +129,7 @@ define([
              * Abstract destroying command
              */
             destroy: function () {
-                if (this._player) {
-                    this._player.destroy();
-                }
+                this._player.destroy();
             },
 
             /**
@@ -290,10 +288,7 @@ define([
              */
             destroy: function () {
                 this.stop();
-
-                if (this._player) {
-                    this._player.destroy();
-                }
+                this._player.destroy();
             }
         });
 

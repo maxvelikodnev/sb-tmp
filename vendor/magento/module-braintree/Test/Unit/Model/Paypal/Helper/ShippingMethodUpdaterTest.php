@@ -11,6 +11,11 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Braintree\Gateway\Config\PayPal\Config;
 use Magento\Braintree\Model\Paypal\Helper\ShippingMethodUpdater;
 
+/**
+ * Class ShippingMethodUpdaterTest
+ *
+ * @see \Magento\Braintree\Model\Paypal\Helper\ShippingMethodUpdater
+ */
 class ShippingMethodUpdaterTest extends \PHPUnit\Framework\TestCase
 {
     const TEST_SHIPPING_METHOD = 'test-shipping-method';
@@ -31,11 +36,6 @@ class ShippingMethodUpdaterTest extends \PHPUnit\Framework\TestCase
      * @var Address|\PHPUnit_Framework_MockObject_MockObject
      */
     private $shippingAddressMock;
-
-    /**
-     * @var Address|\PHPUnit_Framework_MockObject_MockObject
-     */
-    private $billingAddressMock;
 
     /**
      * @var ShippingMethodUpdater
@@ -169,8 +169,7 @@ class ShippingMethodUpdaterTest extends \PHPUnit\Framework\TestCase
                     'collectTotals',
                     'getBillingAddress',
                     'getShippingAddress',
-                    'getIsVirtual',
-                    'getExtensionAttributes'
+                    'getIsVirtual'
                 ]
             )->disableOriginalConstructor()
             ->getMock();

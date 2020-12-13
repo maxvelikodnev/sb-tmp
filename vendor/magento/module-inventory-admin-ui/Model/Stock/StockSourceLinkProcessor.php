@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace Magento\InventoryAdminUi\Model\Stock;
 
 use Magento\Framework\Api\DataObjectHelper;
-use Magento\Framework\AuthorizationInterface;
-use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\InventoryApi\Api\Data\StockSourceLinkInterfaceFactory;
@@ -19,8 +17,7 @@ use Magento\InventoryApi\Api\StockSourceLinksDeleteInterface;
 use Magento\InventoryApi\Api\StockSourceLinksSaveInterface;
 
 /**
- * At the time of processing Stock save form this class used to save links correctly.
- *
+ * At the time of processing Stock save form this class used to save links correctly
  * Performs replace strategy of sources for the stock
  */
 class StockSourceLinkProcessor
@@ -56,18 +53,12 @@ class StockSourceLinkProcessor
     private $dataObjectHelper;
 
     /**
-     * @var AuthorizationInterface
-     */
-    private $authorization;
-
-    /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param StockSourceLinkInterfaceFactory $stockSourceLinkFactory
      * @param StockSourceLinksSaveInterface $stockSourceLinksSave
      * @param StockSourceLinksDeleteInterface $stockSourceLinksDelete
      * @param GetStockSourceLinksInterface $getStockSourceLinks
      * @param DataObjectHelper $dataObjectHelper
-     * @param AuthorizationInterface $authorization
      */
     public function __construct(
         SearchCriteriaBuilder $searchCriteriaBuilder,
@@ -75,8 +66,7 @@ class StockSourceLinkProcessor
         StockSourceLinksSaveInterface $stockSourceLinksSave,
         StockSourceLinksDeleteInterface $stockSourceLinksDelete,
         GetStockSourceLinksInterface $getStockSourceLinks,
-        DataObjectHelper $dataObjectHelper,
-        AuthorizationInterface $authorization
+        DataObjectHelper $dataObjectHelper
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->stockSourceLinkFactory = $stockSourceLinkFactory;
@@ -84,17 +74,13 @@ class StockSourceLinkProcessor
         $this->stockSourceLinksDelete = $stockSourceLinksDelete;
         $this->getStockSourceLinks = $getStockSourceLinks;
         $this->dataObjectHelper = $dataObjectHelper;
-        $this->authorization = $authorization;
     }
 
     /**
-     * Performs replace strategy of sources for the stock.
-     *
      * @param int $stockId
      * @param array $linksData
      * @return void
      * @throws InputException
-     * @throws AuthorizationException
      */
     public function process(int $stockId, array $linksData)
     {
@@ -114,12 +100,6 @@ class StockSourceLinkProcessor
             $linkData[StockSourceLinkInterface::STOCK_ID] = $stockId;
             $this->dataObjectHelper->populateWithArray($link, $linkData, StockSourceLinkInterface::class);
 
-            if (!$this->authorization->isAllowed('Magento_InventoryApi::stock_source_link')
-                && $link->getData() != $link->getOrigData()
-            ) {
-                throw new AuthorizationException(__('It is not allowed to change sources'));
-            }
-
             $linksForSave[] = $link;
             unset($linksForDelete[$sourceCode]);
         }
@@ -128,9 +108,6 @@ class StockSourceLinkProcessor
             $this->stockSourceLinksSave->execute($linksForSave);
         }
         if (count($linksForDelete) > 0) {
-            if (!$this->authorization->isAllowed('Magento_InventoryApi::stock_source_link')) {
-                throw new AuthorizationException(__('It is not allowed to change sources'));
-            }
             $this->stockSourceLinksDelete->execute($linksForDelete);
         }
     }

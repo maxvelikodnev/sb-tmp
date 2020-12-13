@@ -16,9 +16,6 @@ use Magento\InventoryCatalogApi\Model\GetProductIdsBySkusInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\LocalizedException;
 
-/**
- * Get legacy stock item.
- */
 class GetLegacyStockItem
 {
     /**
@@ -60,8 +57,6 @@ class GetLegacyStockItem
     }
 
     /**
-     * Get legacy stock item entity by sku.
-     *
      * @param string $sku
      * @return StockItemInterface
      * @throws LocalizedException
@@ -86,14 +81,12 @@ class GetLegacyStockItem
         $searchCriteria->setLimit(1, 1);
 
         $stockItemCollection = $this->legacyStockItemRepository->getList($searchCriteria);
-
-        $stockItems = $stockItemCollection->getItems();
-        $stockItem = reset($stockItems);
-
-        if (!$stockItem) {
+        if ($stockItemCollection->getTotalCount() === 0) {
             return $this->stockItemFactory->create();
         }
 
+        $stockItems = $stockItemCollection->getItems();
+        $stockItem = reset($stockItems);
         return $stockItem;
     }
 }

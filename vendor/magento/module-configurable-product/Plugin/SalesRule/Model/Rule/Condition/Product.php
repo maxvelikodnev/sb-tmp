@@ -56,10 +56,7 @@ class Product
         $attrCode = $subject->getAttribute();
 
         /* Check for attributes which are not available for configurable products */
-        if ($product->getTypeId() == Configurable::TYPE_CODE &&
-            !$product->hasData($attrCode) &&
-            count($model->getChildren())
-        ) {
+        if ($product->getTypeId() == Configurable::TYPE_CODE && !$product->hasData($attrCode)) {
             /** @var \Magento\Catalog\Model\AbstractModel $childProduct */
             $childProduct = current($model->getChildren())->getProduct();
             if ($childProduct->hasData($attrCode)) {
