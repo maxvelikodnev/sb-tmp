@@ -225,6 +225,7 @@ return [
         'Magento_PaypalReCaptcha' => 1,
         'MSP_TwoFactorAuth' => 0,
         'MagePal_CatalogLazyLoad' => 1,
+        'MagePal_Core' => 1,
         'Mageplaza_Core' => 1,
         'Mageplaza_GiftCard' => 1,
         'Mageplaza_GoogleAnalytics' => 1,

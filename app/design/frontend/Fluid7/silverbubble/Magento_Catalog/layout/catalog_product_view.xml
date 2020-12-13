@@ -4,9 +4,6 @@
         <move element="product.attributes" destination="product.info.details" before="productreviews.tab" />
 
         <referenceBlock name="product.info.details">
-        <!-- <action method="setTemplate">
-               <argument name="template" xsi:type="string">Magento_Catalog::product/view/details.phtml</argument>
-          </action>-->
           <block class="Magento\Catalog\Block\Product\View" name="designer.tab" as="designerinfo" template="product/view/designer_info.phtml" group="detailed_info">
              <arguments>
                 <argument translate="true" name="title" xsi:type="string">Product Designer</argument>
