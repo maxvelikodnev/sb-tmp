@@ -1,0 +1,16 @@
+<?php
+/**
+ * @var \Fooman\PdfCustomiser\Block\IntegratedLabel $block
+ */
+?>
+<?php
+$order = $block->getOrder();
+$salesObject = $block->getSalesObject();
+$billingAddress = $block->getBillingAddress();
+$shippingAddress = $block->getShippingAddress();
+?>
+<table border="0" cellpadding="2" cellspacing="0">
+    <tr>
+        <td><?= /* @noEscape */ $shippingAddress ?></td>
+    </tr>
+</table>
