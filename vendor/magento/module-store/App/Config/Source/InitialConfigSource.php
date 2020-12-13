@@ -52,7 +52,6 @@ class InitialConfigSource implements ConfigSourceInterface
 
     /**
      * Return whole config data from config file for specified config type.
-     *
      * Ignore $path argument due to config source must return all config data
      *
      * @param string $path
@@ -66,7 +65,7 @@ class InitialConfigSource implements ConfigSourceInterface
          *
          * @see \Magento\Store\Model\Config\Importer To import store configs
          */
-        if ($this->deploymentConfig->isAvailable() || $this->deploymentConfig->isDbAvailable()) {
+        if ($this->deploymentConfig->isAvailable()) {
             return [];
         }
 

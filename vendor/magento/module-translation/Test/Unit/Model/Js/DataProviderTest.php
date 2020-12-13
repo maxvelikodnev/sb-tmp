@@ -90,7 +90,7 @@ class DataProviderTest extends \PHPUnit\Framework\TestCase
         $themePath = 'blank';
         $areaCode = 'adminhtml';
 
-        $filePaths = [['path1'], ['path2'], ['path4'], ['path3']];
+        $filePaths = [['path1'], ['path2'], ['path3'], ['path4']];
 
         $jsFilesMap = [
             ['base', $themePath, '*', '*', [$filePaths[0]]],
@@ -111,8 +111,8 @@ class DataProviderTest extends \PHPUnit\Framework\TestCase
         $contentsMap = [
             'content1$.mage.__("hello1")content1',
             'content2$.mage.__("hello2")content2',
-            'content2$.mage.__("hello4")content4', // this value should be last after running data provider
             'content2$.mage.__("hello3")content3',
+            'content2$.mage.__("hello4")content4'
         ];
 
         $translateMap = [
@@ -147,13 +147,7 @@ class DataProviderTest extends \PHPUnit\Framework\TestCase
             ->method('render')
             ->willReturnMap($translateMap);
 
-        $actualResult = $this->model->getData($themePath);
-        $this->assertEquals($expectedResult, $actualResult);
-        $this->assertEquals(
-            json_encode($expectedResult),
-            json_encode($actualResult),
-            "Translations should be sorted by key"
-        );
+        $this->assertEquals($expectedResult, $this->model->getData($themePath));
     }
 
     /**

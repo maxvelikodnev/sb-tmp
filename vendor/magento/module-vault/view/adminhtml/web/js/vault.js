@@ -27,26 +27,18 @@ define([
          * @returns {exports.initObservable}
          */
         initObservable: function () {
-            var self = this,
-                paymentSelector = '[name="payment[method]"][value="' + this.getCode() + '"]:checked';
+            var self = this;
 
             self.$selector = $('#' + self.selector);
             this._super()
                 .observe(['active']);
-
-            if (self.$selector.find(paymentSelector).length !== 0) {
-                this.active(true);
-            }
-
-            $('#' + self.fieldset).find('[name="payment[token_switcher]"]')
-                .on('click', this.rememberTokenSwitcher.bind(this));
 
             // re-init payment method events
             self.$selector.off('changePaymentMethod.' + this.getCode())
                 .on('changePaymentMethod.' + this.getCode(), this.changePaymentMethod.bind(this));
 
             if (this.active()) {
-                this.chooseTokenSwitcher();
+                $('#' + this.fieldset + ' input:radio:first').trigger('click');
             }
 
             return this;
@@ -65,33 +57,6 @@ define([
         },
 
         /**
-         * Save last chosen token switcher
-         * @param {Object} event
-         * @returns {exports.rememberTokenSwitcher}
-         */
-        rememberTokenSwitcher: function (event) {
-            $('#' + this.selector).data('lastTokenSwitcherId', event.target.id);
-
-            return this;
-        },
-
-        /**
-         * Select token switcher
-         * @returns {exports.chooseTokenSwitcher}
-         */
-        chooseTokenSwitcher: function () {
-            var lastTokenSwitcherId = $('#' + this.selector).data('lastTokenSwitcherId');
-
-            if (lastTokenSwitcherId) {
-                $('#' + lastTokenSwitcherId).trigger('click');
-            } else {
-                $('#' + this.fieldset + ' input:radio:first').trigger('click');
-            }
-
-            return this;
-        },
-
-        /**
          * Triggered when payment changed
          * @param {Boolean} isActive
          */
@@ -101,7 +66,8 @@ define([
 
                 return;
             }
-            this.chooseTokenSwitcher();
+
+            $('#' + this.fieldset + ' input:radio:first').trigger('click');
             window.order.addExcludedPaymentMethod(this.getCode());
         },
 

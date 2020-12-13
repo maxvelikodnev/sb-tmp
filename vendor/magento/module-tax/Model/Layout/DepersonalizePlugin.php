@@ -6,81 +6,80 @@
  */
 namespace Magento\Tax\Model\Layout;
 
-use Magento\Customer\Model\Session as CustomerSession;
-use Magento\Framework\View\LayoutInterface;
 use Magento\PageCache\Model\DepersonalizeChecker;
 
 /**
- * Depersonalize customer data.
- *
- * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
+ * Class DepersonalizePlugin
  */
 class DepersonalizePlugin
 {
     /**
      * @var DepersonalizeChecker
      */
-    private $depersonalizeChecker;
+    protected $depersonalizeChecker;
 
     /**
-     * @var CustomerSession
+     * @var \Magento\Customer\Model\Session
      */
-    private $customerSession;
-
-    /**
-     * @var array
-     */
-    private $defaultTaxShippingAddress;
+    protected $customerSession;
 
     /**
      * @var array
      */
-    private $defaultTaxBillingAddress;
+    protected $defaultTaxShippingAddress;
+
+    /**
+     * @var array
+     */
+    protected $defaultTaxBillingAddress;
 
     /**
      * @var int
      */
-    private $customerTaxClassId;
+    protected $customerTaxClassId;
 
     /**
      * @param DepersonalizeChecker $depersonalizeChecker
-     * @param CustomerSession $customerSession
+     * @param \Magento\Customer\Model\Session $customerSession
      */
     public function __construct(
         DepersonalizeChecker $depersonalizeChecker,
-        CustomerSession $customerSession
+        \Magento\Customer\Model\Session $customerSession
     ) {
-        $this->depersonalizeChecker = $depersonalizeChecker;
         $this->customerSession = $customerSession;
+        $this->depersonalizeChecker = $depersonalizeChecker;
     }
 
     /**
-     * Resolve sensitive customer data if the depersonalization is needed.
+     * Before generate Xml
      *
-     * @param LayoutInterface $subject
-     * @return void
+     * @param \Magento\Framework\View\LayoutInterface $subject
+     * @return array
      */
-    public function beforeGenerateXml(LayoutInterface $subject)
+    public function beforeGenerateXml(\Magento\Framework\View\LayoutInterface $subject)
     {
         if ($this->depersonalizeChecker->checkIfDepersonalize($subject)) {
             $this->defaultTaxBillingAddress = $this->customerSession->getDefaultTaxBillingAddress();
             $this->defaultTaxShippingAddress = $this->customerSession->getDefaultTaxShippingAddress();
             $this->customerTaxClassId = $this->customerSession->getCustomerTaxClassId();
         }
+        return [];
     }
 
     /**
-     * Change sensitive customer data if the depersonalization is needed.
+     * After generate Xml
      *
-     * @param LayoutInterface $subject
-     * @return void
+     * @param \Magento\Framework\View\LayoutInterface $subject
+     * @param \Magento\Framework\View\LayoutInterface $result
+     * @return \Magento\Framework\View\LayoutInterface
      */
-    public function afterGenerateElements(LayoutInterface $subject)
+    public function afterGenerateXml(\Magento\Framework\View\LayoutInterface $subject, $result)
     {
         if ($this->depersonalizeChecker->checkIfDepersonalize($subject)) {
             $this->customerSession->setDefaultTaxBillingAddress($this->defaultTaxBillingAddress);
             $this->customerSession->setDefaultTaxShippingAddress($this->defaultTaxShippingAddress);
             $this->customerSession->setCustomerTaxClassId($this->customerTaxClassId);
         }
+        return $result;
     }
 }

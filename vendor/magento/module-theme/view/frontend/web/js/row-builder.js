@@ -11,7 +11,7 @@
 define([
     'jquery',
     'mage/template',
-    'jquery-ui-modules/widget'
+    'jquery/ui'
 ], function ($, mageTemplate) {
     'use strict';
 

@@ -19,26 +19,31 @@ var config = {
         'jquery/hover-intent': ['jquery'],
         'mage/adminhtml/backup': ['prototype'],
         'mage/captcha': ['prototype'],
+        'mage/common': ['jquery'],
         'mage/new-gallery': ['jquery'],
         'mage/webapi': ['jquery'],
         'jquery/ui': ['jquery'],
         'MutationObserver': ['es6-collections'],
+        'moment': {
+            'exports': 'moment'
+        },
         'matchMedia': {
             'exports': 'mediaCheck'
         },
-        'magnifier/magnifier': ['jquery']
+        'jquery/jquery-storageapi': {
+            'deps': ['jquery/jquery.cookie']
+        }
     },
     'paths': {
         'jquery/validate': 'jquery/jquery.validate',
         'jquery/hover-intent': 'jquery/jquery.hoverIntent',
-        'jquery/file-uploader': 'jquery/fileUploader/jquery.fileuploader',
+        'jquery/file-uploader': 'jquery/fileUploader/jquery.fileupload-fp',
         'prototype': 'legacy-build.min',
         'jquery/jquery-storageapi': 'jquery/jquery.storageapi.min',
         'text': 'mage/requirejs/text',
         'domReady': 'requirejs/domReady',
         'spectrum': 'jquery/spectrum/spectrum',
-        'tinycolor': 'jquery/spectrum/tinycolor',
-        'jquery-ui-modules': 'jquery/ui-modules'
+        'tinycolor': 'jquery/spectrum/tinycolor'
     },
     'deps': [
         'jquery/jquery-migrate'

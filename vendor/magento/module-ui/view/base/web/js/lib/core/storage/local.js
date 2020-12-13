@@ -11,7 +11,7 @@ define([
     'use strict';
 
     var root = 'appData',
-        localStorage,
+        localStorage = window.localStorage,
         hasSupport,
         storage;
 
@@ -22,7 +22,6 @@ define([
         var key = '_storageSupported';
 
         try {
-            localStorage = window.localStorage;
             localStorage.setItem(key, 'true');
 
             if (localStorage.getItem(key) === 'true') {

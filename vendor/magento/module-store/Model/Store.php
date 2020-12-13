@@ -53,7 +53,7 @@ class Store extends AbstractExtensibleModel implements
     const ENTITY = 'store';
 
     /**
-     * Parameter used to determine app context.
+     * Custom entry point param
      */
     const CUSTOM_ENTRY_POINT_PARAM = 'custom_entry_point';
 
@@ -104,7 +104,7 @@ class Store extends AbstractExtensibleModel implements
     const ADMIN_CODE = 'admin';
 
     /**
-     * Tag to use to cache stores.
+     * Cache tag
      */
     const CACHE_TAG = 'store';
 
@@ -278,7 +278,6 @@ class Store extends AbstractExtensibleModel implements
 
     /**
      * @var \Magento\Framework\Session\SidResolverInterface
-     * @deprecated 101.0.5 Not used anymore.
      */
     protected $_sidResolver;
 
@@ -913,7 +912,7 @@ class Store extends AbstractExtensibleModel implements
             $defaultCode = ($this->_storeManager->getStore() !== null)
                 ? $this->_storeManager->getStore()->getDefaultCurrency()->getCode()
                 : $this->_storeManager->getWebsite()->getDefaultStore()->getDefaultCurrency()->getCode();
-
+            
             $this->_httpContext->setValue(Context::CONTEXT_CURRENCY, $code, $defaultCode);
         }
         return $this;
@@ -1087,11 +1086,9 @@ class Store extends AbstractExtensibleModel implements
             $event = $this->_eventPrefix . '_edit';
         }
         $store  = $this;
-        $this->getResource()->addCommitCallback(
-            function () use ($event, $store) {
-                $this->eventManager->dispatch($event, ['store' => $store]);
-            }
-        );
+        $this->getResource()->addCommitCallback(function () use ($event, $store) {
+            $this->eventManager->dispatch($event, ['store' => $store]);
+        });
         $this->pillPut->put();
         return parent::afterSave();
     }
@@ -1202,6 +1199,7 @@ class Store extends AbstractExtensibleModel implements
      */
     public function getCurrentUrl($fromStore = true)
     {
+        $sidQueryParam = $this->_sidResolver->getSessionIdQueryParam($this->_getSession());
         $requestString = $this->_url->escape(ltrim($this->_request->getRequestString(), '/'));
 
         $storeUrl = $this->getUrl('', ['_secure' => $this->_storeManager->getStore()->isCurrentlySecure()]);
@@ -1220,6 +1218,12 @@ class Store extends AbstractExtensibleModel implements
         }
 
         $currQuery = $this->_request->getQueryValue();
+        if (isset($currQuery[$sidQueryParam])
+            && !empty($currQuery[$sidQueryParam])
+            && $this->_getSession()->getSessionIdForHost($storeUrl) != $currQuery[$sidQueryParam]
+        ) {
+            unset($currQuery[$sidQueryParam]);
+        }
 
         foreach ($currQuery as $key => $value) {
             $storeParsedQuery[$key] = $value;
@@ -1275,20 +1279,7 @@ class Store extends AbstractExtensibleModel implements
     public function beforeDelete()
     {
         $this->_configDataResource->clearScopeData(ScopeInterface::SCOPE_STORES, $this->getId());
-        parent::beforeDelete();
-        if ($this->getId() === $this->getGroup()->getDefaultStoreId()) {
-            $ids = $this->getGroup()->getStoreIds();
-            if (!empty($ids) && count($ids) > 1) {
-                unset($ids[$this->getId()]);
-                $defaultId = current($ids);
-            } else {
-                $defaultId = null;
-            }
-            $this->getGroup()->setDefaultStoreId($defaultId);
-            $this->getGroup()->save();
-        }
-
-        return $this;
+        return parent::beforeDelete();
     }
 
     /**
@@ -1300,14 +1291,24 @@ class Store extends AbstractExtensibleModel implements
     public function afterDelete()
     {
         $store = $this;
-        $this->getResource()->addCommitCallback(
-            function () use ($store) {
-                $this->_storeManager->reinitStores();
-                $this->eventManager->dispatch($this->_eventPrefix . '_delete', ['store' => $store]);
-            }
-        );
+        $this->getResource()->addCommitCallback(function () use ($store) {
+            $this->_storeManager->reinitStores();
+            $this->eventManager->dispatch($this->_eventPrefix . '_delete', ['store' => $store]);
+        });
         parent::afterDelete();
         $this->_configCacheType->clean();
+
+        if ($this->getId() === $this->getGroup()->getDefaultStoreId()) {
+            $ids = $this->getGroup()->getStoreIds();
+            if (!empty($ids) && count($ids) > 1) {
+                unset($ids[$this->getId()]);
+                $defaultId = current($ids);
+            } else {
+                $defaultId = null;
+            }
+            $this->getGroup()->setDefaultStoreId($defaultId);
+            $this->getGroup()->save();
+        }
 
         return $this;
     }

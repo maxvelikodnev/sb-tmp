@@ -337,18 +337,7 @@ define([
          * @returns {Object} Collection of records data.
          */
         getData: function () {
-            var data = this.activeRecords.map(function (record) {
-                var elemKey,
-                    recordData = record.getData();
-
-                for (elemKey in recordData) {
-                    if (_.isUndefined(recordData[elemKey])) {
-                        recordData[elemKey] = null;
-                    }
-                }
-
-                return recordData;
-            });
+            var data = this.activeRecords.map('getData');
 
             return _.indexBy(data, this.indexField);
         },

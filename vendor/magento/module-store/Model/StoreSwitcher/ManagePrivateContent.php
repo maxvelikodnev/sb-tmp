@@ -38,12 +38,9 @@ class ManagePrivateContent implements StoreSwitcherInterface
     }
 
     /**
-     * Update version of private content on each store switch.
-     *
      * @param StoreInterface $fromStore store where we came from
      * @param StoreInterface $targetStore store where to go to
      * @param string $redirectUrl original url requested for redirect after switching
-     *
      * @return string redirect url
      * @throws CannotSwitchStoreException
      */
@@ -57,7 +54,7 @@ class ManagePrivateContent implements StoreSwitcherInterface
                 ->setHttpOnly(false);
             $this->cookieManager->setPublicCookie(
                 \Magento\Framework\App\PageCache\Version::COOKIE_NAME,
-                \uniqid('updated-', true),
+                'should_be_updated',
                 $publicCookieMetadata
             );
         } catch (\Exception $e) {

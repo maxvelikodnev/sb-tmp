@@ -91,8 +91,6 @@ class ContextPlugin
     }
 
     /**
-     * Before dispatch.
-     *
      * @param \Magento\Framework\App\ActionInterface $subject
      * @param \Magento\Framework\App\RequestInterface $request
      * @return void
@@ -161,8 +159,6 @@ class ContextPlugin
     }
 
     /**
-     * Get wee tax region.
-     *
      * @param string $basedOn
      * @return array
      */

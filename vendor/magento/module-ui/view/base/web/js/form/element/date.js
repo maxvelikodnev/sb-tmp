@@ -114,13 +114,15 @@ define([
          * @param {String} value
          */
         onValueChange: function (value) {
-            var shiftedValue;
+            var dateFormat,
+                shiftedValue;
 
             if (value) {
                 if (this.options.showsTime) {
                     shiftedValue = moment.tz(value, 'UTC').tz(this.storeTimeZone);
                 } else {
-                    shiftedValue = moment(value, this.outputDateFormat);
+                    dateFormat = this.shiftedValue() ? this.outputDateFormat : this.inputDateFormat;
+                    shiftedValue = moment(value, dateFormat);
                 }
 
                 if (!shiftedValue.isValid()) {

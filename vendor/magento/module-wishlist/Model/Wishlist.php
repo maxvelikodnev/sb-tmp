@@ -7,30 +7,10 @@ declare(strict_types=1);
 
 namespace Magento\Wishlist\Model;
 
-use Exception;
-use InvalidArgumentException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Catalog\Model\Product;
-use Magento\Catalog\Model\ProductFactory;
-use Magento\CatalogInventory\Api\Data\StockItemInterface;
-use Magento\CatalogInventory\Api\StockRegistryInterface;
-use Magento\CatalogInventory\Model\Configuration;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\DataObject;
-use Magento\Framework\DataObject\IdentityInterface;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Math\Random;
-use Magento\Framework\Model\AbstractModel;
-use Magento\Framework\Model\Context;
-use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Framework\Stdlib\DateTime;
-use Magento\Store\Model\ScopeInterface;
-use Magento\Store\Model\Store;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Wishlist\Helper\Data;
 use Magento\Wishlist\Model\ResourceModel\Item\CollectionFactory;
 use Magento\Wishlist\Model\ResourceModel\Wishlist as ResourceWishlist;
 use Magento\Wishlist\Model\ResourceModel\Wishlist\Collection;
@@ -39,21 +19,21 @@ use Magento\Wishlist\Model\ResourceModel\Wishlist\Collection;
  * Wishlist model
  *
  * @method int getShared()
- * @method Wishlist setShared(int $value)
+ * @method \Magento\Wishlist\Model\Wishlist setShared(int $value)
  * @method string getSharingCode()
- * @method Wishlist setSharingCode(string $value)
+ * @method \Magento\Wishlist\Model\Wishlist setSharingCode(string $value)
  * @method string getUpdatedAt()
- * @method Wishlist setUpdatedAt(string $value)
+ * @method \Magento\Wishlist\Model\Wishlist setUpdatedAt(string $value)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.TooManyFields)
  *
  * @api
  * @since 100.0.2
  */
-class Wishlist extends AbstractModel implements IdentityInterface
+class Wishlist extends \Magento\Framework\Model\AbstractModel implements \Magento\Framework\DataObject\IdentityInterface
 {
     /**
-     * Wishlist cache tag name
+     * Cache tag
      */
     const CACHE_TAG = 'wishlist';
 
@@ -67,14 +47,14 @@ class Wishlist extends AbstractModel implements IdentityInterface
     /**
      * Wishlist item collection
      *
-     * @var ResourceModel\Item\Collection
+     * @var \Magento\Wishlist\Model\ResourceModel\Item\Collection
      */
     protected $_itemCollection;
 
     /**
      * Store filter for wishlist
      *
-     * @var Store
+     * @var \Magento\Store\Model\Store
      */
     protected $_store;
 
@@ -88,7 +68,7 @@ class Wishlist extends AbstractModel implements IdentityInterface
     /**
      * Wishlist data
      *
-     * @var Data
+     * @var \Magento\Wishlist\Helper\Data
      */
     protected $_wishlistData;
 
@@ -100,12 +80,12 @@ class Wishlist extends AbstractModel implements IdentityInterface
     protected $_catalogProduct;
 
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $_storeManager;
 
     /**
-     * @var DateTime\DateTime
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
      */
     protected $_date;
 
@@ -120,17 +100,17 @@ class Wishlist extends AbstractModel implements IdentityInterface
     protected $_wishlistCollectionFactory;
 
     /**
-     * @var ProductFactory
+     * @var \Magento\Catalog\Model\ProductFactory
      */
     protected $_productFactory;
 
     /**
-     * @var Random
+     * @var \Magento\Framework\Math\Random
      */
     protected $mathRandom;
 
     /**
-     * @var DateTime
+     * @var \Magento\Framework\Stdlib\DateTime
      */
     protected $dateTime;
 
@@ -150,59 +130,45 @@ class Wishlist extends AbstractModel implements IdentityInterface
     private $serializer;
 
     /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-
-    /**
-     * @var StockRegistryInterface|null
-     */
-    private $stockRegistry;
-
-    /**
      * Constructor
      *
-     * @param Context $context
-     * @param Registry $registry
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
      * @param \Magento\Catalog\Helper\Product $catalogProduct
-     * @param Data $wishlistData
+     * @param \Magento\Wishlist\Helper\Data $wishlistData
      * @param ResourceWishlist $resource
      * @param Collection $resourceCollection
-     * @param StoreManagerInterface $storeManager
-     * @param DateTime\DateTime $date
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
      * @param ItemFactory $wishlistItemFactory
      * @param CollectionFactory $wishlistCollectionFactory
-     * @param ProductFactory $productFactory
-     * @param Random $mathRandom
-     * @param DateTime $dateTime
+     * @param \Magento\Catalog\Model\ProductFactory $productFactory
+     * @param \Magento\Framework\Math\Random $mathRandom
+     * @param \Magento\Framework\Stdlib\DateTime $dateTime
      * @param ProductRepositoryInterface $productRepository
      * @param bool $useCurrentWebsite
      * @param array $data
      * @param Json|null $serializer
-     * @param StockRegistryInterface|null $stockRegistry
-     * @param ScopeConfigInterface|null $scopeConfig
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        Context $context,
-        Registry $registry,
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
         \Magento\Catalog\Helper\Product $catalogProduct,
-        Data $wishlistData,
+        \Magento\Wishlist\Helper\Data $wishlistData,
         ResourceWishlist $resource,
         Collection $resourceCollection,
-        StoreManagerInterface $storeManager,
-        DateTime\DateTime $date,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\Stdlib\DateTime\DateTime $date,
         ItemFactory $wishlistItemFactory,
         CollectionFactory $wishlistCollectionFactory,
-        ProductFactory $productFactory,
-        Random $mathRandom,
-        DateTime $dateTime,
+        \Magento\Catalog\Model\ProductFactory $productFactory,
+        \Magento\Framework\Math\Random $mathRandom,
+        \Magento\Framework\Stdlib\DateTime $dateTime,
         ProductRepositoryInterface $productRepository,
         $useCurrentWebsite = true,
         array $data = [],
-        Json $serializer = null,
-        StockRegistryInterface $stockRegistry = null,
-        ScopeConfigInterface $scopeConfig = null
+        Json $serializer = null
     ) {
         $this->_useCurrentWebsite = $useCurrentWebsite;
         $this->_catalogProduct = $catalogProduct;
@@ -217,8 +183,6 @@ class Wishlist extends AbstractModel implements IdentityInterface
         $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
         $this->productRepository = $productRepository;
-        $this->scopeConfig = $scopeConfig ?: ObjectManager::getInstance()->get(ScopeConfigInterface::class);
-        $this->stockRegistry = $stockRegistry ?: ObjectManager::getInstance()->get(StockRegistryInterface::class);
     }
 
     /**
@@ -326,13 +290,13 @@ class Wishlist extends AbstractModel implements IdentityInterface
     /**
      * Add catalog product object data to wishlist
      *
-     * @param   Product $product
+     * @param   \Magento\Catalog\Model\Product $product
      * @param   int $qty
      * @param   bool $forciblySetQty
      *
      * @return  Item
      */
-    protected function _addCatalogProduct(Product $product, $qty = 1, $forciblySetQty = false)
+    protected function _addCatalogProduct(\Magento\Catalog\Model\Product $product, $qty = 1, $forciblySetQty = false)
     {
         $item = null;
         foreach ($this->getItemCollection() as $_item) {
@@ -347,7 +311,7 @@ class Wishlist extends AbstractModel implements IdentityInterface
             $item = $this->_wishlistItemFactory->create();
             $item->setProductId($product->getId());
             $item->setWishlistId($this->getId());
-            $item->setAddedAt((new \DateTime())->format(DateTime::DATETIME_PHP_FORMAT));
+            $item->setAddedAt((new \DateTime())->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT));
             $item->setStoreId($storeId);
             $item->setOptions($product->getCustomOptions());
             $item->setProduct($product);
@@ -370,7 +334,6 @@ class Wishlist extends AbstractModel implements IdentityInterface
      * Retrieve wishlist item collection
      *
      * @return \Magento\Wishlist\Model\ResourceModel\Item\Collection
-     * @throws NoSuchEntityException
      */
     public function getItemCollection()
     {
@@ -379,7 +342,7 @@ class Wishlist extends AbstractModel implements IdentityInterface
                 $this
             )->addStoreFilter(
                 $this->getSharedStoreIds()
-            )->setVisibilityFilter($this->_useCurrentWebsite);
+            )->setVisibilityFilter();
         }
 
         return $this->_itemCollection;
@@ -402,9 +365,8 @@ class Wishlist extends AbstractModel implements IdentityInterface
     /**
      * Adding item to wishlist
      *
-     * @param Item $item
-     * @return $this
-     * @throws Exception
+     * @param   Item $item
+     * @return  $this
      */
     public function addItem(Item $item)
     {
@@ -421,14 +383,13 @@ class Wishlist extends AbstractModel implements IdentityInterface
      *
      * Returns new item or string on error.
      *
-     * @param int|Product $product
-     * @param DataObject|array|string|null $buyRequest
+     * @param int|\Magento\Catalog\Model\Product $product
+     * @param \Magento\Framework\DataObject|array|string|null $buyRequest
      * @param bool $forciblySetQty
+     * @throws \Magento\Framework\Exception\LocalizedException
      * @return Item|string
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
-     * @throws LocalizedException
-     * @throws InvalidArgumentException
      */
     public function addNewItem($product, $buyRequest = null, $forciblySetQty = false)
     {
@@ -437,7 +398,7 @@ class Wishlist extends AbstractModel implements IdentityInterface
          * a) we have new instance and do not interfere with other products in wishlist
          * b) product has full set of attributes
          */
-        if ($product instanceof Product) {
+        if ($product instanceof \Magento\Catalog\Model\Product) {
             $productId = $product->getId();
             // Maybe force some store by wishlist internal properties
             $storeId = $product->hasWishlistStoreId() ? $product->getWishlistStoreId() : $product->getStoreId();
@@ -451,17 +412,12 @@ class Wishlist extends AbstractModel implements IdentityInterface
         }
 
         try {
-            /** @var Product $product */
             $product = $this->productRepository->getById($productId, false, $storeId);
         } catch (NoSuchEntityException $e) {
-            throw new LocalizedException(__('Cannot specify product.'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('Cannot specify product.'));
         }
 
-        if ($this->isInStock($productId)) {
-            throw new LocalizedException(__('Cannot add product without stock to wishlist.'));
-        }
-
-        if ($buyRequest instanceof DataObject) {
+        if ($buyRequest instanceof \Magento\Framework\DataObject) {
             $_buyRequest = $buyRequest;
         } elseif (is_string($buyRequest)) {
             $isInvalidItemConfiguration = false;
@@ -470,20 +426,20 @@ class Wishlist extends AbstractModel implements IdentityInterface
                 if (!is_array($buyRequestData)) {
                     $isInvalidItemConfiguration = true;
                 }
-            } catch (Exception $exception) {
+            } catch (\InvalidArgumentException $exception) {
                 $isInvalidItemConfiguration = true;
             }
             if ($isInvalidItemConfiguration) {
-                throw new InvalidArgumentException('Invalid wishlist item configuration.');
+                throw new \InvalidArgumentException('Invalid wishlist item configuration.');
             }
-            $_buyRequest = new DataObject($buyRequestData);
+            $_buyRequest = new \Magento\Framework\DataObject($buyRequestData);
         } elseif (is_array($buyRequest)) {
-            $_buyRequest = new DataObject($buyRequest);
+            $_buyRequest = new \Magento\Framework\DataObject($buyRequest);
         } else {
-            $_buyRequest = new DataObject();
+            $_buyRequest = new \Magento\Framework\DataObject();
         }
 
-        /* @var $product Product */
+        /* @var $product \Magento\Catalog\Model\Product */
         $cartCandidates = $product->getTypeInstance()->processConfiguration($_buyRequest, clone $product);
 
         /**
@@ -530,7 +486,6 @@ class Wishlist extends AbstractModel implements IdentityInterface
      *
      * @param int $customerId
      * @return $this
-     * @throws LocalizedException
      */
     public function setCustomerId($customerId)
     {
@@ -541,7 +496,6 @@ class Wishlist extends AbstractModel implements IdentityInterface
      * Retrieve customer id
      *
      * @return int
-     * @throws LocalizedException
      */
     public function getCustomerId()
     {
@@ -552,7 +506,6 @@ class Wishlist extends AbstractModel implements IdentityInterface
      * Retrieve data for save
      *
      * @return array
-     * @throws LocalizedException
      */
     public function getDataForSave()
     {
@@ -567,7 +520,6 @@ class Wishlist extends AbstractModel implements IdentityInterface
      * Retrieve shared store ids for current website or all stores if $current is false
      *
      * @return array
-     * @throws NoSuchEntityException
      */
     public function getSharedStoreIds()
     {
@@ -602,7 +554,6 @@ class Wishlist extends AbstractModel implements IdentityInterface
      * Retrieve wishlist store object
      *
      * @return \Magento\Store\Model\Store
-     * @throws NoSuchEntityException
      */
     public function getStore()
     {
@@ -615,7 +566,7 @@ class Wishlist extends AbstractModel implements IdentityInterface
     /**
      * Set wishlist store
      *
-     * @param Store $store
+     * @param \Magento\Store\Model\Store $store
      * @return $this
      */
     public function setStore($store)
@@ -650,29 +601,10 @@ class Wishlist extends AbstractModel implements IdentityInterface
     }
 
     /**
-     * Retrieve if product has stock or config is set for showing out of stock products
-     *
-     * @param int $productId
-     * @return bool
-     */
-    private function isInStock($productId)
-    {
-        /** @var StockItemInterface $stockItem */
-        $stockItem = $this->stockRegistry->getStockItem($productId);
-        $showOutOfStock = $this->scopeConfig->isSetFlag(
-            Configuration::XML_PATH_SHOW_OUT_OF_STOCK,
-            ScopeInterface::SCOPE_STORE
-        );
-        $isInStock = $stockItem ? $stockItem->getIsInStock() : false;
-        return !$isInStock && !$showOutOfStock;
-    }
-
-    /**
      * Check customer is owner this wishlist
      *
      * @param int $customerId
      * @return bool
-     * @throws LocalizedException
      */
     public function isOwner($customerId)
     {
@@ -694,10 +626,10 @@ class Wishlist extends AbstractModel implements IdentityInterface
      * For more options see \Magento\Catalog\Helper\Product->addParamsToBuyRequest()
      *
      * @param int|Item $itemId
-     * @param DataObject $buyRequest
-     * @param null|array|DataObject $params
+     * @param \Magento\Framework\DataObject $buyRequest
+     * @param null|array|\Magento\Framework\DataObject $params
      * @return $this
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      *
      * @see \Magento\Catalog\Helper\Product::addParamsToBuyRequest()
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -713,16 +645,16 @@ class Wishlist extends AbstractModel implements IdentityInterface
             $item = $this->getItem((int)$itemId);
         }
         if (!$item) {
-            throw new LocalizedException(__('We can\'t specify a wish list item.'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('We can\'t specify a wish list item.'));
         }
 
         $product = $item->getProduct();
         $productId = $product->getId();
         if ($productId) {
             if (!$params) {
-                $params = new DataObject();
+                $params = new \Magento\Framework\DataObject();
             } elseif (is_array($params)) {
-                $params = new DataObject($params);
+                $params = new \Magento\Framework\DataObject($params);
             }
             $params->setCurrentConfig($item->getBuyRequest());
             $buyRequest = $this->_catalogProduct->addParamsToBuyRequest($buyRequest, $params);
@@ -745,7 +677,7 @@ class Wishlist extends AbstractModel implements IdentityInterface
              * Error message
              */
             if (is_string($resultItem)) {
-                throw new LocalizedException(__($resultItem));
+                throw new \Magento\Framework\Exception\LocalizedException(__($resultItem));
             }
 
             if ($resultItem->getId() != $itemId) {
@@ -759,7 +691,7 @@ class Wishlist extends AbstractModel implements IdentityInterface
                 $resultItem->setOrigData('qty', 0);
             }
         } else {
-            throw new LocalizedException(__('The product does not exist.'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('The product does not exist.'));
         }
         return $this;
     }

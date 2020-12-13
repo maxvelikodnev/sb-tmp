@@ -53,7 +53,4 @@
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Catalog\Helper\Product\View">
-        <plugin name="pre_render_product_options_from_wishlist" type="Magento\Wishlist\Plugin\Helper\Product\View" />
-    </type>
 </config>

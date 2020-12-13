@@ -5,19 +5,8 @@
  */
 namespace Magento\Translation\Model\ResourceModel;
 
-use Magento\Framework\Escaper;
-use Magento\Framework\App\ObjectManager;
-
-/**
- * String translation utilities
- */
 class StringUtils extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
-    /**
-     * @var Escaper
-     */
-    private $escaper;
-
     /**
      * @var \Magento\Framework\Locale\ResolverInterface
      */
@@ -39,22 +28,17 @@ class StringUtils extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * @param \Magento\Framework\App\ScopeResolverInterface $scopeResolver
      * @param string $connectionName
      * @param string|null $scope
-     * @param Escaper|null $escaper
      */
     public function __construct(
         \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Framework\App\ScopeResolverInterface $scopeResolver,
         $connectionName = null,
-        $scope = null,
-        Escaper $escaper = null
+        $scope = null
     ) {
         $this->_localeResolver = $localeResolver;
         $this->scopeResolver = $scopeResolver;
         $this->scope = $scope;
-        $this->escaper = $escaper ?? ObjectManager::getInstance()->get(
-            Escaper::class
-        );
         parent::__construct($context, $connectionName);
     }
 
@@ -227,7 +211,7 @@ class StringUtils extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $string = htmlspecialchars_decode($string);
         $connection = $this->getConnection();
         $table = $this->getMainTable();
-        $translate = $this->escaper->escapeHtml($translate);
+        $translate = htmlspecialchars($translate, ENT_QUOTES);
 
         if ($locale === null) {
             $locale = $this->_localeResolver->getLocale();
@@ -257,7 +241,7 @@ class StringUtils extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         ];
 
         if ($row = $connection->fetchRow($select, $bind)) {
-            $original = $this->escaper->escapeHtml($string);
+            $original = $string;
             if (strpos($original, '::') !== false) {
                 list(, $original) = explode('::', $original);
             }

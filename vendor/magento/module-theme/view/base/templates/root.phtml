@@ -3,17 +3,18 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
+
 ?>
 <!doctype html>
-<html <?= /* @noEscape */ $htmlAttributes ?>>
-    <head <?= /* @noEscape */ $headAttributes ?>>
-        <?= /* @noEscape */ $requireJs ?>
-        <?= /* @noEscape */ $headContent ?>
-        <?= /* @noEscape */ $headAdditional ?>
+<html <?= /* @escapeNotVerified */ $htmlAttributes ?>>
+    <head <?= /* @escapeNotVerified */ $headAttributes ?>>
+        <?= /* @escapeNotVerified */ $requireJs ?>
+        <?= /* @escapeNotVerified */ $headContent ?>
+        <?= /* @escapeNotVerified */ $headAdditional ?>
     </head>
-    <body data-container="body"
-          data-mage-init='{"loaderAjax": {}, "loader": { "icon": "<?= /* @noEscape */ $loaderIcon ?>"}}'
-        <?= /* @noEscape */ $bodyAttributes ?>>
-        <?= /* @noEscape */ $layoutContent ?>
+    <body data-container="body" data-mage-init='{"loaderAjax": {}, "loader": { "icon": "<?= /* @escapeNotVerified */ $loaderIcon ?>"}}' <?= /* @escapeNotVerified */ $bodyAttributes ?>>
+        <?= /* @escapeNotVerified */ $layoutContent ?>
     </body>
 </html>

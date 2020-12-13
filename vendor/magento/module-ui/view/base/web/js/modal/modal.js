@@ -14,8 +14,7 @@ define([
     'text!ui/template/modal/modal-slide.html',
     'text!ui/template/modal/modal-custom.html',
     'Magento_Ui/js/lib/key-codes',
-    'jquery-ui-modules/widget',
-    'jquery-ui-modules/core',
+    'jquery/ui',
     'mage/translate'
 ], function ($, _, template, popupTpl, slideTpl, customTpl, keyCodes) {
     'use strict';
@@ -132,10 +131,7 @@ define([
             this._createWrapper();
             this._renderModal();
             this._createButtons();
-
-            if (this.options.trigger) {
-                $(document).on('click', this.options.trigger, _.bind(this.toggleModal, this));
-            }
+            $(this.options.trigger).on('click', _.bind(this.toggleModal, this));
             this._on(this.modal.find(this.options.modalCloseBtn), {
                 'click': this.options.modalCloseBtnHandler ? this.options.modalCloseBtnHandler : this.closeModal
             });
@@ -192,7 +188,7 @@ define([
          * @param {String} title
          */
         setTitle: function (title) {
-            var $title = this.modal.find(this.options.modalTitle),
+            var $title = $(this.options.modalTitle),
                 $subTitle = this.modal.find(this.options.modalSubTitle);
 
             $title.text(title);

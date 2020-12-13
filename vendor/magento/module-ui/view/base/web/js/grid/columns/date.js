@@ -15,8 +15,7 @@ define([
 
     return Column.extend({
         defaults: {
-            dateFormat: 'MMM d, YYYY h:mm:ss A',
-            calendarConfig: []
+            dateFormat: 'MMM d, YYYY h:mm:ss A'
         },
 
         /**
@@ -27,7 +26,7 @@ define([
         initConfig: function () {
             this._super();
 
-            this.dateFormat = utils.normalizeDate(this.dateFormat ? this.dateFormat : this.options.dateFormat);
+            this.dateFormat = utils.normalizeDate(this.dateFormat);
 
             return this;
         },
@@ -38,12 +37,7 @@ define([
          * @returns {String} Formatted date.
          */
         getLabel: function (value, format) {
-            var date;
-
-            if (this.storeLocale !== undefined) {
-                moment.locale(this.storeLocale, utils.extend({}, this.calendarConfig));
-            }
-            date = moment(this._super());
+            var date = moment(this._super());
 
             date = date.isValid() && value[this.index] ?
                 date.format(format || this.dateFormat) :

@@ -11,13 +11,11 @@ use Magento\Framework\View\Element\UiComponentInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponent\DataProvider\DataProviderInterface;
-use Magento\Framework\View\Element\UiComponent\Processor;
-use PHPUnit\Framework\TestCase;
 
 /**
- * Testing for generic UI column classes & for custom ones such as Websites
+ * Class ColumnTest
  */
-class ColumnTest extends TestCase
+class ColumnTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var ContextInterface|\PHPUnit_Framework_MockObject_MockObject
@@ -28,23 +26,6 @@ class ColumnTest extends TestCase
      * @var ObjectManager
      */
     protected $objectManager;
-
-    /**
-     * @var UiComponentFactory
-     */
-    protected $uiComponentFactoryMock;
-
-    protected $dataProviderMock;
-
-    /**
-     * @var string
-     */
-    protected $columnClass = Column::class;
-
-    /**
-     * @var string
-     */
-    protected $columnName = Column::NAME;
 
     /**
      * Set up
@@ -62,8 +43,6 @@ class ColumnTest extends TestCase
             true,
             []
         );
-
-        $this->uiComponentFactoryMock = $this->createMock(UiComponentFactory::class);
     }
 
     /**
@@ -75,7 +54,7 @@ class ColumnTest extends TestCase
     {
         $this->contextMock->expects($this->never())->method('getProcessor');
         $column = $this->objectManager->getObject(
-            $this->columnClass,
+            \Magento\Ui\Component\Listing\Columns\Column::class,
             [
                 'context' => $this->contextMock,
                 'data' => [
@@ -89,7 +68,7 @@ class ColumnTest extends TestCase
             ]
         );
 
-        $this->assertEquals($column->getComponentName(), $this->columnName . '.testType');
+        $this->assertEquals($column->getComponentName(), Column::NAME . '.testType');
     }
 
     /**
@@ -101,7 +80,7 @@ class ColumnTest extends TestCase
     {
         $testItems = ['item1','item2', 'item3'];
         $column = $this->objectManager->getObject(
-            $this->columnClass,
+            \Magento\Ui\Component\Listing\Columns\Column::class,
             ['context' => $this->contextMock]
         );
 
@@ -111,70 +90,57 @@ class ColumnTest extends TestCase
     /**
      * Run test prepare method
      *
-     * @param null $dataProviderMock
      * @return void
      */
     public function testPrepare()
     {
+        $processor = $this->getMockBuilder(\Magento\Framework\View\Element\UiComponent\Processor::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->contextMock->expects($this->atLeastOnce())->method('getProcessor')->willReturn($processor);
         $data = [
             'name' => 'test_name',
             'js_config' => ['extends' => 'test_config_extends'],
             'config' => ['dataType' => 'test_type', 'sortable' => true]
         ];
 
-        /** @var Column $column */
-        $column = $this->objectManager->getObject(
-            $this->columnClass,
-            [
-                'context' => $this->contextMock,
-                'uiComponentFactory' => $this->uiComponentFactoryMock,
-                'data' => $data
-            ]
-        );
+        /** @var UiComponentFactory|\PHPUnit_Framework_MockObject_MockObject $uiComponentFactoryMock */
+        $uiComponentFactoryMock = $this->createMock(\Magento\Framework\View\Element\UiComponentFactory::class);
 
-        /** @var UiComponentInterface|PHPUnit\Framework\MockObject\MockObject $wrappedComponentMock */
+        /** @var UiComponentInterface|\PHPUnit_Framework_MockObject_MockObject $wrappedComponentMock */
         $wrappedComponentMock = $this->getMockForAbstractClass(
             \Magento\Framework\View\Element\UiComponentInterface::class,
             [],
             '',
             false
         );
+        /** @var DataProviderInterface|\PHPUnit_Framework_MockObject_MockObject $dataProviderMock */
+        $dataProviderMock = $this->getMockForAbstractClass(
+            \Magento\Framework\View\Element\UiComponent\DataProvider\DataProviderInterface::class,
+            [],
+            '',
+            false
+        );
 
-        if ($this->dataProviderMock === null) {
-            $this->dataProviderMock = $this->getMockForAbstractClass(
-                DataProviderInterface::class,
-                [],
-                '',
-                false
-            );
-
-            $this->dataProviderMock->expects($this->once())
-                ->method('addOrder')
-                ->with('test_name', 'ASC');
-        }
-
-        $processor = $this->getMockBuilder(Processor::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->contextMock->expects($this->atLeastOnce())
-            ->method('getProcessor')
-            ->willReturn($processor);
         $this->contextMock->expects($this->atLeastOnce())
             ->method('getNamespace')
             ->willReturn('test_namespace');
         $this->contextMock->expects($this->atLeastOnce())
             ->method('getDataProvider')
-            ->willReturn($this->dataProviderMock);
+            ->willReturn($dataProviderMock);
         $this->contextMock->expects($this->atLeastOnce())
             ->method('getRequestParam')
             ->with('sorting')
             ->willReturn(['field' => 'test_name', 'direction' => 'asc']);
         $this->contextMock->expects($this->atLeastOnce())
             ->method('addComponentDefinition')
-            ->with($this->columnName . '.test_type', ['extends' => 'test_config_extends']);
+            ->with(Column::NAME . '.test_type', ['extends' => 'test_config_extends']);
 
-        $this->uiComponentFactoryMock->expects($this->once())
+        $dataProviderMock->expects($this->once())
+            ->method('addOrder')
+            ->with('test_name', 'ASC');
+
+        $uiComponentFactoryMock->expects($this->once())
             ->method('create')
             ->with('test_name', 'test_type', array_merge(['context' => $this->contextMock], $data))
             ->willReturn($wrappedComponentMock);
@@ -185,71 +151,16 @@ class ColumnTest extends TestCase
         $wrappedComponentMock->expects($this->once())
             ->method('prepare');
 
-        $column->prepare();
-    }
-
-    /**
-     * Run a test on sorting function
-     *
-     * @param array $config
-     * @param string $direction
-     * @param int $numOfProviderCalls
-     * @throws \ReflectionException
-     *
-     * @dataProvider sortingDataProvider
-     */
-    public function testSorting(array $config, string $direction, int $numOfProviderCalls)
-    {
-        $data = [
-            'name' => 'test_name',
-            'config' => $config
-        ];
-
-        $this->dataProviderMock = $this->getMockForAbstractClass(
-            DataProviderInterface::class,
-            [],
-            '',
-            false
-        );
-
-        $this->dataProviderMock->expects($this->exactly($numOfProviderCalls))
-            ->method('addOrder')
-            ->with('test_name', $direction);
-
-        $this->contextMock->expects($this->atLeastOnce())
-            ->method('getRequestParam')
-            ->with('sorting')
-            ->willReturn(['field' => 'test_name', 'direction' => $direction]);
-
-        $this->contextMock->expects($this->exactly($numOfProviderCalls))
-            ->method('getDataProvider')
-            ->willReturn($this->dataProviderMock);
-
+        /** @var Column $column */
         $column = $this->objectManager->getObject(
-            $this->columnClass,
+            \Magento\Ui\Component\Listing\Columns\Column::class,
             [
                 'context' => $this->contextMock,
-                'uiComponentFactory' => $this->uiComponentFactoryMock,
+                'uiComponentFactory' => $uiComponentFactoryMock,
                 'data' => $data
             ]
         );
 
-        // get access to the method
-        $method = new \ReflectionMethod(
-            Column::class,
-            'applySorting'
-        );
-        $method->setAccessible(true);
-
-        $method->invokeArgs($column, []);
-    }
-
-    public function sortingDataProvider()
-    {
-        return [
-            [['dataType' => 'test_type', 'sortable' => true], 'ASC', 1],
-            [['dataType' => 'test_type', 'sortable' => false], 'ASC', 0],
-            [['dataType' => 'test_type', 'sortable' => true], 'foobar', 0]
-        ];
+        $column->prepare();
     }
 }

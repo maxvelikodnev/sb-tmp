@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\Ui\Component\Control;
 
 /**
@@ -23,7 +22,7 @@ namespace Magento\Ui\Component\Control;
 class SplitButton extends Button
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function getTemplatePath()
     {
@@ -84,12 +83,12 @@ class SplitButton extends Button
             'style' => $this->getStyle(),
         ];
 
-        if ($idHard = $this->getIdHard()) {
+        if (($idHard = $this->getIdHard())) {
             $attributes['id'] = $idHard;
         }
 
         //TODO perhaps we need to skip data-mage-init when disabled="disabled"
-        if ($dataAttribute = $this->getDataAttribute()) {
+        if (($dataAttribute = $this->getDataAttribute())) {
             $this->getDataAttributes($dataAttribute, $attributes);
         }
 
@@ -113,7 +112,7 @@ class SplitButton extends Button
             $title = $this->getLabel();
         }
 
-        if ($currentClass = $this->getClass()) {
+        if (($currentClass = $this->getClass())) {
             $classes[] = $currentClass;
         }
 
@@ -202,11 +201,12 @@ class SplitButton extends Button
     {
         return $this->hasData('has_split') ? (bool)$this->getData('has_split') : true;
     }
+
     /**
      * Add data attributes to $attributes array
      *
      * @param array $data
-     * @param array $attributes
+     * @param array &$attributes
      * @return void
      */
     protected function getDataAttributes($data, &$attributes)

@@ -8,9 +8,6 @@ namespace Magento\Theme\Model\Design\Config;
 use Magento\Framework\App\Config as AppConfig;
 use Magento\Framework\App\ScopeFallbackResolverInterface;
 
-/**
- * Class ValueChecker
- */
 class ValueChecker
 {
     /**
@@ -64,7 +61,7 @@ class ValueChecker
                     $fieldConfig
                 ),
                 $this->valueProcessor->process(
-                    ($this->appConfig->getValue($fieldConfig['path'], $scope, $scopeId) ?? ""),
+                    $this->appConfig->getValue($fieldConfig['path'], $scope, $scopeId),
                     $scope,
                     $scopeId,
                     $fieldConfig
@@ -83,11 +80,12 @@ class ValueChecker
      */
     protected function isEqual($value, $defaultValue)
     {
-        if (is_array($value)) {
-            return $this->isEqualArrays($value, $defaultValue);
+        switch (gettype($value)) {
+            case 'array':
+                return $this->isEqualArrays($value, $defaultValue);
+            default:
+                return $value === $defaultValue;
         }
-
-        return $value === $defaultValue;
     }
 
     /**

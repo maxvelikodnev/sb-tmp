@@ -15,7 +15,6 @@ use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
- * Metadata Provider
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class MetadataProvider
@@ -85,7 +84,7 @@ class MetadataProvider
                 return $childComponent;
             }
         }
-        throw new \Exception('No columns found'); // @codingStandardsIgnoreLine
+        throw new \Exception('No columns found');
     }
 
     /**
@@ -119,6 +118,12 @@ class MetadataProvider
         foreach ($this->getColumns($component) as $column) {
             $row[] = $column->getData('config/label');
         }
+
+        array_walk($row, function (&$header) {
+            if (mb_strpos($header, 'ID') === 0) {
+                $header = '"' . $header . '"';
+            }
+        });
 
         return $row;
     }

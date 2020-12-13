@@ -3,7 +3,9 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-// @deprecated
+
+// @codingStandardsIgnoreFile
+
 ?>
 <div data-mage-init='{"floatingHeader": {}}' class="page-actions">
     <?= $block->getBackButtonHtml() ?>
@@ -11,13 +13,13 @@
     <?= $block->getSaveButtonHtml() ?>
     <?= $block->getDeleteButtonHtml() ?>
 </div>
-<?php if ($form) : ?>
-    <?= $form->toHtml() ?>
-    <script>
-    require(['jquery', "mage/mage"], function(jQuery){
+<?php if ($form): ?>
+<?= $form->toHtml() ?>
+<script>
+require(['jquery', "mage/mage"], function(jQuery){
 
-        jQuery('#<?= $block->escapeJs($form->getForm()->getId()) ?>').mage('form').mage('validation');
+    jQuery('#<?= /* @escapeNotVerified */ $form->getForm()->getId() ?>').mage('form').mage('validation');
 
-    });
-    </script>
+});
+</script>
 <?php endif; ?>

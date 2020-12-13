@@ -10,7 +10,6 @@ use Magento\Catalog\Model\Product\Exception as ProductException;
 use Magento\Checkout\Helper\Cart as CartHelper;
 use Magento\Checkout\Model\Cart;
 use Magento\Customer\Model\Session;
-use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Psr\Log\LoggerInterface as Logger;
@@ -19,10 +18,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Wishlist\Helper\Data as WishlistHelper;
 
 /**
- * Wishlist ItemCarrier Controller
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
 class ItemCarrier
 {
@@ -186,7 +182,7 @@ class ItemCarrier
 
         if ($messages) {
             foreach ($messages as $message) {
-                $this->messageManager->addErrorMessage($message);
+                $this->messageManager->addError($message);
             }
             $redirectUrl = $indexUrl;
         }
@@ -196,7 +192,7 @@ class ItemCarrier
             try {
                 $wishlist->save();
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('We can\'t update the Wish List right now.'));
+                $this->messageManager->addError(__('We can\'t update the Wish List right now.'));
                 $redirectUrl = $indexUrl;
             }
 
@@ -206,7 +202,7 @@ class ItemCarrier
                 $products[] = '"' . $product->getName() . '"';
             }
 
-            $this->messageManager->addSuccessMessage(
+            $this->messageManager->addSuccess(
                 __('%1 product(s) have been added to shopping cart: %2.', count($addedProducts), join(', ', $products))
             );
 

@@ -6,9 +6,6 @@
 
 namespace Magento\Store\Test\Unit\Model\System;
 
-/**
- * Class StoreTest covers Magento\Store\Model\System\Store.
- */
 class StoreTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -265,21 +262,16 @@ class StoreTest extends \PHPUnit\Framework\TestCase
                 'storeGroupId' => $groupId,
                 'groupWebsiteId' => $websiteId,
                 'expectedResult' => [
-                    ['label' => '', 'value' => '','__disableTmpl' => true],
-                    ['label' => __('All Store Views'), 'value' => 0,'__disableTmpl' => true],
-                    ['label' => $websiteName, 'value' => [],'__disableTmpl' => true],
+                    ['label' => '', 'value' => ''],
+                    ['label' => __('All Store Views'), 'value' => 0],
+                    ['label' => $websiteName, 'value' => []],
                     [
                         'label' => str_repeat($nonEscapableNbspChar, 4) . $groupName,
                         'value' => [
-                            [
-                                'label' => str_repeat($nonEscapableNbspChar, 4) . $storeName,
-                                'value' => $storeId,
-                                '__disableTmpl' => true,
-                            ],
-                        ],
-                        '__disableTmpl' => true
+                            ['label' => str_repeat($nonEscapableNbspChar, 4) . $storeName, 'value' => $storeId]
+                        ]
                     ],
-                ],
+                ]
             ],
         ];
     }

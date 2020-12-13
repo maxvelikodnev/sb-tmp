@@ -114,7 +114,7 @@ class Options extends \Magento\Wishlist\Block\AbstractBlock
                             $option['value'][$key] = $this->escapeHtml($value);
                         }
                     } else {
-                        $option['value'] = $this->escapeHtml($option['value'], ["a"]);
+                        $option['value'] = $this->escapeHtml($option['value']);
                     }
                 }
                 $options[$index]['value'] = $option['value'];

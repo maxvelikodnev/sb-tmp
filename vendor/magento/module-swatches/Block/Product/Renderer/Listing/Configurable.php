@@ -9,6 +9,7 @@ use Magento\Catalog\Block\Product\Context;
 use Magento\Catalog\Helper\Product as CatalogProduct;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Layer\Resolver;
+use Magento\Catalog\Model\Layer\Category as CategoryLayer;
 use Magento\ConfigurableProduct\Helper\Data;
 use Magento\ConfigurableProduct\Model\ConfigurableAttributeData;
 use Magento\Customer\Helper\Session\CurrentCustomer;
@@ -153,7 +154,7 @@ class Configurable extends \Magento\Swatches\Block\Product\Renderer\Configurable
         $this->unsetData('allow_products');
         return parent::getJsonConfig();
     }
-
+    
     /**
      * Composes configuration for js price format
      *
@@ -243,12 +244,9 @@ class Configurable extends \Magento\Swatches\Block\Product\Renderer\Configurable
 
         $layeredAttributes = [];
 
-        $configurableAttributes = array_map(
-            function ($attribute) {
-                return $attribute->getAttributeCode();
-            },
-            $configurableAttributes
-        );
+        $configurableAttributes = array_map(function ($attribute) {
+            return $attribute->getAttributeCode();
+        }, $configurableAttributes);
 
         $commonAttributeCodes = array_intersect(
             $configurableAttributes,
@@ -260,5 +258,18 @@ class Configurable extends \Magento\Swatches\Block\Product\Renderer\Configurable
         }
 
         return $layeredAttributes;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 100.3.1
+     */
+    public function getCacheKeyInfo()
+    {
+        $cacheKeyInfo = parent::getCacheKeyInfo();
+        /** @var CategoryLayer $catalogLayer */
+        $catalogLayer = $this->layerResolver->get();
+        $cacheKeyInfo[] = $catalogLayer->getStateKey();
+        return $cacheKeyInfo;
     }
 }

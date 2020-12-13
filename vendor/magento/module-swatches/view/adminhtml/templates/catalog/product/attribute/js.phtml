@@ -4,13 +4,14 @@
  * See COPYING.txt for license details.
  */
 
-// phpcs:disable Magento2.Templates.ThisInTemplate
+// @codingStandardsIgnoreFile
+
 ?>
 <script type="text/x-magento-init">
     {
         "*": {
             "swatchesProductAttributes": {
-                "hiddenFields": <?= /* @noEscape */ json_encode($this->helper(Magento\Catalog\Helper\Data::class)->getAttributeHiddenFields()) ?>
+                "hiddenFields": <?= /* @escapeNotVerified */ json_encode($this->helper('Magento\Catalog\Helper\Data')->getAttributeHiddenFields()) ?>
             }
         }
     }

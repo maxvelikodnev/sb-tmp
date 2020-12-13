@@ -5,6 +5,9 @@
  */
 namespace Magento\Weee\Model\ResourceModel;
 
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\Product\Condition\ConditionInterface;
+
 /**
  * Wee tax resource model
  *
@@ -17,11 +20,6 @@ class Tax extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * @var \Magento\Framework\Stdlib\DateTime
      */
     protected $dateTime;
-
-    /**
-     * @var array
-     */
-    private $weeeTaxCalculationsByEntityCache = [];
 
     /**
      * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
@@ -48,7 +46,7 @@ class Tax extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * Fetch one calculated weee attribute from a select criteria
+     * Fetch one
      *
      * @param \Magento\Framework\DB\Select|string $select
      * @return string
@@ -59,8 +57,6 @@ class Tax extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * Is there a weee attribute available for the location provided
-     *
      * @param int $countryId
      * @param int $regionId
      * @param int $websiteId
@@ -95,8 +91,6 @@ class Tax extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * Fetch calculated weee attributes by location, store and entity
-     *
      * @param int $countryId
      * @param int $regionId
      * @param int $websiteId
@@ -106,56 +100,43 @@ class Tax extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     public function fetchWeeeTaxCalculationsByEntity($countryId, $regionId, $websiteId, $storeId, $entityId)
     {
-        $cacheKey = sprintf(
-            '%s-%s-%s-%s-%s',
-            $countryId,
-            $regionId,
-            $websiteId,
-            $storeId,
-            $entityId
+        $attributeSelect = $this->getConnection()->select();
+        $attributeSelect->from(
+            ['eavTable' => $this->getTable('eav_attribute')],
+            ['eavTable.attribute_code', 'eavTable.attribute_id', 'eavTable.frontend_label']
+        )->joinLeft(
+            ['eavLabel' => $this->getTable('eav_attribute_label')],
+            'eavLabel.attribute_id = eavTable.attribute_id and eavLabel.store_id = ' .((int) $storeId),
+            'eavLabel.value as label_value'
+        )->joinInner(
+            ['weeeTax' => $this->getTable('weee_tax')],
+            'weeeTax.attribute_id = eavTable.attribute_id',
+            'weeeTax.value as weee_value'
+        )->where(
+            'eavTable.frontend_input = ?',
+            'weee'
+        )->where(
+            'weeeTax.website_id IN(?)',
+            [$websiteId, 0]
+        )->where(
+            'weeeTax.country = ?',
+            $countryId
+        )->where(
+            'weeeTax.state IN(?)',
+            [$regionId, 0]
+        )->where(
+            'weeeTax.entity_id = ?',
+            (int)$entityId
         );
-        if (!isset($this->weeeTaxCalculationsByEntityCache[$cacheKey])) {
-                $attributeSelect = $this->getConnection()->select();
-                $attributeSelect->from(
-                    ['eavTable' => $this->getTable('eav_attribute')],
-                    ['eavTable.attribute_code', 'eavTable.attribute_id', 'eavTable.frontend_label']
-                )->joinLeft(
-                    ['eavLabel' => $this->getTable('eav_attribute_label')],
-                    'eavLabel.attribute_id = eavTable.attribute_id and eavLabel.store_id = ' . ((int)$storeId),
-                    'eavLabel.value as label_value'
-                )->joinInner(
-                    ['weeeTax' => $this->getTable('weee_tax')],
-                    'weeeTax.attribute_id = eavTable.attribute_id',
-                    'weeeTax.value as weee_value'
-                )->where(
-                    'eavTable.frontend_input = ?',
-                    'weee'
-                )->where(
-                    'weeeTax.website_id IN(?)',
-                    [$websiteId, 0]
-                )->where(
-                    'weeeTax.country = ?',
-                    $countryId
-                )->where(
-                    'weeeTax.state IN(?)',
-                    [$regionId, 0]
-                )->where(
-                    'weeeTax.entity_id = ?',
-                    (int)$entityId
-                );
 
-            $order = ['weeeTax.state ' . \Magento\Framework\DB\Select::SQL_DESC,
-                'weeeTax.website_id ' . \Magento\Framework\DB\Select::SQL_DESC];
-            $attributeSelect->order($order);
+        $order = ['weeeTax.state ' . \Magento\Framework\DB\Select::SQL_DESC,
+            'weeeTax.website_id ' . \Magento\Framework\DB\Select::SQL_DESC];
+        $attributeSelect->order($order);
 
-            $values = $this->getConnection()->fetchAll($attributeSelect);
+        $values = $this->getConnection()->fetchAll($attributeSelect);
 
-            if ($values) {
-                $this->weeeTaxCalculationsByEntityCache[$cacheKey] = $values;
-                return $values;
-            }
-        } else {
-            return $this->weeeTaxCalculationsByEntityCache[$cacheKey];
+        if ($values) {
+            return $values;
         }
 
         return [];

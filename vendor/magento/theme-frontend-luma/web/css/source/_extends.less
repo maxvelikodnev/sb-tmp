@@ -1212,7 +1212,7 @@
 }
 
 //
-//  Ratings: vertical alignment
+//  Forms: margin-bottom for small forms
 //  ---------------------------------------------
 
 & when (@media-common = true) {
@@ -1532,7 +1532,6 @@
     .abs-block-items-counter {
         .lib-css(color, @block-items__counter__color);
         .lib-font-size(12px);
-        vertical-align: middle;
         white-space: nowrap;
 
         &:before {
@@ -1556,7 +1555,6 @@
         strong {
             font-size: @font-size__l;
             font-weight: @font-weight__light;
-            vertical-align: middle;
         }
     }
 }
@@ -1713,7 +1711,7 @@
 }
 
 //
-//  Mini Cart and checkout sidebar totals
+//  Shopping cart sidebar and checkout sidebar totals
 //  ---------------------------------------------
 
 & when (@media-common = true) {
@@ -1915,7 +1913,6 @@
             display: table-cell;
         }
     }
-
 }
 
 .media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {

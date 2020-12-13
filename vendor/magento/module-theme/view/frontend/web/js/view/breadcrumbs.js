@@ -8,7 +8,7 @@ define([
     'mage/template',
     'Magento_Theme/js/model/breadcrumb-list',
     'text!Magento_Theme/templates/breadcrumbs.html',
-    'jquery-ui-modules/widget'
+    'jquery/ui'
 ], function ($, mageTemplate, breadcrumbList, tpl) {
     'use strict';
 

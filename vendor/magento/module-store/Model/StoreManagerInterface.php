@@ -117,7 +117,7 @@ interface StoreManagerInterface
     /**
      * Set current default store
      *
-     * @param string|int|\Magento\Store\Api\Data\StoreInterface $store
+     * @param string $store
      * @return void
      */
     public function setCurrentStore($store);

@@ -5,14 +5,14 @@
  */
 namespace Magento\Search\Test\Unit\Model;
 
+use Magento\Search\Helper\Data;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\ObjectManagerInterface;
-use Magento\Framework\Stdlib\StringUtils;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Search\Helper\Data;
-use Magento\Search\Model\Query;
 use Magento\Search\Model\QueryFactory;
+use Magento\Framework\Stdlib\StringUtils;
+use Magento\Search\Model\Query;
 
 /**
  * Class QueryFactoryTest tests Magento\Search\Model\QueryFactory
@@ -67,7 +67,7 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $this->query = $this->getMockBuilder(Query::class)
-            ->setMethods(['setIsQueryTextExceeded', 'setIsQueryTextShort', 'loadByQueryText', 'getId'])
+            ->setMethods(['setIsQueryTextExceeded', 'setIsQueryTextShort', 'loadByQueryText', 'getId', 'setQueryText'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -124,6 +124,7 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
         $isQueryTextExceeded = false;
         $isQueryTextShort = false;
 
+        $this->mockSetQueryTextNeverExecute($cleanedRawText);
         $this->mockString($cleanedRawText);
         $this->mockQueryLengths($maxQueryLength, $minQueryLength);
         $this->mockGetRawQueryText($rawQueryText);
@@ -134,7 +135,6 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
         $result = $this->model->get();
 
         $this->assertSame($this->query, $result);
-        $this->assertSearchQuery($cleanedRawText);
     }
 
     /**
@@ -150,6 +150,7 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
         $isQueryTextExceeded = false;
         $isQueryTextShort = false;
 
+        $this->mockSetQueryTextNeverExecute($cleanedRawText);
         $this->mockString($cleanedRawText);
         $this->mockQueryLengths($maxQueryLength, $minQueryLength);
         $this->mockGetRawQueryText($rawQueryText);
@@ -162,7 +163,6 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
 
         $result = $this->model->get();
         $this->assertSame($this->query, $result, 'After second execution queries are not same');
-        $this->assertSearchQuery($cleanedRawText);
     }
 
     /**
@@ -184,6 +184,7 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
             ->withConsecutive([$cleanedRawText, 0, $maxQueryLength])
             ->willReturn($subRawText);
 
+        $this->mockSetQueryTextNeverExecute($cleanedRawText);
         $this->mockString($cleanedRawText);
         $this->mockQueryLengths($maxQueryLength, $minQueryLength);
         $this->mockGetRawQueryText($rawQueryText);
@@ -193,7 +194,6 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
 
         $result = $this->model->get();
         $this->assertSame($this->query, $result);
-        $this->assertSearchQuery($subRawText);
     }
 
     /**
@@ -209,6 +209,7 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
         $isQueryTextExceeded = false;
         $isQueryTextShort = true;
 
+        $this->mockSetQueryTextNeverExecute($cleanedRawText);
         $this->mockString($cleanedRawText);
         $this->mockQueryLengths($maxQueryLength, $minQueryLength);
         $this->mockGetRawQueryText($rawQueryText);
@@ -218,7 +219,6 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
 
         $result = $this->model->get();
         $this->assertSame($this->query, $result);
-        $this->assertSearchQuery($cleanedRawText);
     }
 
     /**
@@ -234,6 +234,7 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
         $isQueryTextExceeded = false;
         $isQueryTextShort = false;
 
+        $this->mockSetQueryTextOnceExecute($cleanedRawText);
         $this->mockString($cleanedRawText);
         $this->mockQueryLengths($maxQueryLength, $minQueryLength);
         $this->mockGetRawQueryText($rawQueryText);
@@ -243,35 +244,6 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
 
         $result = $this->model->get();
         $this->assertSame($this->query, $result);
-        $this->assertSearchQuery($cleanedRawText);
-    }
-
-    /**
-     * Test for inaccurate match of search query in query_text table
-     *
-     * Because of inaccurate string comparison of utf8_general_ci,
-     * the search_query result text may be different from the original text (e.g organos, Organos, Órganos)
-     */
-    public function testInaccurateQueryTextMatch()
-    {
-        $queryId = 1;
-        $maxQueryLength = 100;
-        $minQueryLength = 3;
-        $rawQueryText = 'Órganos';
-        $cleanedRawText = 'Órganos';
-        $isQueryTextExceeded = false;
-        $isQueryTextShort = false;
-
-        $this->mockString($cleanedRawText);
-        $this->mockQueryLengths($maxQueryLength, $minQueryLength);
-        $this->mockGetRawQueryText($rawQueryText);
-        $this->mockSimpleQuery($cleanedRawText, $queryId, $isQueryTextExceeded, $isQueryTextShort, 'Organos');
-
-        $this->mockCreateQuery();
-
-        $result = $this->model->get();
-        $this->assertSame($this->query, $result);
-        $this->assertSearchQuery($cleanedRawText);
     }
 
     /**
@@ -333,25 +305,15 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
      * @param int $queryId
      * @param bool $isQueryTextExceeded
      * @param bool $isQueryTextShort
-     * @param string $matchedQueryText
      * @return void
      */
-    private function mockSimpleQuery(
-        string $cleanedRawText,
-        ?int $queryId,
-        bool $isQueryTextExceeded,
-        bool $isQueryTextShort,
-        string $matchedQueryText = null
-    ) {
-        if (null === $matchedQueryText) {
-            $matchedQueryText = $cleanedRawText;
-        }
+    private function mockSimpleQuery($cleanedRawText, $queryId, $isQueryTextExceeded, $isQueryTextShort)
+    {
         $this->query->expects($this->once())
             ->method('loadByQueryText')
             ->withConsecutive([$cleanedRawText])
             ->willReturnSelf();
-        $this->query->setData(['query_text' => $matchedQueryText]);
-        $this->query->expects($this->any())
+        $this->query->expects($this->once())
             ->method('getId')
             ->willReturn($queryId);
         $this->query->expects($this->once())
@@ -366,8 +328,23 @@ class QueryFactoryTest extends \PHPUnit\Framework\TestCase
      * @param string $cleanedRawText
      * @return void
      */
-    private function assertSearchQuery($cleanedRawText)
+    private function mockSetQueryTextNeverExecute($cleanedRawText)
     {
-        $this->assertEquals($cleanedRawText, $this->query->getQueryText());
+        $this->query->expects($this->never())
+            ->method('setQueryText')
+            ->withConsecutive([$cleanedRawText])
+            ->willReturnSelf();
+    }
+
+    /**
+     * @param string $cleanedRawText
+     * @return void
+     */
+    private function mockSetQueryTextOnceExecute($cleanedRawText)
+    {
+        $this->query->expects($this->once())
+            ->method('setQueryText')
+            ->withConsecutive([$cleanedRawText])
+            ->willReturnSelf();
     }
 }

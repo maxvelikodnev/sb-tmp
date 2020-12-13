@@ -73,8 +73,7 @@ class EditAction extends Column
                                     'scope_id' => $scopeId,
                                 ]
                             ),
-                            'label' => __('Edit'),
-                            '__disableTmpl' => true,
+                            'label' => __('Edit')
                         ]
                     ];
                 }

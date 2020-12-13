@@ -105,24 +105,6 @@ define(
             },
 
             /**
-             * Returns state of place order button.
-             *
-             * @return {Boolean}
-             */
-            isButtonActive: function () {
-                return this.isActive() && this.isPlaceOrderActionAllowed();
-            },
-
-            /**
-             * Check if payment is active.
-             *
-             * @return {Boolean}
-             */
-            isActive: function () {
-                return this.isChecked() === this.getId();
-            },
-
-            /**
              * @returns {*}
              */
             getData: function () {

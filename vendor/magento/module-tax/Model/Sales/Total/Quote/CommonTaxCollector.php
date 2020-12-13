@@ -383,7 +383,6 @@ class CommonTaxCollector extends AbstractTotal
                         $priceIncludesTax,
                         $useBaseCurrency
                     );
-                    // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                     $itemDataObjects = array_merge($itemDataObjects, $extraTaxableItems);
                 }
             } else {
@@ -395,7 +394,6 @@ class CommonTaxCollector extends AbstractTotal
                     $priceIncludesTax,
                     $useBaseCurrency
                 );
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $itemDataObjects = array_merge($itemDataObjects, $extraTaxableItems);
             }
         }
@@ -593,10 +591,7 @@ class CommonTaxCollector extends AbstractTotal
         $total->setSubtotalInclTax($subtotalInclTax);
         $total->setBaseSubtotalTotalInclTax($baseSubtotalInclTax);
         $total->setBaseSubtotalInclTax($baseSubtotalInclTax);
-        $address = $shippingAssignment->getShipping()->getAddress();
-        $address->setBaseSubtotalTotalInclTax($baseSubtotalInclTax);
-        $address->setSubtotal($total->getSubtotal());
-        $address->setBaseSubtotal($total->getBaseSubtotal());
+        $shippingAssignment->getShipping()->getAddress()->setBaseSubtotalTotalInclTax($baseSubtotalInclTax);
 
         return $this;
     }
@@ -804,7 +799,6 @@ class CommonTaxCollector extends AbstractTotal
                 'rates' => $rates,
             ];
             if (!empty($extraInfo)) {
-                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $appliedTaxArray = array_merge($appliedTaxArray, $extraInfo);
             }
 

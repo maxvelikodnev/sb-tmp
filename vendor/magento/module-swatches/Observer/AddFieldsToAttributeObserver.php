@@ -36,8 +36,6 @@ class AddFieldsToAttributeObserver implements ObserverInterface
     }
 
     /**
-     * Execute.
-     *
      * @param \Magento\Framework\Event\Observer $observer
      * @return void
      */

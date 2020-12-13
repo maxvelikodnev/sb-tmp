@@ -249,7 +249,7 @@ class UpdateItemOptionsTest extends \PHPUnit\Framework\TestCase
 
         $this->messageManager
             ->expects($this->once())
-            ->method('addErrorMessage')
+            ->method('addError')
             ->with('We can\'t specify a product.')
             ->willReturn(true);
         $this->resultRedirectMock->expects($this->once())
@@ -294,7 +294,7 @@ class UpdateItemOptionsTest extends \PHPUnit\Framework\TestCase
 
         $this->messageManager
             ->expects($this->never())
-            ->method('addErrorMessage')
+            ->method('addError')
             ->with('We can\'t specify a product.')
             ->willReturn(true);
 
@@ -433,12 +433,12 @@ class UpdateItemOptionsTest extends \PHPUnit\Framework\TestCase
 
         $this->messageManager
             ->expects($this->once())
-            ->method('addSuccessMessage')
+            ->method('addSuccess')
             ->with('Test name has been updated in your Wish List.', null)
             ->willThrowException(new \Magento\Framework\Exception\LocalizedException(__('error-message')));
         $this->messageManager
             ->expects($this->once())
-            ->method('addErrorMessage')
+            ->method('addError')
             ->with('error-message', null)
             ->willReturn(true);
         $this->resultRedirectMock->expects($this->once())
@@ -572,12 +572,12 @@ class UpdateItemOptionsTest extends \PHPUnit\Framework\TestCase
 
         $this->messageManager
             ->expects($this->once())
-            ->method('addSuccessMessage')
+            ->method('addSuccess')
             ->with('Test name has been updated in your Wish List.', null)
             ->willThrowException($exception);
         $this->messageManager
             ->expects($this->once())
-            ->method('addErrorMessage')
+            ->method('addError')
             ->with('We can\'t update your Wish List right now.', null)
             ->willReturn(true);
         $this->resultRedirectMock->expects($this->once())

@@ -8,6 +8,7 @@ namespace Magento\Webapi\Controller\Rest;
 
 use Magento\Framework\Webapi\ServiceInputProcessor;
 use Magento\Framework\Webapi\Rest\Request as RestRequest;
+use Magento\Webapi\Controller\Rest\Router;
 use Magento\Webapi\Controller\Rest\Router\Route;
 
 /**
@@ -80,20 +81,7 @@ class InputParamsResolver
         $route = $this->getRoute();
         $serviceMethodName = $route->getServiceMethod();
         $serviceClassName = $route->getServiceClass();
-        $inputData = $this->getInputData();
-        return $this->serviceInputProcessor->process($serviceClassName, $serviceMethodName, $inputData);
-    }
 
-    /**
-     * Get API input data
-     *
-     * @return array
-     */
-    public function getInputData()
-    {
-        $route = $this->getRoute();
-        $serviceMethodName = $route->getServiceMethod();
-        $serviceClassName = $route->getServiceClass();
         /*
          * Valid only for updates using PUT when passing id value both in URL and body
          */
@@ -109,7 +97,9 @@ class InputParamsResolver
             $inputData = $this->request->getRequestData();
         }
 
-        return $this->paramsOverrider->override($inputData, $route->getParameters());
+        $inputData = $this->paramsOverrider->override($inputData, $route->getParameters());
+        $inputParams = $this->serviceInputProcessor->process($serviceClassName, $serviceMethodName, $inputData);
+        return $inputParams;
     }
 
     /**

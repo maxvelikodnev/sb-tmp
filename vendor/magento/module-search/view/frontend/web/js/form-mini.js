@@ -11,8 +11,7 @@ define([
     'underscore',
     'mage/template',
     'matchMedia',
-    'jquery-ui-modules/widget',
-    'jquery-ui-modules/core',
+    'jquery/ui',
     'mage/translate'
 ], function ($, _, mageTemplate, mediaCheck) {
     'use strict';
@@ -30,7 +29,7 @@ define([
     $.widget('mage.quickSearch', {
         options: {
             autocomplete: 'off',
-            minSearchLength: 3,
+            minSearchLength: 2,
             responseFieldElements: 'ul li',
             selectClass: 'selected',
             template:
@@ -72,7 +71,7 @@ define([
                     this.isExpandable = true;
                 }.bind(this),
                 exit: function () {
-                    this.isExpandable = true;
+                    this.isExpandable = false;
                 }.bind(this)
             });
 
@@ -129,16 +128,11 @@ define([
          * @param {Boolean} isActive
          */
         setActiveState: function (isActive) {
-            var searchValue;
-
             this.searchForm.toggleClass('active', isActive);
             this.searchLabel.toggleClass('active', isActive);
 
             if (this.isExpandable) {
                 this.element.attr('aria-expanded', isActive);
-                searchValue = this.element.val();
-                this.element.val('');
-                this.element.val(searchValue);
             }
         },
 

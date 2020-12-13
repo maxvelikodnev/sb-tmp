@@ -6,15 +6,13 @@
 namespace Magento\Wishlist\Model\Item;
 
 use Magento\Catalog\Model\Product;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Wishlist\Model\Item;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 
 /**
  * Item option model
- *
  * @method int getProductId()
+ *
  * @api
  * @since 100.0.2
  */
@@ -37,18 +35,12 @@ class Option extends \Magento\Framework\Model\AbstractModel implements
     protected $productRepository;
 
     /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param ProductRepositoryInterface $productRepository
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
-     * @param \Psr\Log\LoggerInterface|null $logger
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -56,12 +48,10 @@ class Option extends \Magento\Framework\Model\AbstractModel implements
         ProductRepositoryInterface $productRepository,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        array $data = [],
-        \Psr\Log\LoggerInterface $logger = null
+        array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
         $this->productRepository = $productRepository;
-        $this->logger = $logger ?? ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class);
     }
 
     /**
@@ -133,11 +123,7 @@ class Option extends \Magento\Framework\Model\AbstractModel implements
     {
         //In some cases product_id is present instead product instance
         if (null === $this->_product && $this->getProductId()) {
-            try {
-                $this->_product = $this->productRepository->getById($this->getProductId());
-            } catch (NoSuchEntityException $exception) {
-                $this->logger->error($exception);
-            }
+            $this->_product = $this->productRepository->getById($this->getProductId());
         }
         return $this->_product;
     }

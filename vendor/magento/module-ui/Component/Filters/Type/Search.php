@@ -6,8 +6,6 @@
 namespace Magento\Ui\Component\Filters\Type;
 
 /**
- * Class Search
- *
  * @api
  * @since 100.0.2
  */
@@ -36,7 +34,7 @@ class Search extends \Magento\Ui\Component\Filters\Type\AbstractFilter
     {
         $value = $this->getContext()->getRequestParam('search');
 
-        if ((string)$value !== '') {
+        if ($value) {
             $filter = $this->filterBuilder->setConditionType('fulltext')
                 ->setField($this->getName())
                 ->setValue($value)

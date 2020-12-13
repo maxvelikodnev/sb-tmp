@@ -88,26 +88,22 @@ class Options implements OptionSourceInterface
                     /** @var  \Magento\Store\Model\Store $store */
                     foreach ($storeCollection as $store) {
                         if ($store->getGroupId() == $group->getId()) {
-                            $name = $store->getName();
+                            $name = $this->escaper->escapeHtml($store->getName());
                             $stores[$name]['label'] = str_repeat(' ', 8) . $name;
                             $stores[$name]['value'] = $store->getId();
-                            $stores[$name]['__disableTmpl'] = true;
                         }
                     }
                     if (!empty($stores)) {
-                        $name = $group->getName();
+                        $name = $this->escaper->escapeHtml($group->getName());
                         $groups[$name]['label'] = str_repeat(' ', 4) . $name;
                         $groups[$name]['value'] = array_values($stores);
-                        $groups[$name]['__disableTmpl'] = true;
-
                     }
                 }
             }
             if (!empty($groups)) {
-                $name = $website->getName();
+                $name = $this->escaper->escapeHtml($website->getName());
                 $this->currentOptions[$name]['label'] = $name;
                 $this->currentOptions[$name]['value'] = array_values($groups);
-                $this->currentOptions[$name]['__disableTmpl'] = true;
             }
         }
     }

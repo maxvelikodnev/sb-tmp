@@ -8,12 +8,7 @@
 namespace Magento\Webapi\Model\Soap;
 
 use Magento\Framework\App\State;
-use Magento\Framework\Escaper;
-use Magento\Framework\App\ObjectManager;
 
-/**
- * Webapi Fault Model for Soap.
- */
 class Fault
 {
     const FAULT_REASON_INTERNAL = 'Internal Error.';
@@ -43,11 +38,6 @@ class Fault
     const NODE_DETAIL_TRACE = 'Trace';
     const NODE_DETAIL_WRAPPER = 'GenericFault';
     /**#@-*/
-
-    /**
-     * @var Escaper
-     */
-    private $escaper;
 
     /**
      * @var string
@@ -118,15 +108,13 @@ class Fault
      * @param \Magento\Framework\Webapi\Exception $exception
      * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param State $appState
-     * @param Escaper|null $escaper
      */
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
         Server $soapServer,
         \Magento\Framework\Webapi\Exception $exception,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        State $appState,
-        Escaper $escaper = null
+        State $appState
     ) {
         $this->_soapFaultCode = $exception->getOriginator();
         $this->_parameters = $exception->getDetails();
@@ -137,9 +125,6 @@ class Fault
         $this->_soapServer = $soapServer;
         $this->_localeResolver = $localeResolver;
         $this->appState = $appState;
-        $this->escaper = $escaper ?? ObjectManager::getInstance()->get(
-            Escaper::class
-        );
     }
 
     /**
@@ -225,8 +210,6 @@ class Fault
     }
 
     /**
-     * Retrieve message
-     *
      * @return string
      */
     public function getMessage()
@@ -303,15 +286,14 @@ FAULT_MESSAGE;
     {
         $detailsXml = '';
         foreach ($details as $detailNode => $detailValue) {
-            $detailNode = $this->escaper->escapeHtml($detailNode);
+            $detailNode = htmlspecialchars($detailNode);
             if (is_numeric($detailNode)) {
                 continue;
             }
             switch ($detailNode) {
                 case self::NODE_DETAIL_TRACE:
                     if (is_string($detailValue) || is_numeric($detailValue)) {
-                        $detailsXml .= "<m:{$detailNode}>" . $this->escaper->escapeHtml($detailValue) .
-                            "</m:{$detailNode}>";
+                        $detailsXml .= "<m:{$detailNode}>" . htmlspecialchars($detailValue) . "</m:{$detailNode}>";
                     }
                     break;
                 case self::NODE_DETAIL_PARAMETERS:
@@ -349,7 +331,7 @@ FAULT_MESSAGE;
                     $parameterName++;
                 }
                 $paramsXml .= "<m:$parameterNode><m:$keyNode>$parameterName</m:$keyNode><m:$valueNode>"
-                    . $this->escaper->escapeHtml($parameterValue) . "</m:$valueNode></m:$parameterNode>";
+                    . htmlspecialchars($parameterValue) . "</m:$valueNode></m:$parameterNode>";
             }
         }
         if (!empty($paramsXml)) {

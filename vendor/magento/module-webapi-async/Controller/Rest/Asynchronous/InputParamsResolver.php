@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 namespace Magento\WebapiAsync\Controller\Rest\Asynchronous;
 
-use Magento\Framework\Webapi\Rest\Request as RestRequest;
 use Magento\Framework\Webapi\ServiceInputProcessor;
-use Magento\Webapi\Controller\Rest\InputParamsResolver as WebapiInputParamsResolver;
+use Magento\Framework\Webapi\Rest\Request as RestRequest;
+use Magento\Webapi\Controller\Rest\Router;
 use Magento\Webapi\Controller\Rest\ParamsOverrider;
 use Magento\Webapi\Controller\Rest\RequestValidator;
-use Magento\Webapi\Controller\Rest\Router;
+use Magento\Webapi\Controller\Rest\InputParamsResolver as WebapiInputParamsResolver;
 
 /**
  * This class is responsible for retrieving resolved input data
@@ -96,22 +96,6 @@ class InputParamsResolver
         }
         $this->requestValidator->validate();
         $webapiResolvedParams = [];
-        foreach ($this->getInputData() as $key => $singleEntityParams) {
-            $webapiResolvedParams[$key] = $this->resolveBulkItemParams($singleEntityParams);
-        }
-        return $webapiResolvedParams;
-    }
-
-    /**
-     * Get API input data
-     *
-     * @return array
-     */
-    public function getInputData()
-    {
-        if ($this->isBulk === false) {
-            return [$this->inputParamsResolver->getInputData()];
-        }
         $inputData = $this->request->getRequestData();
 
         $httpMethod = $this->request->getHttpMethod();
@@ -119,7 +103,12 @@ class InputParamsResolver
             $requestBodyParams = $this->request->getBodyParams();
             $inputData = array_merge($requestBodyParams, $inputData);
         }
-        return $inputData;
+
+        foreach ($inputData as $key => $singleEntityParams) {
+            $webapiResolvedParams[$key] = $this->resolveBulkItemParams($singleEntityParams);
+        }
+
+        return $webapiResolvedParams;
     }
 
     /**

@@ -10,8 +10,7 @@ define([
     'ko',
     'jquery',
     'uiComponent',
-    '../model/messageList',
-    'jquery-ui-modules/effect-blind'
+    '../model/messageList'
 ], function (ko, $, Component, globalMessages) {
     'use strict';
 

@@ -36,7 +36,6 @@ class DataProviderPlugin
      *
      * @param FiltersProvider $filtersProvider
      * @param \Magento\Swatches\Helper\Data $swatchHelper
-     * @param \Magento\Swatches\Block\LayeredNavigation\RenderLayered $renderLayered
      */
     public function __construct(
         FiltersProvider $filtersProvider,
@@ -54,19 +53,12 @@ class DataProviderPlugin
      * @param Filters $subject
      * @param \Closure $proceed
      * @param string $layerType
-     * @param array|null $attributesToFilter
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * phpcs:disable Generic.Metrics.NestingLevel
      */
-    public function aroundGetData(
-        Filters $subject,
-        \Closure $proceed,
-        string $layerType,
-        $attributesToFilter = null
-    ) : array {
+    public function aroundGetData(Filters $subject, \Closure $proceed, string $layerType) : array
+    {
         $swatchFilters = [];
         /** @var AbstractFilter $filter */
         foreach ($this->filtersProvider->getFilters($layerType) as $filter) {
@@ -77,7 +69,7 @@ class DataProviderPlugin
             }
         }
 
-        $filtersData = $proceed($layerType, $attributesToFilter);
+        $filtersData = $proceed($layerType);
 
         foreach ($filtersData as $groupKey => $filterGroup) {
             /** @var AbstractFilter $swatchFilter */
@@ -100,5 +92,4 @@ class DataProviderPlugin
 
         return $filtersData;
     }
-    //phpcs:enable
 }

@@ -28,10 +28,11 @@ var config = {
             'popupWindow':            'mage/popup-window',
             'validation':             'mage/validation/validation',
             'welcome':                'Magento_Theme/js/view/welcome',
-            'breadcrumbs':            'Magento_Theme/js/view/breadcrumbs',
-            'criticalCssLoader':      'Magento_Theme/js/view/critical-css-loader',
-            'jquery/ui':              'jquery/compat'
+            'breadcrumbs':            'Magento_Theme/js/view/breadcrumbs'
         }
+    },
+    paths: {
+        'jquery/ui': 'jquery/jquery-ui'
     },
     deps: [
         'jquery/jquery.mobile.custom',
@@ -44,7 +45,7 @@ var config = {
             'Magento_Theme/js/view/breadcrumbs': {
                 'Magento_Theme/js/view/add-home-breadcrumb': true
             },
-            'jquery/ui-modules/dialog': {
+            'jquery/jquery-ui': {
                 'jquery/patches/jquery-ui': true
             }
         }

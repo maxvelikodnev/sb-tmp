@@ -67,11 +67,7 @@ define([
                 }
             });
 
-            return labels.sort(
-                function (labelFirst, labelSecond) {
-                    return labelFirst.toLowerCase().localeCompare(labelSecond.toLowerCase());
-                }
-            );
+            return labels.sort();
         },
 
         /**

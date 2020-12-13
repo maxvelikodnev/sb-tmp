@@ -3,17 +3,12 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Wishlist\Controller\Shared;
 
 use Magento\Catalog\Model\Product\Exception as ProductException;
 use Magento\Checkout\Helper\Cart as CartHelper;
 use Magento\Checkout\Model\Cart as CustomerCart;
-use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context as ActionContext;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
@@ -23,11 +18,9 @@ use Magento\Wishlist\Model\ItemFactory;
 use Magento\Wishlist\Model\ResourceModel\Item\Option\Collection as OptionCollection;
 
 /**
- * Wishlist Cart Controller
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class Cart extends Action implements HttpPostActionInterface
+class Cart extends \Magento\Framework\App\Action\Action
 {
     /**
      * @var CustomerCart
@@ -84,7 +77,7 @@ class Cart extends Action implements HttpPostActionInterface
      * If Product has required options - redirect
      * to product view page with message about needed defined required options
      *
-     * @return Redirect
+     * @return \Magento\Framework\Controller\Result\Redirect
      */
     public function execute()
     {
@@ -110,21 +103,21 @@ class Cart extends Action implements HttpPostActionInterface
                     'You added %1 to your shopping cart.',
                     $this->escaper->escapeHtml($item->getProduct()->getName())
                 );
-                $this->messageManager->addSuccessMessage($message);
+                $this->messageManager->addSuccess($message);
             }
 
             if ($this->cartHelper->getShouldRedirectToCart()) {
                 $redirectUrl = $this->cartHelper->getCartUrl();
             }
         } catch (ProductException $e) {
-            $this->messageManager->addErrorMessage(__('This product(s) is out of stock.'));
+            $this->messageManager->addError(__('This product(s) is out of stock.'));
         } catch (LocalizedException $e) {
-            $this->messageManager->addNoticeMessage($e->getMessage());
+            $this->messageManager->addNotice($e->getMessage());
             $redirectUrl = $item->getProductUrl();
         } catch (\Exception $e) {
-            $this->messageManager->addExceptionMessage($e, __('We can\'t add the item to the cart right now.'));
+            $this->messageManager->addException($e, __('We can\'t add the item to the cart right now.'));
         }
-        /** @var Redirect $resultRedirect */
+        /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $resultRedirect->setUrl($redirectUrl);
         return $resultRedirect;

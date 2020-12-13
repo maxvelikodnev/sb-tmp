@@ -6,8 +6,6 @@
 namespace Magento\Weee\Block\Sales\Order;
 
 /**
- * Wee tax total column block
- *
  * @api
  * @since 100.0.2
  */
@@ -56,8 +54,6 @@ class Totals extends \Magento\Framework\View\Element\Template
         $weeeTotal = $this->weeeData->getTotalAmounts($items, $store);
         $weeeBaseTotal = $this->weeeData->getBaseTotalAmounts($items, $store);
         if ($weeeTotal) {
-            $totals = $this->getParentBlock()->getTotals();
-
             // Add our total information to the set of other totals
             $total = new \Magento\Framework\DataObject(
                 [
@@ -67,10 +63,10 @@ class Totals extends \Magento\Framework\View\Element\Template
                     'base_value' => $weeeBaseTotal
                 ]
             );
-            if (isset($totals['grand_total_incl'])) {
-                $this->getParentBlock()->addTotalBefore($total, 'grand_total');
-            } else {
+            if ($this->getBeforeCondition()) {
                 $this->getParentBlock()->addTotalBefore($total, $this->getBeforeCondition());
+            } else {
+                $this->getParentBlock()->addTotal($total, $this->getAfterCondition());
             }
         }
         return $this;

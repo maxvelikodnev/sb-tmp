@@ -7,13 +7,11 @@ declare(strict_types=1);
 
 namespace Magento\Ui\Component\Form\Field;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
-/**
- * Field class has dynamic default value based on  System Configuration path
- */
+/** Field class has dynamic default value based on  System Configuration path  */
 class DefaultValue extends \Magento\Ui\Component\Form\Field
 {
     /**
@@ -57,18 +55,16 @@ class DefaultValue extends \Magento\Ui\Component\Form\Field
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function prepare()
     {
         parent::prepare();
         $store = $this->storeManager->getStore();
-        if (empty($this->_data['config']['default'])) {
-            $this->_data['config']['default'] = $this->scopeConfig->getValue(
-                $this->path,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                $store
-            );
-        }
+        $this->_data['config']['default'] = $this->scopeConfig->getValue(
+            $this->path,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
     }
 }

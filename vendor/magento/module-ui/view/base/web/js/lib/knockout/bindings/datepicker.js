@@ -41,6 +41,7 @@ define([
 
             if (typeof config === 'object') {
                 observable = config.storage;
+
                 _.extend(options, config.options);
             } else {
                 observable = config;
@@ -48,53 +49,21 @@ define([
 
             $(el).calendar(options);
 
-            ko.utils.registerEventHandler(el, 'change', function () {
-                observable(this.value);
-            });
-        },
-
-        /**
-         * Update calendar widget on element and stores it's value to observable property.
-         * Datepicker binding takes either observable property or object
-         *  { storage: {ko.observable}, options: {Object} }.
-         * @param {HTMLElement} element - Element, that binding is applied to
-         * @param {Function} valueAccessor - Function that returns value, passed to binding
-         */
-        update: function (element, valueAccessor) {
-            var config = valueAccessor(),
-                observable,
-                options = {},
-                newVal;
-
-            _.extend(options, defaults);
-
-            if (typeof config === 'object') {
-                observable = config.storage;
-                _.extend(options, config.options);
-            } else {
-                observable = config;
-            }
-
-            if (_.isEmpty(observable())) {
-                if ($(element).datepicker('getDate')) {
-                    $(element).datepicker('setDate', null);
-                    $(element).blur();
-                }
-            } else {
-                newVal = moment(
+            observable() && $(el).datepicker(
+                'setDate',
+                moment(
                     observable(),
                     utils.convertToMomentFormat(
                         options.dateFormat + (options.showsTime ? ' ' + options.timeFormat : '')
                     )
-                ).toDate();
+                ).toDate()
+            );
 
-                if ($(element).datepicker('getDate') == null ||
-                    newVal.valueOf() !== $(element).datepicker('getDate').valueOf()
-                ) {
-                    $(element).datepicker('setDate', newVal);
-                    $(element).blur();
-                }
-            }
+            $(el).blur();
+
+            ko.utils.registerEventHandler(el, 'change', function () {
+                observable(this.value);
+            });
         }
     };
 });

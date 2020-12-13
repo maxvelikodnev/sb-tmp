@@ -14,8 +14,7 @@ define([
     'uiRegistry',
     'jquery/colorpicker/js/colorpicker',
     'prototype',
-    'jquery/ui',
-    'validation'
+    'jquery/ui'
 ], function (jQuery, mageTemplate, rg) {
     'use strict';
 

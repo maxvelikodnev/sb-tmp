@@ -3,8 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Vault\Test\Unit\Model\Method;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -23,12 +21,10 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenManagementInterface;
 use Magento\Vault\Model\Method\Vault;
 use Magento\Vault\Model\VaultPaymentInterface;
-use Magento\Framework\Serialize\Serializer\Json;
 use PHPUnit_Framework_MockObject_MockObject as MockObject;
 
 /**
  * Class VaultTest
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class VaultTest extends \PHPUnit\Framework\TestCase
@@ -43,19 +39,10 @@ class VaultTest extends \PHPUnit\Framework\TestCase
      */
     private $vaultProvider;
 
-    /**
-     * @var Json|MockObject
-     */
-    private $jsonSerializer;
-
-    /**
-     * @inheritdoc
-     */
     public function setUp()
     {
         $this->objectManager = new ObjectManager($this);
         $this->vaultProvider = $this->createMock(MethodInterface::class);
-        $this->jsonSerializer = $this->createMock(Json::class);
     }
 
     /**
@@ -153,7 +140,7 @@ class VaultTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $extensionAttributes = $this->getMockBuilder(OrderPaymentExtensionInterface::class)
-            ->setMethods(['setVaultPaymentToken', 'getVaultPaymentToken'])
+            ->setMethods(['setVaultPaymentToken'])
             ->getMockForAbstractClass();
 
         $commandManagerPool = $this->createMock(CommandManagerPoolInterface::class);
@@ -161,19 +148,6 @@ class VaultTest extends \PHPUnit\Framework\TestCase
 
         $tokenManagement = $this->createMock(PaymentTokenManagementInterface::class);
         $token = $this->createMock(PaymentTokenInterface::class);
-
-        $tokenDetails = [
-            'cc_last4' => '1111',
-            'cc_type' => 'VI',
-            'cc_exp_year' => '2020',
-            'cc_exp_month' => '01',
-        ];
-
-        $extensionAttributes->method('getVaultPaymentToken')
-            ->willReturn($token);
-
-        $this->jsonSerializer->method('unserialize')
-            ->willReturn($tokenDetails);
 
         $paymentModel->expects(static::once())
             ->method('getAdditionalInformation')
@@ -187,7 +161,8 @@ class VaultTest extends \PHPUnit\Framework\TestCase
             ->method('getByPublicHash')
             ->with($publicHash, $customerId)
             ->willReturn($token);
-        $paymentModel->method('getExtensionAttributes')
+        $paymentModel->expects(static::once())
+            ->method('getExtensionAttributes')
             ->willReturn($extensionAttributes);
         $extensionAttributes->expects(static::once())
             ->method('setVaultPaymentToken')
@@ -220,8 +195,7 @@ class VaultTest extends \PHPUnit\Framework\TestCase
             [
                 'tokenManagement' => $tokenManagement,
                 'commandManagerPool' => $commandManagerPool,
-                'vaultProvider' => $this->vaultProvider,
-                'jsonSerializer' => $this->jsonSerializer,
+                'vaultProvider' => $this->vaultProvider
             ]
         );
         $model->authorize($paymentModel, $amount);
@@ -261,7 +235,7 @@ class VaultTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers       \Magento\Vault\Model\Method\Vault::isAvailable
+     * @covers \Magento\Vault\Model\Method\Vault::isAvailable
      * @dataProvider isAvailableDataProvider
      */
     public function testIsAvailable($isAvailableProvider, $isActive, $expected)
@@ -277,10 +251,7 @@ class VaultTest extends \PHPUnit\Framework\TestCase
 
         $config->expects(static::any())
             ->method('getValue')
-            ->with(
-                'active',
-                $storeId
-            )
+            ->with('active', $storeId)
             ->willReturn($isActive);
 
         $quote->expects(static::any())
@@ -288,13 +259,10 @@ class VaultTest extends \PHPUnit\Framework\TestCase
             ->willReturn($storeId);
 
         /** @var Vault $model */
-        $model = $this->objectManager->getObject(
-            Vault::class,
-            [
-                'config' => $config,
-                'vaultProvider' => $this->vaultProvider
-            ]
-        );
+        $model = $this->objectManager->getObject(Vault::class, [
+            'config' => $config,
+            'vaultProvider' => $this->vaultProvider
+        ]);
         $actual = $model->isAvailable($quote);
         static::assertEquals($expected, $actual);
     }
@@ -328,25 +296,19 @@ class VaultTest extends \PHPUnit\Framework\TestCase
 
         $config->expects(static::once())
             ->method('getValue')
-            ->with(
-                'active',
-                $quote
-            )
+            ->with('active', $quote)
             ->willReturn(false);
 
         /** @var Vault $model */
-        $model = $this->objectManager->getObject(
-            Vault::class,
-            [
-                'config' => $config,
-                'vaultProvider' => $this->vaultProvider
-            ]
-        );
+        $model = $this->objectManager->getObject(Vault::class, [
+            'config' => $config,
+            'vaultProvider' => $this->vaultProvider
+        ]);
         static::assertFalse($model->isAvailable($quote));
     }
 
     /**
-     * @covers       \Magento\Vault\Model\Method\Vault::canUseInternal
+     * @covers \Magento\Vault\Model\Method\Vault::canUseInternal
      * @param bool|null $configValue
      * @param bool|null $paymentValue
      * @param bool $expected
@@ -364,10 +326,7 @@ class VaultTest extends \PHPUnit\Framework\TestCase
 
         $handler->expects(static::once())
             ->method('handle')
-            ->with(
-                ['field' => 'can_use_internal'],
-                null
-            )
+            ->with(['field' => 'can_use_internal'], null)
             ->willReturn($configValue);
 
         $this->vaultProvider->expects(static::any())
@@ -375,13 +334,10 @@ class VaultTest extends \PHPUnit\Framework\TestCase
             ->willReturn($paymentValue);
 
         /** @var Vault $model */
-        $model = $this->objectManager->getObject(
-            Vault::class,
-            [
-                'vaultProvider' => $this->vaultProvider,
-                'valueHandlerPool' => $handlerPool,
-            ]
-        );
+        $model = $this->objectManager->getObject(Vault::class, [
+            'vaultProvider' => $this->vaultProvider,
+            'valueHandlerPool' => $handlerPool,
+        ]);
         static::assertEquals($expected, $model->canUseInternal());
     }
 

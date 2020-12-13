@@ -14,11 +14,9 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Wishlist\Controller\WishlistProviderInterface;
 
 /**
- * Wishlist UpdateItemOptions Controller
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class UpdateItemOptions extends \Magento\Wishlist\Controller\AbstractIndex implements Action\HttpPostActionInterface
+class UpdateItemOptions extends \Magento\Wishlist\Controller\AbstractIndex
 {
     /**
      * @var WishlistProviderInterface
@@ -87,7 +85,7 @@ class UpdateItemOptions extends \Magento\Wishlist\Controller\AbstractIndex imple
         }
 
         if (!$product || !$product->isVisibleInCatalog()) {
-            $this->messageManager->addErrorMessage(__('We can\'t specify a product.'));
+            $this->messageManager->addError(__('We can\'t specify a product.'));
             $resultRedirect->setPath('*/');
             return $resultRedirect;
         }
@@ -116,11 +114,11 @@ class UpdateItemOptions extends \Magento\Wishlist\Controller\AbstractIndex imple
             $this->_objectManager->get(\Magento\Wishlist\Helper\Data::class)->calculate();
 
             $message = __('%1 has been updated in your Wish List.', $product->getName());
-            $this->messageManager->addSuccessMessage($message);
+            $this->messageManager->addSuccess($message);
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
+            $this->messageManager->addError($e->getMessage());
         } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage(__('We can\'t update your Wish List right now.'));
+            $this->messageManager->addError(__('We can\'t update your Wish List right now.'));
             $this->_objectManager->get(\Psr\Log\LoggerInterface::class)->critical($e);
         }
         $resultRedirect->setPath('*/*', ['wishlist_id' => $wishlist->getId()]);

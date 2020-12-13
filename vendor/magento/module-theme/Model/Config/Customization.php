@@ -5,34 +5,23 @@
  */
 namespace Magento\Theme\Model\Config;
 
-use Magento\Framework\App\Area;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
-use Magento\Framework\View\Design\ThemeInterface;
-use Magento\Framework\View\DesignInterface;
-use Magento\Store\Model\Store;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Theme\Model\ResourceModel\Theme\Collection;
-use Magento\Theme\Model\Theme\StoreThemesResolverInterface;
-use Magento\Theme\Model\Theme\StoreUserAgentThemeResolver;
-
 /**
  * Theme customization config model
  */
 class Customization
 {
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $_storeManager;
 
     /**
-     * @var DesignInterface
+     * @var \Magento\Framework\View\DesignInterface
      */
     protected $_design;
 
     /**
-     * @var ThemeProviderInterface
+     * @var \Magento\Framework\View\Design\Theme\ThemeProviderInterface
      */
     protected $themeProvider;
 
@@ -51,28 +40,20 @@ class Customization
      * @see self::_prepareThemeCustomizations()
      */
     protected $_unassignedTheme;
-    /**
-     * @var StoreUserAgentThemeResolver|mixed|null
-     */
-    private $storeThemesResolver;
 
     /**
-     * @param StoreManagerInterface $storeManager
-     * @param DesignInterface $design
-     * @param ThemeProviderInterface $themeProvider
-     * @param StoreThemesResolverInterface|null $storeThemesResolver
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\View\DesignInterface $design
+     * @param \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
      */
     public function __construct(
-        StoreManagerInterface $storeManager,
-        DesignInterface $design,
-        ThemeProviderInterface $themeProvider,
-        ?StoreThemesResolverInterface $storeThemesResolver = null
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\View\DesignInterface $design,
+        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
     ) {
         $this->_storeManager = $storeManager;
         $this->_design = $design;
         $this->themeProvider = $themeProvider;
-        $this->storeThemesResolver = $storeThemesResolver
-            ?? ObjectManager::getInstance()->get(StoreThemesResolverInterface::class);
     }
 
     /**
@@ -112,14 +93,13 @@ class Customization
     {
         $storesByThemes = [];
         $stores = $this->_storeManager->getStores();
-        /** @var $store Store */
+        /** @var $store \Magento\Store\Model\Store */
         foreach ($stores as $store) {
-            foreach ($this->storeThemesResolver->getThemes($store) as $themeId) {
-                if (!isset($storesByThemes[$themeId])) {
-                    $storesByThemes[$themeId] = [];
-                }
-                $storesByThemes[$themeId][] = $store;
+            $themeId = $this->_getConfigurationThemeId($store);
+            if (!isset($storesByThemes[$themeId])) {
+                $storesByThemes[$themeId] = [];
             }
+            $storesByThemes[$themeId][] = $store;
         }
         return $storesByThemes;
     }
@@ -127,8 +107,8 @@ class Customization
     /**
      * Check if current theme has assigned to any store
      *
-     * @param ThemeInterface $theme
-     * @param null|Store $store
+     * @param \Magento\Framework\View\Design\ThemeInterface $theme
+     * @param null|\Magento\Store\Model\Store $store
      * @return bool
      */
     public function isThemeAssignedToStore($theme, $store = null)
@@ -153,8 +133,8 @@ class Customization
     /**
      * Is theme assigned to specific store
      *
-     * @param ThemeInterface $theme
-     * @param Store $store
+     * @param \Magento\Framework\View\Design\ThemeInterface $theme
+     * @param \Magento\Store\Model\Store $store
      * @return bool
      */
     protected function _isThemeAssignedToSpecificStore($theme, $store)
@@ -165,21 +145,21 @@ class Customization
     /**
      * Get configuration theme id
      *
-     * @param Store $store
+     * @param \Magento\Store\Model\Store $store
      * @return int
      */
     protected function _getConfigurationThemeId($store)
     {
         return $this->_design->getConfigurationDesignTheme(
-            Area::AREA_FRONTEND,
+            \Magento\Framework\App\Area::AREA_FRONTEND,
             ['store' => $store]
         );
     }
 
     /**
      * Fetch theme customization and sort them out to arrays:
+     * self::_assignedTheme and self::_unassignedTheme.
      *
-     * Set self::_assignedTheme and self::_unassignedTheme.
      * NOTE: To get into "assigned" list theme customization not necessary should be assigned to store-view directly.
      * It can be set to website or as default theme and be used by store-view via config fallback mechanism.
      *
@@ -187,15 +167,15 @@ class Customization
      */
     protected function _prepareThemeCustomizations()
     {
-        /** @var Collection $themeCollection */
-        $themeCollection = $this->themeProvider->getThemeCustomizations(Area::AREA_FRONTEND);
+        /** @var \Magento\Theme\Model\ResourceModel\Theme\Collection $themeCollection */
+        $themeCollection = $this->themeProvider->getThemeCustomizations(\Magento\Framework\App\Area::AREA_FRONTEND);
 
         $assignedThemes = $this->getStoresByThemes();
 
         $this->_assignedTheme = [];
         $this->_unassignedTheme = [];
 
-        /** @var $theme ThemeInterface */
+        /** @var $theme \Magento\Framework\View\Design\ThemeInterface */
         foreach ($themeCollection as $theme) {
             if (isset($assignedThemes[$theme->getId()])) {
                 $theme->setAssignedStores($assignedThemes[$theme->getId()]);

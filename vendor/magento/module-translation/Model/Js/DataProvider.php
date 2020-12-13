@@ -120,8 +120,6 @@ class DataProvider implements DataProviderInterface
             }
         }
 
-        ksort($dictionary);
-
         return $dictionary;
     }
 

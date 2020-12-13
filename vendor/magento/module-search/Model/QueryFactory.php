@@ -5,15 +5,13 @@
  */
 namespace Magento\Search\Model;
 
+use Magento\Search\Helper\Data;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Stdlib\StringUtils as StdlibString;
-use Magento\Search\Helper\Data;
 
 /**
- * Search Query Factory
- *
  * @api
  * @since 100.0.2
  */
@@ -74,7 +72,7 @@ class QueryFactory implements QueryFactoryInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function get()
     {
@@ -84,7 +82,9 @@ class QueryFactory implements QueryFactoryInterface
             $rawQueryText = $this->getRawQueryText();
             $preparedQueryText = $this->getPreparedQueryText($rawQueryText, $maxQueryLength);
             $query = $this->create()->loadByQueryText($preparedQueryText);
-            $query->setQueryText($preparedQueryText);
+            if (!$query->getId()) {
+                $query->setQueryText($preparedQueryText);
+            }
             $query->setIsQueryTextExceeded($this->isQueryTooLong($rawQueryText, $maxQueryLength));
             $query->setIsQueryTextShort($this->isQueryTooShort($rawQueryText, $minQueryLength));
             $this->query = $query;
@@ -117,8 +117,6 @@ class QueryFactory implements QueryFactoryInterface
     }
 
     /**
-     * Prepare query text
-     *
      * @param string $queryText
      * @param int|string $maxQueryLength
      * @return string
@@ -132,8 +130,6 @@ class QueryFactory implements QueryFactoryInterface
     }
 
     /**
-     * Check if the provided text exceeds the provided length
-     *
      * @param string $queryText
      * @param int|string $maxQueryLength
      * @return bool
@@ -144,8 +140,6 @@ class QueryFactory implements QueryFactoryInterface
     }
 
     /**
-     * Check if the provided text is shorter than the provided length
-     *
      * @param string $queryText
      * @param int|string $minQueryLength
      * @return bool

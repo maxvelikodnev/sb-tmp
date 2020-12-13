@@ -4,12 +4,16 @@
  * See COPYING.txt for license details.
  */
 
+// @codingStandardsIgnoreFile
+
+?>
+<?php
 /**
  * @var $block \Magento\Ui\Component\Control\Button
  */
 ?>
 <?= $block->getBeforeHtml() ?>
-<button <?= /* @noEscape */ $block->getAttributesHtml(), /* @noEscape */ $block->getUiId() ?>>
-    <span><?= $block->escapeHtml($block->getLabel()) ?></span>
+<button <?= /* @escapeNotVerified */ $block->getAttributesHtml(), $block->getUiId() ?>>
+    <span><?= /* @escapeNotVerified */ $block->getLabel() ?></span>
 </button>
 <?= $block->getAfterHtml() ?>

@@ -5,16 +5,15 @@
  */
 namespace Magento\UrlRewrite\Controller;
 
-use Magento\Framework\App\Action\Redirect;
-use Magento\Framework\App\ActionInterface;
-use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\App\Response\Http as HttpResponse;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\UrlInterface;
 use Magento\UrlRewrite\Controller\Adminhtml\Url\Rewrite;
 use Magento\UrlRewrite\Model\UrlFinderInterface;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
+use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\App\Response\Http as HttpResponse;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\App\Action\Redirect;
+use Magento\Framework\App\ActionInterface;
 
 /**
  * UrlRewrite Controller Router
@@ -44,7 +43,7 @@ class Router implements \Magento\Framework\App\RouterInterface
     protected $response;
 
     /**
-     * @var UrlFinderInterface
+     * @var \Magento\UrlRewrite\Model\UrlFinderInterface
      */
     protected $urlFinder;
 
@@ -73,8 +72,8 @@ class Router implements \Magento\Framework\App\RouterInterface
      * Match corresponding URL Rewrite and modify request.
      *
      * @param RequestInterface|HttpRequest $request
+     *
      * @return ActionInterface|null
-     * @throws NoSuchEntityException
      */
     public function match(RequestInterface $request)
     {
@@ -105,8 +104,6 @@ class Router implements \Magento\Framework\App\RouterInterface
     }
 
     /**
-     * Process redirect
-     *
      * @param RequestInterface $request
      * @param UrlRewrite $rewrite
      *
@@ -124,8 +121,6 @@ class Router implements \Magento\Framework\App\RouterInterface
     }
 
     /**
-     * Redirect to target URL
-     *
      * @param RequestInterface|HttpRequest $request
      * @param string $url
      * @param int $code
@@ -140,19 +135,15 @@ class Router implements \Magento\Framework\App\RouterInterface
     }
 
     /**
-     * Find rewrite based on request data
-     *
      * @param string $requestPath
      * @param int $storeId
      * @return UrlRewrite|null
      */
     protected function getRewrite($requestPath, $storeId)
     {
-        return $this->urlFinder->findOneByData(
-            [
-                UrlRewrite::REQUEST_PATH => ltrim($requestPath, '/'),
-                UrlRewrite::STORE_ID => $storeId,
-            ]
-        );
+        return $this->urlFinder->findOneByData([
+            UrlRewrite::REQUEST_PATH => ltrim($requestPath, '/'),
+            UrlRewrite::STORE_ID => $storeId,
+        ]);
     }
 }

@@ -17,5 +17,4 @@
             </argument>
         </arguments>
     </type>
-    <preference for="Magento\UrlRewrite\Model\UrlFinderInterface" type="Magento\UrlRewrite\Model\CompositeUrlFinder"/>
 </config>

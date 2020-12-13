@@ -136,7 +136,6 @@
                 </field>
                 <field id="sort_order" translate="label" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sort Order</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
                 </field>
             </group>
         </section>

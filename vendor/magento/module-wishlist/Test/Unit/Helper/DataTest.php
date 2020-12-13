@@ -18,7 +18,6 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Wishlist\Controller\WishlistProviderInterface;
 use Magento\Wishlist\Model\Item as WishlistItem;
 use Magento\Wishlist\Model\Wishlist;
-use Magento\Customer\Model\Session;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -63,9 +62,6 @@ class DataTest extends \PHPUnit\Framework\TestCase
 
     /** @var  Context |\PHPUnit_Framework_MockObject_MockObject */
     protected $context;
-
-    /** @var  Session |\PHPUnit_Framework_MockObject_MockObject */
-    protected $customerSession;
 
     /**
      * Set up mock objects for tested class
@@ -125,13 +121,12 @@ class DataTest extends \PHPUnit\Framework\TestCase
 
         $this->wishlistItem = $this->getMockBuilder(\Magento\Wishlist\Model\Item::class)
             ->disableOriginalConstructor()
-            ->setMethods(
-                [
-                    'getProduct',
-                    'getWishlistItemId',
-                    'getQty',
-                ]
-            )->getMock();
+            ->setMethods([
+                'getProduct',
+                'getWishlistItemId',
+                'getQty',
+            ])
+            ->getMock();
 
         $this->wishlist = $this->getMockBuilder(\Magento\Wishlist\Model\Wishlist::class)
             ->disableOriginalConstructor()
@@ -141,16 +136,11 @@ class DataTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->customerSession = $this->getMockBuilder(\Magento\Customer\Model\Session::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
         $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         $this->model = $objectManager->getObject(
             \Magento\Wishlist\Helper\Data::class,
             [
                 'context' => $this->context,
-                'customerSession' => $this->customerSession,
                 'storeManager' => $this->storeManager,
                 'wishlistProvider' => $this->wishlistProvider,
                 'coreRegistry' => $this->coreRegistry,
@@ -440,21 +430,5 @@ class DataTest extends \PHPUnit\Framework\TestCase
             ->willReturn($url);
 
         $this->assertEquals($url, $this->model->getSharedAddAllToCartUrl());
-    }
-
-    public function testGetRssUrlWithCustomerNotLogin()
-    {
-        $url = 'result url';
-
-        $this->customerSession->expects($this->once())
-            ->method('isLoggedIn')
-            ->willReturn(false);
-
-        $this->urlBuilder->expects($this->once())
-            ->method('getUrl')
-            ->with('wishlist/index/rss', [])
-            ->willReturn($url);
-
-        $this->assertEquals($url, $this->model->getRssUrl());
     }
 }

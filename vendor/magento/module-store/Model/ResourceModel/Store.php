@@ -168,7 +168,8 @@ class Store extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     {
         $select = $this->getConnection()
             ->select()
-            ->from($this->getTable($this->getMainTable()));
+            ->from($this->getTable('store'));
+
         return $this->getConnection()->fetchAll($select);
     }
 

@@ -499,7 +499,7 @@ define([
                 component = registry.get(val.path);
 
                 if (component) {
-                    component.destroy();
+                    component.cleanData().destroy();
                 }
             });
 

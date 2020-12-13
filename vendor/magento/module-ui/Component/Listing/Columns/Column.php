@@ -5,14 +5,12 @@
  */
 namespace Magento\Ui\Component\Listing\Columns;
 
-use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Ui\Component\AbstractComponent;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Framework\View\Element\UiComponentInterface;
-use Magento\Ui\Component\AbstractComponent;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
 
 /**
- * Column class for UI components
- *
  * @api
  * @since 100.0.2
  */
@@ -66,7 +64,6 @@ class Column extends AbstractComponent implements ColumnInterface
      * Prepare component configuration
      *
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function prepare()
     {
@@ -100,19 +97,18 @@ class Column extends AbstractComponent implements ColumnInterface
     }
 
     /**
-     * Prepares items of a column
+     * To prepare items of a column
      *
      * @param array $items
      * @return array
      */
-    public function prepareItems(array &$items)
+    public function prepareItems(array & $items)
     {
         return $items;
     }
 
     /**
-     * Adds additional field to select object
-     *
+     * Add field to select
      * @return void
      */
     protected function addFieldToSelect()
@@ -135,7 +131,6 @@ class Column extends AbstractComponent implements ColumnInterface
             && !empty($sorting['field'])
             && !empty($sorting['direction'])
             && $sorting['field'] === $this->getName()
-            && in_array(strtoupper($sorting['direction']), ['ASC', 'DESC'], true)
         ) {
             $this->getContext()->getDataProvider()->addOrder(
                 $this->getName(),

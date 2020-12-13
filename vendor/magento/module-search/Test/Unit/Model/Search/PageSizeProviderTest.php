@@ -50,9 +50,6 @@ class PageSizeProviderTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($size, $this->model->getMaxPageSize());
     }
 
-    /**
-     * @return array
-     */
     public function getPageSizeDataProvider()
     {
         return [

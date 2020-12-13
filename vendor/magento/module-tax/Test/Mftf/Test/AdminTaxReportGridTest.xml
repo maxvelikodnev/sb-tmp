@@ -12,13 +12,13 @@
         <annotations>
             <features value="Tax"/>
             <stories value="MAGETWO-91521: Reports / Sales / Tax report show incorrect amount"/>
-            <title value="DEPRECATED Checking Tax Report grid"/>
+            <title value="Checking Tax Report grid"/>
             <description value="Tax Report Grid displays Tax amount in rows 'Total' and 'Subtotal' is a sum of all tax amounts"/>
             <severity value="MAJOR"/>
             <testCaseId value="MAGETWO-94338"/>
             <group value="Tax"/>
             <skip>
-                <issueId value="DEPRECATED">Use AdminCheckingTaxReportGridTest instead.</issueId>
+                <issueId value="MAGETWO-96193"/>
             </skip>
         </annotations>
         <before>

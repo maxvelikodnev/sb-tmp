@@ -13,9 +13,6 @@ use Magento\PageCache\Model\Config;
 use Magento\Tax\Api\TaxAddressManagerInterface;
 use Magento\Tax\Helper\Data;
 
-/**
- * After address save observer.
- */
 class AfterAddressSaveObserver implements ObserverInterface
 {
     /**
@@ -63,8 +60,6 @@ class AfterAddressSaveObserver implements ObserverInterface
     }
 
     /**
-     * Execute.
-     *
      * @param Observer $observer
      * @return void
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
