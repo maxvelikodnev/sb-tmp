@@ -1,0 +1,21 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var $block \Magento\Catalog\Block\Product\View*/
+?>
+<?php $_product = $block->getProduct();
+if (in_array('3', $_product->getCategoryIds())) { ?>
+  <p class="ring-size-help">
+    <a target="_blank" title="Click here to view a printable PDF" href="<?php echo $block->getViewFileUrl('pdf/silverbubble-ringsizer.pdf'); ?>">
+      <?php echo __('Need help with ring sizes?') ?>
+    </a>
+  </p>
+<?php } ?>
+<div class="product-addto-links" data-role="add-to-links">
+    <?= $block->getChildHtml() ?>
+</div>

@@ -1,0 +1,31 @@
+<?php
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $subCategory = $objectManager->get('Magento\Framework\Registry')->registry('current_category');//get current category
+    $subCats = $subCategory->getChildrenCategories();
+    $_helper = $this->helper('Magento\Catalog\Helper\Output');
+?>
+<ul class="sub-cat-ul">
+    <?php
+    foreach ($subCats as $subcat) {
+        $_category = $objectManager->create('Magento\Catalog\Model\Category')->load($subcat->getId());
+        $subcaturl = $subcat->getUrl();
+        $_imgHtml = '';
+
+        if ($_imgUrl = $_category->getImageUrl('thumbnail')) {
+            $_imgHtml = '<img src="' . $_imgUrl . '" width="250px" height="160px" />';
+            $_imgHtml = $_helper->categoryAttribute($_category, $_imgHtml, 'image');
+        } ?>
+        <li class="cat-li">
+            <div class="cat-image">
+                <a href="<?php echo $subcaturl ?>"><?php echo $_imgHtml;?></a>
+            </div>
+            <div class="info">
+                <h4>
+                  <a class="link" href="<?php echo $subcaturl ?>">
+                    <?php echo $subcat->getName(); ?>
+                  </a>
+                </h4>
+            </div>
+        </li>
+    <?php } ?>
+</ul>

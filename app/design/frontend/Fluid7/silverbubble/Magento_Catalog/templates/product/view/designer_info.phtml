@@ -1,0 +1,32 @@
+<?php
+
+$_product = $block->getProduct();
+$producer = $_product->getResource()->getAttribute('jewellery_producer')->getFrontend()->getValue($_product);
+
+//echo $producer;
+
+  if (!empty($producer)) {
+
+     $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+     //$category = $objectManager->get('Magento\Framework\Registry')->registry('current_category');
+     $_categoryFactory = $objectManager->get('Magento\Catalog\Model\CategoryFactory');
+     $collection = $_categoryFactory->create()->getCollection()->addFieldToFilter('name', $producer . ' Collection');
+     $categoryId = $collection->getFirstItem()->getId();
+     //var_dump($categoryId);
+     $category = $objectManager->create('Magento\Catalog\Model\Category')->load($categoryId);
+     $_imgHtml = '';
+     if ($_imgUrl = $category->getImageUrl()) {
+       $_imgHtml = '<img src="' . $_imgUrl . '" width="140px" height="140px" />';
+     }
+?>
+<div class="producer">
+  <div class="image">
+    <a href="<?php echo $category->getUrl(); ?>"><?php echo $_imgHtml; ?></a>
+  </div>
+  <div class="content">
+    <h3><?php echo $producer; ?></h3>
+    <p><?php echo $category->getDescription(); ?></p>
+    <a href="<?php echo $category->getUrl(); ?>">View collection</a>
+  </div>
+</div>
+<?php } ?>

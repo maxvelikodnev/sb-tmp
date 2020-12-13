@@ -1,0 +1,45 @@
+<div class="footer content">
+  <div class="col-block">
+    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('footer-links')->toHtml(); ?>
+    <div class="address">
+        <?php
+        echo $block->getLayout()->createBlock('Fluid7\Address\Block\Main')->ldJson();
+        echo $block->getLayout()->createBlock('Fluid7\Address\Block\Main')->localAddress();
+        ?>
+    </div>
+  </div>
+    <div class="col-block-gray">
+        <div class="col-block">
+            <script src="https://widget.reviews.co.uk/badge/dist.js"></script>
+            <div id="badge-200" style="max-width:200px;"></div>
+            <div class="follow-us">
+                <a target="_blank" class="facebook" href="https://www.facebook.com/SilverBubble" title="Follow us on Facebook">
+                    <i class="icon-social icon-facebook-squared"></i>
+                </a>
+                <a target="_blank" class="pinterest" href="https://uk.pinterest.com/silverbubble1/" title="Follow us on Pinterest">
+                    <i class="icon-social icon-pinterest-squared"></i>
+                </a>
+                <a target="_blank" class="instagram" href="https://instagram.com/silverbubble_uk" title="Follow us on Instagram">
+                    <i class="icon-social icon-instagram"></i>
+                </a>
+            </div>
+            <script>
+                reviewsBadge('badge-200',{
+                    store: 'silver-bubble',
+                    primaryClr: '#009985',
+                    neutralClr: '#f4f4f4',
+                    starsClr: '#f8ff3b',
+                    textClr: '#fff'
+                });
+            </script>
+        </div>
+        <div class="col-block custom-newsletter">
+            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('footer-newsletter')->toHtml(); ?>
+            <div class="payment-logos">
+                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('footer-logos')->toHtml(); ?>
+            </div>
+
+            <span class="copyright"><?php /* @escapeNotVerified */ echo $block->getCopyright() ?></span>
+        </div>
+    </div>
+</div>

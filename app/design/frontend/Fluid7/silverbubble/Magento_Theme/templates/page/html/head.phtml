@@ -1,0 +1,10 @@
+<?php if($this->getRequest()->getModuleName() =='cms' && Mage::getSingleton('cms/page')->getIdentifier()!='home') { ?>
+      <?php
+      $prefix = Mage::getStoreConfig('design/head/title_suffix');
+      $title = $this->getTitle();
+      $processedTitle = trim(substr($title, 0, strpos($title, $prefix)));
+      ?>
+      <title><?php echo $processedTitle; ?></title>
+ <?php } else {?>
+      <title><?php echo $this->getTitle() ?></title>
+ <?php }?>

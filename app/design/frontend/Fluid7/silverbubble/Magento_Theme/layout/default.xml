@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="header.panel">
+            <block class="Magento\Framework\View\Element\Html\Links" name="header.links">
+                <arguments>
+                    <argument name="css_class" xsi:type="string">header links</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <referenceBlock name="logo">
+            <arguments>
+              <argument name="logo_file" xsi:type="string">images/sb_logo.svg</argument>
+                <argument name="logo_img_width" xsi:type="number">197</argument>
+                <argument name="logo_img_height" xsi:type="number">66</argument>
+            </arguments>
+        </referenceBlock>
+        <referenceBlock name="header.links">
+          <block class="Magento\Framework\View\Element\Html\Link" name="contactus.link">
+            <arguments>
+              <argument name="label" xsi:type="string" translate="false">Contact Us</argument>
+              <argument name="path" xsi:type="string" translate="false">contact-us</argument>
+            </arguments>
+          </block>
+          <!-- <block class="Magento\Customer\Block\Account\RegisterLink" name="register-link">
+            <arguments>
+                <argument name="label" xsi:type="string" translate="true">Create an Account</argument>
+            </arguments>
+          </block> -->
+          <block class="Magento\Framework\View\Element\Html\Link\Current" name="shipping">
+                <arguments>
+                    <argument name="label" xsi:type="string" translate="true">Shipping</argument>
+                    <argument name="path" xsi:type="string">shipping</argument>
+                </arguments>
+            </block>
+          <block class="Magento\Customer\Block\Account\Link" name="my-account-link">
+            <arguments>
+                <argument name="label" xsi:type="string" translate="true">My Account</argument>
+            </arguments>
+          </block>
+          <block class="Magento\Customer\Block\Account\AuthorizationLink" name="authorization-link-login" as="Login" />
+        </referenceBlock>
+        <referenceBlock name="reviews.tab" remove="true" />
+        <referenceBlock name="product.review.form" remove="true" />
+        <referenceBlock name="product.info.review" remove="true" />
+        <referenceBlock name="product.info.description" remove="true" />
+        <referenceContainer name="header-wrapper">
+            <block class="Magento\Framework\View\Element\Template" name="site-headline" before="top.search" template="Magento_Theme::site-headline.phtml" />
+        </referenceContainer>
+        <referenceContainer name="footer-container">
+            <block class="Magento\Theme\Block\Html\Footer" name="footer" template="html/footer.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+          <block class="Magento\Framework\View\Element\Template" template="Magento_Theme::reviews-floating-badge.phtml" name="reviewsbadge"/>
+        </referenceContainer>
+
+        <referenceBlock name="catalog.topnav">
+            <block name="custom.menu.links" template="Magento_Theme::html/topmenu_custom.phtml"/>
+        </referenceBlock>
+      </body>
+</page>

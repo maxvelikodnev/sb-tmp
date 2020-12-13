@@ -1,0 +1,2216 @@
+// /**
+//  * Copyright © Magento, Inc. All rights reserved.
+//  * See COPYING.txt for license details.
+//  */
+//
+//  Duplicated Luma Styles for layout
+//  ---------------------------------------------
+
+@import (reference) "../source/lib/variables/_responsive.less";
+@import (reference) "../source/lib/_responsive.less";
+
+@layout-column-main__sidebar-offset: 2%;
+@layout-column__additional-sidebar-offset: @layout-column-main__sidebar-offset;
+
+.lib-font-face(
+  font-display: auto!important;;
+)
+
+& when (@media-common = true) {
+    .lib-font-face(
+        @family-name: @font-family-name__base,
+        @font-path: '@{baseDir}fonts/opensans/light/opensans-300',
+        @font-weight: 300,
+        @font-style: normal
+    );
+
+    .lib-font-face(
+        @family-name: @font-family-name__base,
+        @font-path: '@{baseDir}fonts/opensans/regular/opensans-400',
+        @font-weight: 400,
+        @font-style: normal
+    );
+
+    .lib-font-face(
+        @family-name: @font-family-name__base,
+        @font-path: '@{baseDir}fonts/opensans/semibold/opensans-600',
+        @font-weight: 600,
+        @font-style: normal
+    );
+
+    .lib-font-face(
+        @family-name: @font-family-name__base,
+        @font-path: '@{baseDir}fonts/opensans/bold/opensans-700',
+        @font-weight: 700,
+        @font-style: normal
+    );
+}
+
+//
+//  Common
+//  _____________________________________________
+
+& when (@media-common = true) {
+
+    .columns {
+        #lib-layout-columns();
+
+        .column.main {
+            &:extend(.abs-add-box-sizing all);
+            .lib-css(padding-bottom, @indent__xl);
+            .lib-vendor-prefix-flex-basis(100%);
+            .lib-vendor-prefix-flex-grow(1);
+            .lib-vendor-prefix-order(1);
+            width: 100%;
+        }
+
+        .sidebar-main {
+            &:extend(.abs-add-box-sizing all);
+            .lib-vendor-prefix-flex-grow(1);
+            .lib-vendor-prefix-flex-basis(100%);
+            .lib-vendor-prefix-order(1);
+        }
+
+        .sidebar-additional {
+            &:extend(.abs-add-box-sizing all);
+            .lib-vendor-prefix-flex-grow(1);
+            .lib-vendor-prefix-flex-basis(100%);
+            .lib-vendor-prefix-order(2);
+        }
+    }
+}
+
+//
+//  Mobile
+//  _____________________________________________
+
+.media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__m) {
+    .navigation,
+    .breadcrumbs,
+    .page-header .header.panel,
+    .header.content,
+    .footer.content,
+    .page-main,
+    .page-wrapper > .widget,
+    .page-wrapper > .page-bottom,
+    .block.category.event,
+    .top-container {
+        padding-left: @layout__width-xs-indent;
+        padding-right: @layout__width-xs-indent;
+    }
+
+    .page-main {
+        .account &,
+        .cms-privacy-policy & {
+            padding-top: 41px;
+            position: relative;
+        }
+    }
+}
+
+//
+//  Desktop
+//  _____________________________________________
+
+.media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {
+    .navigation,
+    .breadcrumbs,
+    .page-header .header.panel,
+    .header.content,
+    .footer.content,
+    .page-wrapper > .widget,
+    .page-wrapper > .page-bottom,
+    .block.category.event,
+    .top-container,
+    .page-main {
+        box-sizing: border-box;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: @layout__max-width;
+        padding-left: @layout-indent__width;
+        padding-right: @layout-indent__width;
+        width: auto;
+    }
+
+    .page-main {
+        width: 100%;
+    }
+
+    .columns {
+        display: block;
+    }
+
+    .column.main {
+        #lib-layout-columns > .main();
+        &:extend(.abs-add-box-sizing-desktop all);
+        min-height: 300px;
+    }
+
+    .sidebar-main {
+        #lib-layout-columns > .left();
+        padding-right: @layout-column-main__sidebar-offset;
+        &:extend(.abs-add-box-sizing-desktop all);
+    }
+
+    .page-layout-2columns-right .sidebar-main {
+        padding-left: @layout-column-main__sidebar-offset;
+        padding-right: 0;
+    }
+
+    .sidebar-additional {
+        #lib-layout-columns > .right();
+        clear: right;
+        padding-left: @layout-column__additional-sidebar-offset;
+        &:extend(.abs-add-box-sizing-desktop all);
+    }
+
+    .page-layout-2columns-left {
+        .sidebar-additional {
+            clear: left;
+            float: left;
+            padding-left: 0;
+            padding-right: @layout-column__additional-sidebar-offset;
+        }
+    }
+
+    .panel.header {
+        padding: 10px 20px;
+    }
+}
+
+// /**
+//  * Copyright © Magento, Inc. All rights reserved.
+//  * See COPYING.txt for license details.
+//  */
+
+//
+//  Common
+//  _____________________________________________
+
+& when (@media-common = true) {
+    .actions-toolbar {
+        > .primary,
+        > .secondary {
+            text-align: center;
+
+            .action {
+                &:extend(.abs-button-responsive all);
+                margin-bottom: @indent__s;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+
+            margin-bottom: @indent__s;
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+//
+//  Desktop
+//  _____________________________________________
+
+.media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {
+    .actions-toolbar {
+        .lib-actions-toolbar();
+        > .primary,
+        > .secondary {
+            margin-bottom: 0;
+
+            .action {
+                margin-bottom: 0;
+                width: auto;
+            }
+        }
+    }
+
+    form {
+        .actions-toolbar {
+            .column:not(.sidebar-main) &,
+            .column:not(.sidebar-additional) & {
+                &:extend(.abs-margin-for-forms-desktop all);
+            }
+        }
+    }
+}
+
+//
+//  Typography
+//  ---------------------------------------------
+
+//  Fonts
+@font-family-name__base: 'Open Sans';
+@font-family__base: @font-family-name__base, @font-family__sans-serif;
+
+//  Colors nesting
+@page__background-color: @color-white;
+
+//
+//  Icons
+//  ---------------------------------------------
+
+@icon-success: '\e60e';
+@icon-error: '\e61f';
+@icon-edit: '\e601';
+@icon-print: '\e624';
+@icon-star-empty: '\e625';
+@icon-download: '\e626';
+@icon-private: '\e629';
+@icon-present: '\e62a';
+@icon-gift-registry: '\e62b';
+@icon-calendar__font-size: 23px;
+
+//
+//  Sidebar
+//  ---------------------------------------------
+
+@sidebar__background-color: @color-white-smoke; // Used in cart sidebar, Checkout sidebar, Tier Prices, My account navigation, Rating block background
+
+//
+//  Sidebar blocks
+//  ---------------------------------------------
+
+@block-items__counter__color: @color-gray43;
+@legend-border-bottom: 1px solid @color-gray-light6;
+@form-field__vertical-indent__desktop: 29px;
+@form-calendar-icon__color: @primary__color;
+
+//
+//  Common
+//  _____________________________________________
+
+& when (@media-common = true) {
+
+    .fieldset {
+        .lib-form-fieldset();
+
+        &:last-child {
+            margin-bottom: @indent__base;
+        }
+
+        > .field,
+        > .fields > .field {
+            .lib-form-field();
+            &.no-label {
+                > .label {
+                    .lib-visually-hidden();
+                }
+            }
+
+            &.choice {
+                .label {
+                    display: inline;
+                    font-weight: normal;
+                    margin: 0;
+                }
+            }
+
+            .label {
+                .column:not(.main) & {
+                    font-weight: normal;
+                }
+            }
+
+            .field.choice {
+                margin-bottom: @indent__s;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+
+    .legend + .fieldset,
+    .legend + div {
+        clear: both;
+    }
+
+    .legend {
+        > span {
+            margin-right: @indent__xs;
+        }
+    }
+
+    fieldset.field {
+        border: 0;
+        padding: 0;
+    }
+
+    .field {
+        &.date {
+            .time-picker {
+                display: inline-block;
+                margin-top: @indent__s;
+                white-space: nowrap;
+            }
+        }
+
+        .message {
+            &.warning {
+                margin-top: @indent__s;
+            }
+        }
+    }
+
+    .select-styling() {
+        .lib-css(appearance, none, 1);
+        appearance: none;
+        background-size: 30px 60px;
+        text-indent: .01em;
+        text-overflow: '';
+
+        &::-ms-expand {
+            display: none;
+        }
+    }
+
+    select {
+        .select-styling();
+    }
+
+    select.admin__control-multiselect {
+        height: auto;
+    }
+
+    .field-error,
+    div.mage-error[generated] {
+        margin-top: 7px;
+    }
+
+    .field-error {
+        .lib-form-validation-note();
+    }
+
+    .product-options-wrapper {
+        .date {
+            &.required {
+                div[for*='options'] {
+                    &.mage-error {
+                        display: none !important;
+                    }
+                }
+            }
+        }
+    }
+
+    //  TEMP
+
+    .field .tooltip {
+        .lib-tooltip(right);
+        .tooltip-content {
+            min-width: 200px;
+            white-space: normal;
+        }
+    }
+
+    input:focus ~ .tooltip .tooltip-content,
+    select:focus ~ .tooltip .tooltip-content {
+        display: block;
+    }
+
+    ._has-datepicker {
+        ~ .ui-datepicker-trigger {
+            .lib-button-reset();
+            .lib-icon-font(
+            @_icon-font-content: @icon-calendar,
+            @_icon-font-color: @primary__color__lighter,
+            @_icon-font-size: @icon-calendar__font-size,
+            @_icon-font-line-height: @icon-calendar__font-size,
+            @_icon-font-display: block,
+            @_icon-font-text-hide: true
+            );
+            display: inline-block;
+            margin-top: -4px;
+            vertical-align: middle;
+
+            &:focus {
+                box-shadow: none;
+                outline: 0;
+            }
+        }
+    }
+
+    .field.date,
+    .field-dob {
+        ._has-datepicker {
+            &:extend(.abs-field-date-input all);
+        }
+    }
+
+    //
+    //  Sidebar forms
+    //  ---------------------------------------------
+
+    .sidebar {
+        .fieldset {
+            margin: 0;
+
+            > .field:not(.choice) >,
+            .fields > .field {
+                &:not(:last-child) {
+                    margin: 0 0 @form-field__vertical-indent;
+                }
+
+                .label {
+                    margin: 0 0 4px;
+                    padding: 0 0 @indent__xs;
+                    text-align: left;
+                    width: 100%;
+                }
+
+                .control {
+                    width: 100%;
+                }
+            }
+        }
+    }
+}
+
+//
+//  Desktop
+//  _____________________________________________
+
+.media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {
+    .legend {
+        .lib-css(border-bottom, @legend-border-bottom);
+    }
+}
+
+//
+//  Typography
+//  ---------------------------------------------
+
+//  Fonts
+@icons__font-path: '@{baseDir}fonts/Luma-Icons';
+@icons__font-name: 'luma-icons';
+
+//  Color nesting
+@panel__background-color: @color-gray-light0;
+@border-color__base: @color-gray80;
+
+//  Headings
+@h3__font-weight: @font-weight__semibold;
+@h3__margin-top: @indent__base;
+
+//  Links
+@link__color: @theme__color__primary-alt;
+
+//  Focus
+@focus__color: @color-blue3;
+
+//
+//  Tables
+//  ---------------------------------------------
+
+@table-cell__padding-vertical: 11px;
+@table-cell-stripped__background-color: @table-cell__hover__background-color;
+@table-responsive-th__background-color: @table-cell-stripped__background-color;
+@table-responsive-cell__padding: @indent__xs @indent__s;
+
+//
+//  Layout grid
+//  ---------------------------------------------
+
+@total-columns: 24;
+
+//  Variables for layout columns
+@layout-column__sidebar-width: 5;
+
+//  Checkout columns width
+@layout-column-checkout__width-left: 6;
+
+//
+//  Navigation
+//  ---------------------------------------------
+
+@navigation__background: @color-gray94;
+@navigation-level0-item__active__color: @primary__color;
+
+@submenu-item__active__color: @navigation-level0-item__active__color;
+
+//  Desktop navigation
+@navigation-desktop-level0-item__line-height: 47px;
+@submenu-desktop__font-weight: @font-weight__regular;
+@submenu-desktop-item__active__color: @navigation-level0-item__active__color;
+
+//  Tabs
+@tab-control__color: @color-gray43;
+@tab-control__font-weight: @font-weight__regular;
+@tab-control__height: @indent__base*2;
+@tab-control__margin-right: -1px;
+@tab-control__padding-top: 1px;
+@tab-control__padding-right: 35px;
+
+//  Tabs content
+@tab-content__padding-top: 35px;
+@tab-content__padding-right: @tab-control__padding-right;
+
+//
+//  Accordion
+//  ---------------------------------------------
+
+@accordion-control__font-family: false;
+@accordion-control__font-size: @font-size__base;
+@accordion-control__font-style: false;
+@accordion-control__font-weight: @font-weight__semibold;
+@accordion-control__border-right: false;
+@accordion-control__border-bottom: false;
+@accordion-control__border-left: false;
+@accordion-control__background-color: false;
+@accordion-control__color: @primary__color;
+@accordion-control__hover__background-color: false;
+@accordion-control__hover__color: @accordion-control__color;
+@accordion-control__active__background-color: false;
+@accordion-control__active__color: @accordion-control__color;
+@accordion-control__margin-bottom: 0;
+@accordion-control__padding-right: @indent__s;
+@accordion-control__padding-left: @indent__s;
+@accordion-content__border: false;
+@accordion-content__margin: 0;
+@accordion-content__padding: @indent__s @indent__s @indent__l;
+
+//
+//  Buttons
+//  ---------------------------------------------
+
+@button__font-weight: @font-weight__semibold;
+
+//  Default = secondary button
+@button__background: @color-gray-darken0;
+@button__border: 1px solid @border-color__base;
+@button__hover__color: @button__color;
+@button__hover__background: darken(@button__background, 5%);
+@button__active__background: @color-gray-darken1;
+
+//  Primary button
+@button-primary__hover__color: @color-white;
+@button-primary__active__background: @link__hover__color;
+@button-primary__active__border: 1px solid @link__hover__color;
+@button-primary__active__color: @color-white;
+
+//  Button with icon
+@button-icon__line-height: @icon-font__line-height;
+
+//
+//  Icons
+//  ---------------------------------------------
+
+@icon-wishlist-empty: false;
+@icon-comment-reflected: false;
+@icon-compare-empty: false;
+@icon-arrow-up-thin: false;
+@icon-arrow-right-thin: false;
+@icon-arrow-left-thin: false;
+@icon-arrow-down-thin: false;
+@icon-wishlist-empty: '\e601';
+
+//
+//  Messages
+//  ---------------------------------------------
+
+@message__padding: 12px @indent__base 12px @indent__m;
+@message__line-height: false;
+@message-icon__font-size: 24px;
+@message-icon__inner-padding-left: 45px;
+@message-icon__top: 22px;
+@message-error-icon: @icon-error;
+@message-success-icon: @icon-success;
+
+//
+//  Loaders
+//  ---------------------------------------------
+
+@loader-overlay__background-color: rgba(255, 255, 255, .7);
+
+//
+//  Forms
+//  ---------------------------------------------
+
+
+//  Select
+@select__background: @form-element-input__background url('../images/select-bg.svg') no-repeat 100% 45%;
+@select__border: 1px solid @border-color__base;
+@select__height: 32px;
+@select__padding: 4px 25px @indent__xs @indent__s;
+
+//  Form fieldset
+@form-fieldset-legend__font-size: 18px;
+@form-fieldset-legend__font-weight: @font-weight__light;
+@form-fieldset-legend__margin: 0 0 @indent__base;
+@form-fieldset-legend__padding: 0 0 @indent__s;
+@form-fieldset-legend__width: 100%;
+
+//  Form field
+@form-field-type-revert: false;
+@form-field__additional-vertical-indent: @indent__s;
+
+//  Form field label
+@form-field-label__font-weight: @font-weight__semibold;
+@form-field-type-label-block__margin: 0 0 8px;
+
+//  Form field note icon
+@form-field-note-icon-font__content: false;
+
+//  Placeholder
+@form-element-input-placeholder__color: @color-gray34;
+
+//
+//  Pager
+//  ---------------------------------------------
+
+@pager__font-weight: @font-weight__regular;
+@pager__line-height: @indent__l;
+@pager-item__margin: 0 8px 0 0;
+@pager-item__padding: 0 @indent__xs;
+
+//  Pager current page
+@pager-current__background: @color-gray90;
+
+//  Pager link.action
+@pager-icon__font-margin: 0;
+@pager-icon__font-size: 16px;
+
+//  Pager link.action visited
+@pager-action__visited__color: @text__color__muted;
+
+//  Pager link.action hover
+@pager-action__hover__color: @text__color__muted;
+
+//  Pager link.action active
+@pager-action__active__color: @text__color__muted;
+
+//
+//  Rating
+//  ---------------------------------------------
+
+@rating-icon__font-size: 16px;
+@rating-icon__letter-spacing: 2px;
+
+//
+//  Dropdowns
+//  ---------------------------------------------
+
+@dropdown-toggle-icon__content: @icon-down;
+@dropdown-toggle-icon__active__content: @icon-up;
+@dropdown-toggle-icon__font-size: 12px;
+
+//  Split dropdown
+@dropdown-split-actions__padding: 0 @indent__xs;
+@dropdown-split-toggle__actions__padding: false;
+
+//  Actions-toolbar
+@actions-toolbar-actions__position: left;
+@actions-toolbar-actions-primary__margin: 0 15px 0 0;
+
+//
+//  Breadcrumbs
+//  ---------------------------------------------
+
+@breadcrumbs__container-margin: 0 0 15px;
+@breadcrumbs-icon__font-size: 10px;
+@breadcrumbs-icon__font-margin: 0 @indent__s;
+
+@breadcrumbs-current__color: @color-gray-middle5;
+@breadcrumbs-link__color: @link__color;
+@breadcrumbs-link__visited__color: @breadcrumbs-link__color;
+@breadcrumbs-link__hover__color: @breadcrumbs-link__color;
+@breadcrumbs-link__active__color: @breadcrumbs-link__color;
+
+//
+//  Popups
+//  ---------------------------------------------
+
+@popup__border: 1px solid @color-gray68;
+@popup-title-headings__level: h2;
+
+//  Popup icons
+@popup-icon-font__size: 16px;
+@popup-icon-font__line-height: 16px;
+@popup-icon-font__color: @color-gray55;
+@popup-icon-font__color-hover: darken(@popup-icon-font__color, 10%);
+@popup-icon-font__color-active: @popup-icon-font__color-hover;
+
+//  Window overlay
+@overlay__background: @color-gray55;
+@overlay__opacity: .7;
+@overlay__opacity-old: 70;
+
+@gallery-thumb-border-color-active: @active__color;
+
+//  Checkout tooltip icon
+@checkout-tooltip-icon__font-size: 21px;
+
+//  Checkout Payment Option icon
+@checkout-payment-option-title-icon__font-size: 14px;
+@checkout-payment-option-title-icon__line-height: 16px;
+@checkout-payment-option-title-icon__margin: 0 0 0 @indent__s;
+
+//  Checkout Sidebar Shipping Information
+@checkout-sidebar-shipping-information-edit-icon__content: @icon-edit;
+@checkout-sidebar-shipping-information-edit-icon__font-size: 18px;
+@checkout-sidebar-shipping-information-edit-icon__line-height: 20px;
+@checkout-sidebar-shipping-information-edit-icon__top: @indent__s;
+
+//  Checkout
+@checkout-sidebar__columns: 8;
+
+//
+//  Footer
+//  ---------------------------------------------
+
+@copyright__background-color: @color-gray-middle4;
+
+.contact-index-index .fieldset {
+  margin-bottom: 20px;
+}
+
+.contact-index-index .fieldset .legend {
+  padding-bottom: 0;
+}
+
+.contact-info-number {
+  display: block;
+  font-size: 36px;
+  font-size: 3.6rem;
+  line-height: 36px;
+  font-weight: 300;
+}
+@media only screen and (max-width:767px) {
+  .contact-info-number {
+    font-weight: 300;
+    margin-bottom: 10px;
+  }
+}
+@media all and (min-width:768px),print {
+  ._rwd_width {
+    min-width: 0 !important;
+    max-width: auto !important;
+  }
+
+  ._rwd_width_float {
+    width: 100% !important;
+    float: none !important;
+  }
+
+  .contact-index-index .fieldset .legend {
+    border: none;
+  }
+
+  .contact-index-index .column.main .widget.static.block {
+    float: left;
+    width: 70%;
+  }
+
+  .contact-info-number {
+    margin-bottom: 15px;
+  }
+}
+
+.cms-index-index .page-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.widget .block-promo img {
+  @media screen and (min-width: 767px){
+      max-width: none;
+  }
+}
+
+.block-promo {
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  display: block;
+  width: 100%;
+  color: #333 !important;
+}
+
+.block-promo:hover {
+  text-decoration: none;
+}
+
+.block-promo .content {
+  display: block;
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+  padding: 25px 35px 35px;
+}
+
+.block-promo .title {
+  display: block;
+  font-weight: 300;
+  font-size: 3.2rem;
+  line-height: 1.2;
+  margin-bottom: 15px;
+}
+
+.block-promo .info {
+  display: block;
+  font-weight: 300;
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+
+.block-promo .more {
+  font-size: 1.6rem;
+}
+
+.block-promo .icon.more {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.block-promo .icon.more:after {
+  font-family: 'luma-icons';
+  content: '\e608';
+  font-size: 12px;
+  line-height: inherit;
+  color: inherit;
+  overflow: hidden;
+  speak: none;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 0 0 5px;
+}
+
+.block-promo .button.more {
+  font-size: 1.8rem;
+  background-image: none;
+  background: #1979c3;
+  padding: 7px 15px;
+  color: #fff;
+  border: 1px solid #1979c3;
+  cursor: pointer;
+  display: inline-block;
+  font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  box-sizing: border-box;
+  vertical-align: middle;
+  border-radius: 3px;
+  text-decoration: none;
+  padding: 10px 15px;
+}
+
+.block-promo .button.more:active,
+.block-promo .button.more:focus {
+  background: #006bb4;
+  border: 1px solid #006bb4;
+  color: #fff;
+}
+
+.block-promo .button.more:hover {
+  background: #006bb4;
+  border: 1px solid #006bb4;
+  color: #fff;
+}
+
+.block-promo .title+.button {
+  margin-top: 10px;
+}
+
+.block-promo sup {
+  top: -0.2em;
+}
+
+.block-promo-2columns .content {
+  padding: 20px 25px;
+}
+
+.collection-eco .content,
+.collection-performance .content,
+.gear-equipment .content,
+.gear-main .content,
+.home-eco .content,
+.home-main .content,
+.home-performance .content,
+.mens-main .content,
+.mens-pants .content,
+.new-eco .content,
+.new-main .content,
+.sale-main .content,
+.sale-women .content,
+.training-erin .content,
+.training-main .content,
+.womens-main .content,
+.womens-pants .content {
+  background-color: rgba(255,255,255,0.9);
+}
+
+.gear-main,
+.mens-main,
+.sale-main,
+.womens-main {
+  max-width: 1080px;
+}
+
+.gear-equipment,
+.gear-fitnes,
+.mens-pants,
+.new-eco,
+.new-performance,
+.sale-mens,
+.sale-women,
+.womens-pants {
+  max-width: 580px;
+}
+
+.collection-eco,
+.collection-performance,
+.home-main,
+.training-erin,
+.training-main {
+  max-width: 1280px;
+}
+
+.home-pants .content {
+  top: 0;
+  left: 0;
+  width: 80%;
+}
+
+.home-pants .title {
+  display: block;
+  font-weight: 600;
+  font-family: Halvetica Neue,Helvetica,Arial,sans-serif;
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+
+.home-t-shirts {
+  background: #ffdd16;
+}
+
+.home-erin {
+  height: 274px;
+}
+
+.home-erin .content {
+  top: 0;
+  right: 0;
+  width: 60%;
+}
+
+.home-performance {
+  height: 664px;
+}
+
+.home-performance .content {
+  top: 25px;
+  right: 25px;
+  left: 25px;
+}
+
+.home-eco {
+  height: 274px;
+}
+
+.new-performance .icon.more {
+  white-space: nowrap;
+}
+
+.block-promo-hp .bg-white,
+.block-promo-hp .home-erin .content {
+  padding: 20px;
+}
+
+.womens-erin {
+  background: #f4f4f4;
+}
+
+.womens-erin .content {
+  padding: 20px 35px;
+}
+
+.training-main {
+  height: 372px;
+}
+
+.training-main .title {
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+.training-main .title span {
+  font-weight: 600;
+}
+
+.training-erin {
+  height: 214px;
+}
+
+.training-erin .content {
+  padding: 15px;
+  text-align: center;
+}
+
+.training-erin .info {
+  margin-bottom: 0;
+}
+
+.training-on-demand,
+.training-videos {
+  color: #fff !important;
+}
+
+.training-on-demand .content,
+.training-videos .content {
+  position: static;
+  text-align: center;
+}
+
+.training-on-demand .icon.calendar,
+.training-on-demand .icon.download,
+.training-videos .icon.calendar,
+.training-videos .icon.download {
+  margin-top: -10px;
+  display: block;
+  text-decoration: none;
+}
+
+.training-on-demand .icon.calendar > span,
+.training-on-demand .icon.download > span,
+.training-videos .icon.calendar > span,
+.training-videos .icon.download > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.training-on-demand .icon.calendar:before,
+.training-on-demand .icon.download:before,
+.training-videos .icon.calendar:before,
+.training-videos .icon.download:before {
+  font-family: 'luma-icons';
+  font-size: 32px;
+  line-height: inherit;
+  color: inherit;
+  overflow: hidden;
+  speak: none;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.training-on-demand .icon.calendar:before,
+.training-videos .icon.calendar:before {
+  content: '\e612';
+}
+
+.training-on-demand .icon.download:before,
+.training-videos .icon.download:before {
+  content: '\e626';
+}
+
+.training-on-demand .icon.more,
+.training-videos .icon.more {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 25px;
+}
+
+.training-on-demand .info,
+.training-videos .info {
+  font-size: 16px;
+}
+
+.training-on-demand {
+  background: #00ade2;
+}
+
+.training-videos {
+  background: #5a5e62;
+}
+
+.sale-mens,
+.sale-women {
+  height: 372px;
+}
+
+.sale-mens .content {
+  top: 0;
+  right: 0;
+  width: 60%;
+}
+
+.sale-20-off .content,
+.sale-free-shipping .content,
+.sale-womens-t-shirts .content {
+  padding: 15px 20px;
+}
+
+.sale-20-off {
+  background: #f4f4f4;
+}
+
+.sale-20-off .title {
+  font-size: 4rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sale-20-off img {
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.sale-20-off .content {
+  width: 75%;
+  position: relative;
+}
+
+.sale-free-shipping {
+  background: #71b54e;
+  color: #fff !important;
+}
+
+.sale-free-shipping .content {
+  position: static;
+}
+
+.sale-free-shipping img {
+  display: block;
+  margin: 0 auto 10px;
+  max-width: 100% !important;
+}
+
+.sale-womens-t-shirts {
+  background: #fedd16;
+}
+
+.sale-womens-t-shirts .content {
+  position: static;
+}
+
+.sale-womens-t-shirts img {
+  max-width: 95% !important;
+}
+
+.mens-main .content {
+  width: 45%;
+}
+
+.gear-main,
+.home-main,
+.mens-main,
+.new-main,
+.sale-main,
+.womens-main {
+  height: 450px;
+}
+
+.mens-t-shirts,
+.womens-t-shirts {
+  background: #ffdd17;
+}
+
+.mens-t-shirts img,
+.womens-t-shirts img {
+  max-width: 100% !important;
+}
+
+.mens-t-shirts .content,
+.womens-t-shirts .content {
+  position: static;
+}
+
+.gear-equipment,
+.gear-fitnes,
+.mens-pants,
+.new-eco,
+.new-performance,
+.womens-pants {
+  height: 372px;
+}
+
+.mens-pants .info span,
+.womens-pants .info span {
+  display: block;
+  font-size: 4.4rem;
+  font-family: Halvetica Neue,Helvetica,Arial,sans-serif;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gear-category-bags,
+.gear-category-equipment,
+.gear-category-watches,
+.mens-category-hoodies,
+.mens-category-shorts,
+.mens-category-tees,
+.womens-category-pants,
+.womens-category-shorts,
+.womens-category-tanks {
+  background: #f4f4f4;
+  min-height: 170px;
+}
+
+.gear-category-bags img,
+.gear-category-equipment img,
+.gear-category-watches img,
+.mens-category-hoodies img,
+.mens-category-shorts img,
+.mens-category-tees img,
+.womens-category-pants img,
+.womens-category-shorts img,
+.womens-category-tanks img {
+  max-width: 100% !important;
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  left: 60%;
+}
+
+.gear-category-bags .content,
+.gear-category-equipment .content,
+.gear-category-watches .content,
+.mens-category-hoodies .content,
+.mens-category-shorts .content,
+.mens-category-tees .content,
+.womens-category-pants .content,
+.womens-category-shorts .content,
+.womens-category-tanks .content {
+  padding: 20px 0 50px 20px !important;
+  position: static;
+  width: 60%;
+  z-index: 1;
+}
+
+.gear-category-bags .info,
+.gear-category-bags .title,
+.gear-category-equipment .info,
+.gear-category-equipment .title,
+.gear-category-watches .info,
+.gear-category-watches .title,
+.mens-category-hoodies .info,
+.mens-category-hoodies .title,
+.mens-category-shorts .info,
+.mens-category-shorts .title,
+.mens-category-tees .info,
+.mens-category-tees .title,
+.womens-category-pants .info,
+.womens-category-pants .title,
+.womens-category-shorts .info,
+.womens-category-shorts .title,
+.womens-category-tanks .info,
+.womens-category-tanks .title {
+  font-size: 1.8rem;
+}
+
+.gear-category-bags .title,
+.gear-category-equipment .title,
+.gear-category-watches .title,
+.mens-category-hoodies .title,
+.mens-category-shorts .title,
+.mens-category-tees .title,
+.womens-category-pants .title,
+.womens-category-shorts .title,
+.womens-category-tanks .title {
+  font-weight: 400;
+  margin-bottom: 5px;
+}
+
+.gear-category-bags .more,
+.gear-category-equipment .more,
+.gear-category-watches .more,
+.mens-category-hoodies .more,
+.mens-category-shorts .more,
+.mens-category-tees .more,
+.womens-category-pants .more,
+.womens-category-shorts .more,
+.womens-category-tanks .more {
+  position: absolute;
+  z-index: 1;
+  bottom: 20px;
+}
+
+.gear-fitnes .content,
+.new-performance .content {
+  right: 0;
+  top: 0;
+  width: 65%;
+}
+
+.collection-eco,
+.collection-performance {
+  height: 200px;
+}
+
+.collection-eco .content,
+.collection-performance .content {
+  padding: 15px;
+  text-align: center;
+}
+
+.collection-eco .info,
+.collection-performance .info {
+  margin-bottom: 0;
+}
+
+.collection-erin {
+  background: #f4f4f4;
+}
+
+.collection-erin .content {
+  padding: 20px 35px;
+}
+
+.content-heading {
+  text-align: center;
+  margin: 10px 0 25px;
+}
+
+.content-heading .title {
+  margin: 0 0 5px;
+}
+
+.content-heading .info {
+  margin-bottom: 0;
+}
+
+.categories-menu .title {
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.categories-menu a:active,
+.categories-menu a:hover,
+.categories-menu a:link,
+.categories-menu a:visited {
+  color: #333;
+}
+
+.categories-menu .items {
+  margin-bottom: 40px;
+}
+
+.categories-menu .items:last-child {
+  margin-bottom: 0;
+}
+
+.cms-content-important {
+  display: block;
+  background: #f5f5f5;
+}
+
+.cms-content-important h2 {
+  margin-top: 0;
+}
+
+.cms-content table {
+  border: none;
+}
+
+.cms-content table > tbody > tr > td,
+.cms-content table > tbody > tr > th,
+.cms-content table > tfoot > tr > td,
+.cms-content table > tfoot > tr > th,
+.cms-content table > thead > tr > td,
+.cms-content table > thead > tr > th {
+  border: none;
+}
+
+.cms-content table > thead > tr > td,
+.cms-content table > thead > tr > th {
+  border-bottom: 1px solid #d1d1d1;
+}
+
+.cms-content table > tbody > tr:nth-child(even) > td,
+.cms-content table > tbody > tr:nth-child(even) > th {
+  background: #f7f7f7;
+}
+
+.cms-content table th {
+  font-weight: 400;
+}
+
+.cms-content table td {
+  font-weight: 600;
+}
+
+.cms-content .block .block-title {
+  margin-bottom: 15px;
+}
+
+.cms-content .block .block-title > strong {
+  display: none;
+}
+
+.cms-content .block .box-title {
+  display: inline-block;
+  margin: 0 0 15px;
+}
+
+.cms-content .block .box-title > span {
+  font-size: 1.8rem;
+  line-height: 1.1;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 300;
+}
+
+.cms-content .block .block-content p:last-child {
+  margin-bottom: 0;
+}
+@media only screen and (max-width:399px) {
+  .womens-pants img {
+    width: 250%;
+    float: right;
+    margin: -70px -140px 0 0;
+  }
+
+  .mens-main img {
+    margin-left: -180px;
+  }
+
+  .gear-main img,
+  .training-main img,
+  .womens-main img {
+    margin-left: -210px;
+  }
+
+  .home-main img {
+    margin-left: -310px;
+  }
+
+  .home-eco img,
+  .mens-pants img,
+  .sale-main img {
+    margin-left: -150px;
+  }
+
+  .gear-fitnes img,
+  .new-performance img,
+  .sale-mens img {
+    margin-left: -60px;
+  }
+
+  .gear-equipment img,
+  .new-main img,
+  .sale-women img,
+  .training-erin img {
+    margin-left: -120px;
+  }
+
+  .new-eco img {
+    margin-left: -80px;
+  }
+
+  .home-pants,
+  .home-performance {
+    height: 580px;
+  }
+
+  .home-pants img,
+  .home-performance img {
+    margin-left: -50px;
+  }
+}
+@media only screen and (max-width:767px) {
+  .blocks-promo {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+
+  .block-promo {
+    margin-bottom: 8px;
+  }
+
+  .block-promo .title {
+    font-size: 2.2rem;
+  }
+
+  .block-promo .info {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+
+  .block-promo .more {
+    font-size: 1.4rem;
+  }
+
+  .block-promo .icon.more:after {
+    font-size: 1rem;
+  }
+
+  .block-promo .button.more {
+    font-size: 1.2rem;
+  }
+
+  .block-promo .content {
+    padding: 15px 20px 20px;
+  }
+
+  .block-promo .button.more {
+    padding: 8px 12px;
+  }
+
+  .home-pants {
+    max-width: 417px;
+  }
+
+  .home-erin {
+    max-width: 426px;
+  }
+
+  .home-performance {
+    max-width: 415px;
+  }
+
+  .home-eco {
+    max-width: 858px;
+  }
+
+  .home-pants,
+  .home-performance {
+    height: 580px;
+  }
+
+  .gear-main .content,
+  .home-main .content,
+  .mens-main .content,
+  .new-main .content,
+  .sale-main .content,
+  .training-main .content,
+  .womens-main .content {
+    top: 20px;
+    right: 0;
+    width: 65%;
+  }
+
+  .training-main .title {
+    font-size: 2rem;
+  }
+
+  .collection-erin .content,
+  .womens-erin .content {
+    position: static;
+  }
+
+  .collection-erin img,
+  .womens-erin img {
+    display: block;
+    margin: 0 auto;
+    max-width: 75% !important;
+  }
+
+  .sale-women .content {
+    width: 60%;
+    bottom: 20px;
+    left: 0;
+  }
+
+  .sale-main .content {
+    top: auto;
+    bottom: 20px;
+  }
+
+  .sale-20-off {
+    min-height: 185px;
+  }
+
+  .sale-20-off .title {
+    font-size: 4rem;
+  }
+
+  .gear-category-bags .title,
+  .gear-category-equipment .title,
+  .gear-category-watches .title,
+  .mens-category-hoodies .title,
+  .mens-category-shorts .title,
+  .mens-category-tees .title,
+  .womens-category-pants .title,
+  .womens-category-shorts .title,
+  .womens-category-tanks .title {
+    font-size: 1.6rem;
+  }
+
+  .gear-category-bags .info,
+  .gear-category-equipment .info,
+  .gear-category-watches .info,
+  .mens-category-hoodies .info,
+  .mens-category-shorts .info,
+  .mens-category-tees .info,
+  .womens-category-pants .info,
+  .womens-category-shorts .info,
+  .womens-category-tanks .info {
+    font-size: 1.4rem;
+  }
+
+  .mens-pants .info span,
+  .womens-pants .info span {
+    font-size: 4rem;
+  }
+
+  .mens-pants .content,
+  .womens-pants .content {
+    max-width: 220px;
+    bottom: 20px;
+  }
+
+  .home-eco .content {
+    width: 65%;
+    top: 20px;
+    right: 0;
+  }
+
+  .gear-fitnes .content,
+  .home-erin .content,
+  .new-performance .content {
+    padding-top: 30px;
+  }
+
+  .gear-equipment .content,
+  .new-eco .content {
+    left: 0;
+    bottom: 20px;
+    max-width: 220px;
+  }
+
+  .training-erin .content {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .training-erin .title {
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+  }
+
+  .training-erin .info {
+    font-size: 1.2rem;
+    margin-bottom: 0;
+  }
+
+  .training-on-demand .content,
+  .training-videos .content {
+    padding-top: 25px;
+    padding-bottom: 45px;
+  }
+
+  .home-pants img {
+    position: absolute;
+    z-index: 0;
+    bottom: -10px;
+  }
+
+  .home-pants .title {
+    font-size: 4rem;
+  }
+
+  .home-performance img {
+    position: absolute;
+    z-index: 0;
+    top: -20px;
+  }
+
+  .gear-main .content,
+  .training-main .content,
+  .womens-main .content {
+    top: auto;
+    bottom: 20px;
+  }
+
+  .home-t-shirts .image {
+    display: block;
+    padding: 20px 20px 0;
+  }
+
+  .home-t-shirts img {
+    max-width: 100% !important;
+  }
+
+  .home-t-shirts .content {
+    position: static;
+  }
+
+  .collection-eco .content,
+  .collection-performance .content {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .collection-eco .title,
+  .collection-performance .title {
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+  }
+
+  .collection-eco .info,
+  .collection-performance .info {
+    font-size: 1.2rem;
+  }
+
+  .collection-erin .title {
+    font-size: 1.8rem;
+  }
+
+  .collection-erin .info {
+    font-size: 1.2rem;
+  }
+
+  .content-heading .title {
+    font-size: 3rem;
+  }
+
+  .content-heading .info {
+    font-size: 1.4rem;
+  }
+
+  .cms-content-important {
+    padding: 15px;
+    margin: 0 -15px 15px;
+  }
+
+  .cms-content table {
+    margin: 10px 0 0;
+  }
+
+  .cms-content table thead th {
+    font-size: 1.1rem;
+  }
+
+  .cms-content ul li {
+    margin-bottom: 5px;
+  }
+
+  .cms-content .block .box {
+    margin-bottom: 30px;
+  }
+}
+@media all and (min-width:640px),print {
+  .block-promo {
+    margin-bottom: 16px;
+  }
+
+  .block-promo-wrapper:after,
+  .block-promo-wrapper:before {
+    content: "";
+    display: table;
+  }
+
+  .block-promo-wrapper:after {
+    clear: both;
+  }
+
+  .block-promo-wrapper .block-promo {
+    float: left;
+    border-right: 16px solid #fff;
+  }
+
+  .block-promo-2columns .block-promo {
+    width: 50%;
+  }
+
+  .block-promo-3columns .block-promo {
+    width: 33.3%;
+  }
+
+  .block-promo-2columns .block-promo:nth-child(2n),
+  .block-promo-3columns .block-promo:nth-child(3n) {
+    border-right: 0;
+  }
+}
+@media all and (min-width:768px),print {
+  .block-promo-hp {
+    margin: 0 -8px;
+  }
+
+  .block-promo-hp .block-promo {
+    border-left: 8px solid #fff;
+    border-right: 8px solid #fff;
+  }
+
+  .block-promo-wrapper .home-performance {
+    float: right;
+  }
+
+  .home-erin,
+  .home-pants,
+  .home-performance {
+    width: 33.3%;
+  }
+
+  .home-eco,
+  .home-t-shirts {
+    width: 66.7%;
+  }
+
+  .gear-main .content,
+  .home-main .content,
+  .mens-main .content,
+  .new-main .content,
+  .sale-main .content,
+  .training-main .content,
+  .womens-main .content {
+    top: 40px;
+    right: 40px;
+    width: 30%;
+  }
+
+  .mens-t-shirts,
+  .womens-t-shirts {
+    height: 372px;
+  }
+
+  .mens-pants .content,
+  .womens-pants .content {
+    width: 47%;
+    left: 20px;
+    top: 20px;
+  }
+
+  .collection-erin,
+  .home-t-shirts,
+  .womens-erin {
+    display: table;
+  }
+
+  .collection-erin .content,
+  .collection-erin .image,
+  .home-t-shirts .content,
+  .home-t-shirts .image,
+  .womens-erin .content,
+  .womens-erin .image {
+    display: table-cell;
+  }
+
+  .collection-erin .content,
+  .home-t-shirts .content,
+  .womens-erin .content {
+    position: static;
+  }
+
+  .collection-erin .image,
+  .home-t-shirts .image,
+  .womens-erin .image {
+    vertical-align: bottom;
+  }
+
+  .collection-erin img,
+  .home-t-shirts img,
+  .womens-erin img {
+    float: right;
+  }
+
+  .home-t-shirts {
+    height: 276px;
+  }
+
+  .home-t-shirts .content {
+    width: 40%;
+  }
+
+  .home-t-shirts .image {
+    width: 60%;
+    vertical-align: middle;
+    text-align: center;
+    padding-left: 10px;
+  }
+
+  .home-t-shirts img {
+    max-width: 100% !important;
+  }
+
+  .gear-category-bags,
+  .gear-category-equipment,
+  .gear-category-watches,
+  .mens-category-hoodies,
+  .mens-category-shorts,
+  .mens-category-tees,
+  .womens-category-pants,
+  .womens-category-shorts,
+  .womens-category-tanks {
+    height: 210px;
+  }
+
+  .sale-women .content {
+    width: 50%;
+    left: 20px;
+    bottom: 20px;
+  }
+
+  .sale-20-off .title {
+    font-size: 4.4rem;
+  }
+
+  .sale-20-off .info {
+    font-size: 1.8rem;
+  }
+
+  .sale-20-off,
+  .sale-free-shipping,
+  .sale-womens-t-shirts {
+    height: 205px;
+  }
+
+  .sale-free-shipping .title {
+    font-size: 2.5rem;
+  }
+
+  .sale-free-shipping .info {
+    font-size: 1.6rem;
+  }
+
+  .sale-womens-t-shirts .title {
+    font-size: 2rem;
+    margin-bottom: 5px;
+  }
+
+  .sale-womens-t-shirts .info {
+    font-size: 1.6rem;
+    margin-bottom: 5px;
+  }
+
+  .home-eco .content {
+    width: 70%;
+    top: 45px;
+    right: 45px;
+  }
+
+  .gear-equipment .content,
+  .new-eco .content {
+    left: 20px;
+    bottom: 20px;
+    width: 60%;
+  }
+
+  .new-eco .content {
+    width: 70%;
+  }
+
+  .training-erin .content {
+    width: 73%;
+    top: 16px;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .training-erin .info {
+    font-size: 1.6rem;
+    display: block;
+    padding: 0 10%;
+  }
+
+  .training-on-demand,
+  .training-videos {
+    height: 208px;
+  }
+
+  .home-pants {
+    height: 664px;
+  }
+
+  .home-pants .title {
+    font-size: 44px !important;
+    font-size: 4.4rem !important;
+    line-height: 1.2;
+  }
+
+  .collection-eco .content,
+  .collection-performance .content {
+    width: 60%;
+    top: 16px;
+    bottom: 16px;
+    left: 50%;
+    margin-left: -30%;
+  }
+
+  .collection-eco .title,
+  .collection-performance .title {
+    font-size: 4rem;
+  }
+
+  .collection-eco .info,
+  .collection-performance .info {
+    font-size: 2.2rem;
+    display: block;
+    padding: 0 10%;
+  }
+
+  .collection-erin {
+    height: 164px;
+  }
+
+  .collection-erin .content {
+    width: 70%;
+  }
+
+  .collection-erin .image {
+    width: 30%;
+  }
+
+  .collection-erin .title {
+    font-size: 4rem;
+  }
+
+  .collection-erin .info {
+    font-size: 2.2rem;
+  }
+
+  .content-heading {
+    position: relative;
+  }
+
+  .content-heading:before {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 100%;
+    background: -moz-radial-gradient(center, ellipse cover, #fff 25%, #cecece 100%);
+    background: -webkit-gradient(radial, center center, 0, center center, 100%, color-stop(25%, #fff), color-stop(100%, #cecece));
+    background: -webkit-radial-gradient(center, ellipse cover, #fff 25%, #cecece 100%);
+    background: -ms-radial-gradient(center, ellipse cover, #fff 25%, #cecece 100%);
+    background: radial-gradient(ellipse at center, #fff 25%, #cecece 100%);
+    position: absolute;
+    top: 50%;
+    z-index: 0;
+  }
+
+  .content-heading .info,
+  .content-heading .title {
+    position: relative;
+    z-index: 1;
+  }
+
+  .content-heading .title {
+    font-size: 3.8rem;
+  }
+
+  .content-heading .info {
+    font-size: 1.8rem;
+  }
+
+  .cms-content-important {
+    font-size: 2.2rem;
+    font-weight: 300;
+    padding: 20px;
+    margin: 0 0 35px -20px;
+  }
+
+  .cms-content table {
+    margin: 40px 0 0;
+  }
+
+  .cms-content ul li {
+    margin-bottom: 15px;
+  }
+
+  .cms-content .block .block-content:after,
+  .cms-content .block .block-content:before {
+    content: "";
+    display: table;
+  }
+
+  .cms-content .block .block-content:after {
+    clear: both;
+  }
+
+  .cms-content .block .box {
+    width: 48%;
+    margin-bottom: 40px;
+  }
+
+  .cms-content .block .box:nth-child(1) {
+    float: left;
+    clear: left;
+  }
+
+  .cms-content .block .box:nth-child(2) {
+    float: right;
+  }
+
+  .cms-content .block .box:nth-child(2)+* {
+    clear: both;
+  }
+
+  .cms-content .block .box:nth-last-child(1),
+  .cms-content .block .box:nth-last-child(2) {
+    margin-bottom: 0;
+  }
+
+  .privacy-policy-content {
+    box-sizing: border-box;
+    width: 77.7%;
+    float: right;
+    padding-left: 2%;
+  }
+
+  .privacy-policy .block-collapsible-nav {
+    width: 22.3%;
+    float: left;
+  }
+}
+
+.bundle-actions, .product-info-price,
+.bundle-options-container .block-bundle-summary > .title,
+.bundle-options-container .product-options-bottom,
+.bundle-options-container .action.back:not(:focus), #customizeTitle {
+  display: none;
+}
+.product-info-main .product-add-form {
+    padding-top: 0;
+}
+.bundle-options-container .product-add-form {
+  display: block!important;
+}
+.bundle-options-container .block-bundle-summary {
+  float: left;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+}
+.bundle-options-container .bundle-options-wrapper,
+.bundle-options-container .product-options-wrapper {
+  width: 100%;
+  display: block;
+  float: left;
+  margin: 0 auto;
+  padding: 0;
+}
+.bundle-options-container .legend.title {
+  font-family: felt-tip-roman, sans-serif;
+}
+fieldset.fieldset.fieldset-bundle-options {
+  margin: 0 auto;
+}
+.bundle-options-container p.required {
+  display: none;
+}
+.page-product-bundle {
+  .price-box.price-final_price, .product-info-stock-sku {
+    display: none;
+  }
+}

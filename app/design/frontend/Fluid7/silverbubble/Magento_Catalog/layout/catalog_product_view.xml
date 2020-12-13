@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<page layout="1column" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <move element="product.attributes" destination="product.info.details" before="productreviews.tab" />
+
+        <referenceBlock name="product.info.details">
+        <!-- <action method="setTemplate">
+               <argument name="template" xsi:type="string">Magento_Catalog::product/view/details.phtml</argument>
+          </action>-->
+          <block class="Magento\Catalog\Block\Product\View" name="designer.tab" as="designerinfo" template="product/view/designer_info.phtml" group="detailed_info">
+             <arguments>
+                <argument translate="true" name="title" xsi:type="string">Product Designer</argument>
+             </arguments>
+          </block>
+          <!-- <block class="Magento\Catalog\Block\Product\View" name="productreviews.tab" as="productreviews" template="product/view/product_reviews.phtml" group="detailed_info">
+            <arguments>
+              <argument translate="true" name="title" xsi:type="string">Product Reviews</argument>
+            </arguments>
+          </block> -->
+        </referenceBlock>
+        <move element="bundle.options.container" destination="product.info.main" after="product.info.price"/>
+        <container name="product.info.social.wrapper" />
+        <move element="product.info.social.wrapper" destination="product.info.main" after="bundle.options.container" />
+        <move element="product.info.social" destination="product.info.social.wrapper"/>
+        <referenceBlock name="customize.button" remove="true" />
+    </body>
+</page>
