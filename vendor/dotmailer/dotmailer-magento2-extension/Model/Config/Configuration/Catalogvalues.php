@@ -13,11 +13,11 @@ class Catalogvalues implements \Magento\Framework\Data\OptionSourceInterface
     {
         return [
             [
-                'value' => \Dotdigitalgroup\Email\Model\Sync\Catalog\CatalogSyncFactory::SYNC_CATALOG_DEFAULT_LEVEL,
+                'value' => '1',
                 'label' => 'Default Level',
             ],
             [
-                'value' => \Dotdigitalgroup\Email\Model\Sync\Catalog\CatalogSyncFactory::SYNC_CATALOG_STORE_LEVEL,
+                'value' => '2',
                 'label' => 'Store Level',
             ],
         ];

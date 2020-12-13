@@ -57,7 +57,7 @@ class Proxy extends \Magento\Framework\DataObject\Copy\Config\Data implements
     }
 
     /**
-     * Remove links to other objects.
+     * Sleep magic method.
      *
      * @return array
      */

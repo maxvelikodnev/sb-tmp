@@ -3,7 +3,7 @@
     "description": "Cron Schedule List by Amasty",
     "require": {
         "php": "7.0.2|7.0.4|~7.0.6|^7.1.0",
-        "amasty/base": ">=1.10.9"
+        "amasty/base": ">=1.10.11"
     },
     "type": "magento2-module",
     "version": "1.0.5",

@@ -5,7 +5,7 @@ namespace Dotdigitalgroup\Email\Model\Sync;
 /**
  * Sync Reviews.
  */
-class Review implements SyncInterface
+class Review
 {
     /**
      * @var mixed
@@ -82,6 +82,7 @@ class Review implements SyncInterface
         \Dotdigitalgroup\Email\Helper\Data $data,
         \Dotdigitalgroup\Email\Model\ResourceModel\ReviewFactory $reviewResourceFactory
     ) {
+
         $this->coreDate               = $coreDate;
         $this->reviewCollection       = $reviewCollection;
         $this->ratingFactory          = $ratingFactory;
@@ -94,10 +95,9 @@ class Review implements SyncInterface
     /**
      * Sync reviews.
      *
-     * @param \DateTime|null $from
      * @return array
      */
-    public function sync(\DateTime $from = null)
+    public function sync()
     {
         $response = ['success' => true, 'message' => 'Done.'];
 
@@ -133,15 +133,13 @@ class Review implements SyncInterface
             }
         }
 
-        $message = '----------- Review sync ----------- : ' .
-            gmdate('H:i:s', microtime(true) - $this->start) .
-            ', synced = ' . $this->countReviews;
-
         if ($this->countReviews) {
+            $message = '----------- Review sync ----------- : ' .
+                gmdate('H:i:s', microtime(true) - $this->start) .
+                ', synced = ' . $this->countReviews;
             $this->helper->log($message);
+            $response['message'] = $message;
         }
-
-        $response['message'] = $message;
 
         return $response;
     }

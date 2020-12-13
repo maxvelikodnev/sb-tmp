@@ -5,19 +5,12 @@
  */
 namespace Magento\Framework\Code\Reader;
 
-/**
- * Class ClassReader
- *
- * @package Magento\Framework\Code\Reader
- */
 class ClassReader implements ClassReaderInterface
 {
-    private $parentsCache = [];
-
     /**
      * Read class constructor signature
      *
-     * @param  string $className
+     * @param string $className
      * @return array|null
      * @throws \ReflectionException
      */
@@ -35,8 +28,7 @@ class ClassReader implements ClassReaderInterface
                         $parameter->getName(),
                         $parameter->getClass() !== null ? $parameter->getClass()->getName() : null,
                         !$parameter->isOptional() && !$parameter->isDefaultValueAvailable(),
-                        $this->getReflectionParameterDefaultValue($parameter),
-                        $parameter->isVariadic(),
+                        $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
                     ];
                 } catch (\ReflectionException $e) {
                     $message = $e->getMessage();
@@ -49,21 +41,6 @@ class ClassReader implements ClassReaderInterface
     }
 
     /**
-     * Get reflection parameter default value
-     *
-     * @param  \ReflectionParameter $parameter
-     * @return array|mixed|null
-     */
-    private function getReflectionParameterDefaultValue(\ReflectionParameter $parameter)
-    {
-        if ($parameter->isVariadic()) {
-            return [];
-        }
-
-        return $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null;
-    }
-
-    /**
      * Retrieve parent relation information for type in a following format
      * array(
      *     'Parent_Class_Name',
@@ -72,15 +49,11 @@ class ClassReader implements ClassReaderInterface
      *     ...
      * )
      *
-     * @param  string $className
+     * @param string $className
      * @return string[]
      */
     public function getParents($className)
     {
-        if (isset($this->parentsCache[$className])) {
-            return $this->parentsCache[$className];
-        }
-
         $parentClass = get_parent_class($className);
         if ($parentClass) {
             $result = [];
@@ -102,9 +75,6 @@ class ClassReader implements ClassReaderInterface
                 $result = [];
             }
         }
-
-        $this->parentsCache[$className] = $result;
-
         return $result;
     }
 }

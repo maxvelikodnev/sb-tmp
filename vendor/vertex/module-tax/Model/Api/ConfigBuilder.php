@@ -4,12 +4,9 @@
  * @author     Mediotype                     https://www.mediotype.com/
  */
 
-declare(strict_types=1);
-
 namespace Vertex\Tax\Model\Api;
 
 use Magento\Store\Model\ScopeInterface;
-use RuntimeException;
 use Vertex\Data\ConfigurationInterface;
 use Vertex\Data\ConfigurationInterfaceFactory;
 use Vertex\Data\LoginInterface;
@@ -51,7 +48,7 @@ class ConfigBuilder
      *
      * @return ConfigurationInterface
      */
-    public function build(): ConfigurationInterface
+    public function build()
     {
         /** @var ConfigurationInterface $configuration */
         $configuration = $this->configFactory->create();
@@ -71,10 +68,10 @@ class ConfigBuilder
     /**
      * Set the Scope Code
      *
-     * @param string|int|null $scopeCode
+     * @param string|null $scopeCode
      * @return ConfigBuilder
      */
-    public function setScopeCode($scopeCode): ConfigBuilder
+    public function setScopeCode($scopeCode)
     {
         $this->scopeCode = $scopeCode;
         return $this;
@@ -86,7 +83,7 @@ class ConfigBuilder
      * @param string|null $scopeType
      * @return ConfigBuilder
      */
-    public function setScopeType(?string $scopeType): ConfigBuilder
+    public function setScopeType($scopeType)
     {
         $this->scopeType = $scopeType;
         return $this;
@@ -98,19 +95,16 @@ class ConfigBuilder
      * @param string[] $urlParts indexed as parse_url would index them
      * @return string
      */
-    private function assembleUrl(array $urlParts): string
+    private function assembleUrl($urlParts)
     {
-        $scheme = $urlParts['scheme'] . '://';
-        $user = $urlParts['user'] ?? '';
-        $pass = isset($urlParts['pass']) ? ':' . $urlParts['pass'] : '';
-        $at = isset($urlParts['user']) || isset($urlParts['pass']) ? '@' : '';
-        $host = $urlParts['host'];
-        $port = isset($urlParts['port']) ? ':' . $urlParts['port'] : '';
-        $path = $urlParts['path'] ?? '';
-        $query = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
-        $fragment = isset($urlParts['fragment']) ? '#' . $urlParts['fragment'] : '';
-
-        return $scheme . $user . $pass . $at . $host . $port . $path . $query . $fragment;
+        $url = $urlParts['scheme'] . '://' . $urlParts['host'] . $urlParts['path'];
+        if (isset($urlParts['query'])) {
+            $url .= '?' . $urlParts['query'];
+        }
+        if (isset($urlParts['fragment'])) {
+            $url .= '#' . $urlParts['fragment'];
+        }
+        return $url;
     }
 
     /**
@@ -119,10 +113,10 @@ class ConfigBuilder
      * @param string $url
      * @return string
      */
-    private function ensureWsdlQuery(string $url): string
+    private function ensureWsdlQuery($url)
     {
         $urlParts = parse_url($url);
-        $query = $urlParts['query'] ?? null;
+        $query = isset($urlParts['query']) ? $urlParts['query'] : null;
         $wsdlFound = false;
 
         if ($query !== null) {
@@ -149,13 +143,9 @@ class ConfigBuilder
      *
      * @return string
      */
-    private function getTaxAreaLookupWsdl(): string
+    private function getTaxAreaLookupWsdl()
     {
-        $url = $this->moduleConfig->getVertexAddressHost($this->scopeCode, $this->scopeType);
-        if ($url === null) {
-            throw new RuntimeException('Vertex Address WSDL Not Set');
-        }
-        return $this->ensureWsdlQuery($url);
+        return $this->ensureWsdlQuery($this->moduleConfig->getVertexAddressHost($this->scopeCode, $this->scopeType));
     }
 
     /**
@@ -163,12 +153,8 @@ class ConfigBuilder
      *
      * @return string
      */
-    private function getTaxCalculationWsdl(): string
+    private function getTaxCalculationWsdl()
     {
-        $url = $this->moduleConfig->getVertexHost($this->scopeCode, $this->scopeType);
-        if ($url === null) {
-            throw new RuntimeException('Vertex Address WSDL Not Set');
-        }
-        return $this->ensureWsdlQuery($url);
+        return $this->ensureWsdlQuery($this->moduleConfig->getVertexHost($this->scopeCode, $this->scopeType));
     }
 }

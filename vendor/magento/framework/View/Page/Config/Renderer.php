@@ -9,7 +9,6 @@ namespace Magento\Framework\View\Page\Config;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Asset\GroupedCollection;
 use Magento\Framework\View\Page\Config;
-use Magento\Framework\View\Page\Config\Metadata\MsApplicationTileImage;
 
 /**
  * Page config Renderer model
@@ -21,29 +20,7 @@ class Renderer implements RendererInterface
     /**
      * @var array
      */
-    protected $assetTypeOrder = [
-        'css',
-        'ico',
-        'js',
-        'eot',
-        'svg',
-        'ttf',
-        'woff',
-        'woff2',
-    ];
-
-    /**
-     * Possible fonts type
-     *
-     * @var array
-     */
-    private const FONTS_TYPE = [
-        'eot',
-        'svg',
-        'ttf',
-        'woff',
-        'woff2',
-    ];
+    protected $assetTypeOrder = ['css', 'ico', 'js'];
 
     /**
      * @var Config
@@ -76,18 +53,12 @@ class Renderer implements RendererInterface
     protected $urlBuilder;
 
     /**
-     * @var MsApplicationTileImage
-     */
-    private $msApplicationTileImage;
-
-    /**
      * @param Config $pageConfig
      * @param \Magento\Framework\View\Asset\MergeService $assetMergeService
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Framework\Escaper $escaper
      * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Psr\Log\LoggerInterface $logger
-     * @param MsApplicationTileImage|null $msApplicationTileImage
      */
     public function __construct(
         Config $pageConfig,
@@ -95,8 +66,7 @@ class Renderer implements RendererInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\Escaper $escaper,
         \Magento\Framework\Stdlib\StringUtils $string,
-        \Psr\Log\LoggerInterface $logger,
-        MsApplicationTileImage $msApplicationTileImage = null
+        \Psr\Log\LoggerInterface $logger
     ) {
         $this->pageConfig = $pageConfig;
         $this->assetMergeService = $assetMergeService;
@@ -104,8 +74,6 @@ class Renderer implements RendererInterface
         $this->escaper = $escaper;
         $this->string = $string;
         $this->logger = $logger;
-        $this->msApplicationTileImage = $msApplicationTileImage ?:
-            \Magento\Framework\App\ObjectManager::getInstance()->get(MsApplicationTileImage::class);
     }
 
     /**
@@ -189,10 +157,6 @@ class Renderer implements RendererInterface
         if (method_exists($this->pageConfig, $method)) {
             $content = $this->pageConfig->$method();
         }
-        if ($content && $name === $this->msApplicationTileImage::META_NAME) {
-            $content = $this->msApplicationTileImage->getUrl($content);
-        }
-
         return $content;
     }
 
@@ -349,18 +313,15 @@ class Renderer implements RendererInterface
      */
     protected function addDefaultAttributes($contentType, $attributes)
     {
-        if ($contentType === 'js') {
-            return ' type="text/javascript" ' . $attributes;
-        }
+        switch ($contentType) {
+            case 'js':
+                $attributes = ' type="text/javascript" ' . $attributes;
+                break;
 
-        if ($contentType === 'css') {
-            return ' rel="stylesheet" type="text/css" ' . ($attributes ?: ' media="all"');
+            case 'css':
+                $attributes = ' rel="stylesheet" type="text/css" ' . ($attributes ?: ' media="all"');
+                break;
         }
-
-        if ($this->canTypeBeFont($contentType)) {
-            return 'rel="preload" as="font" crossorigin="anonymous"';
-        }
-
         return $attributes;
     }
 
@@ -428,17 +389,6 @@ class Renderer implements RendererInterface
             $result .= sprintf($template, $this->urlBuilder->getUrl('', ['_direct' => 'core/index/notFound']));
         }
         return $result;
-    }
-
-    /**
-     * Check if file type can be font
-     *
-     * @param string $type
-     * @return bool
-     */
-    private function canTypeBeFont(string $type): bool
-    {
-        return in_array($type, self::FONTS_TYPE, true);
     }
 
     /**

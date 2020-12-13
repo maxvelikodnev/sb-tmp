@@ -5,9 +5,6 @@
  */
 namespace Magento\Framework\Composer;
 
-/**
- * Magento component.
- */
 class MagentoComponent
 {
     /**

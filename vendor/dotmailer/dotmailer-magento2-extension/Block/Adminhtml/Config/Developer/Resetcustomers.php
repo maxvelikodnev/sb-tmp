@@ -2,29 +2,43 @@
 
 namespace Dotdigitalgroup\Email\Block\Adminhtml\Config\Developer;
 
-class Resetcustomers extends AbstractDeveloper
+class Resetcustomers extends \Magento\Config\Block\System\Config\Form\Field
 {
+
     /**
-     * @return bool
+     * @var string
      */
-    protected function getDisabled()
+    public $buttonLabel = 'Run Now';
+
+    /**
+     * @param string $buttonLabel
+     *
+     * @return $this
+     */
+    public function setButtonLabel($buttonLabel)
     {
-        return false;
+        $this->buttonLabel = $buttonLabel;
+
+        return $this;
     }
 
     /**
-     * @return \Magento\Framework\Phrase|string
-     */
-    protected function getButtonLabel()
-    {
-        return  __('Run Now');
-    }
-
-    /**
+     * Get the button and scripts contents.
+     *
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
+     *
      * @return string
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    protected function getButtonUrl()
+    public function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
-        return $this->_urlBuilder->getUrl('dotdigitalgroup_email/run/customersreset');
+        $url = $this->_urlBuilder->getUrl('dotdigitalgroup_email/run/customersreset');
+
+        return $this->getLayout()
+            ->createBlock(\Magento\Backend\Block\Widget\Button::class)
+            ->setType('button')
+            ->setLabel($this->buttonLabel)
+            ->setOnClick("window.location.href='" . $url . "'")
+            ->toHtml();
     }
 }

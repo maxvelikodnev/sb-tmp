@@ -19,6 +19,9 @@ use Klarna\Kp\Api\Data\RequestInterface;
 use Klarna\Kp\Api\Data\UrlsInterface;
 
 /**
+ * Class Request
+ *
+ * @package Klarna\Kp\Model\Api
  * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class Request implements RequestInterface
@@ -104,6 +107,8 @@ class Request implements RequestInterface
     private $custom_payment_methods;
 
     /**
+     * Request constructor.
+     *
      * @param array $data
      */
     public function __construct($data = [])

@@ -10,23 +10,20 @@ use Zend\Mime\Part;
 
 /**
  * Class Message for email transportation
- *
- * @deprecated 102.0.4
- * @see \Magento\Framework\Mail\EmailMessage
  */
 class Message implements MailMessageInterface
 {
     /**
      * @var \Zend\Mail\Message
      */
-    protected $zendMessage;
+    private $zendMessage;
 
     /**
      * Message type
      *
      * @var string
      */
-    private $messageType = Mime::TYPE_TEXT;
+    private $messageType = self::TYPE_TEXT;
 
     /**
      * Initialize dependencies.
@@ -61,8 +58,8 @@ class Message implements MailMessageInterface
      */
     public function setBody($body)
     {
-        if (is_string($body)) {
-            $body = self::createMimeFromString($body, $this->messageType);
+        if (is_string($body) && $this->messageType === MailMessageInterface::TYPE_HTML) {
+            $body = self::createHtmlMimeFromString($body);
         }
         $this->zendMessage->setBody($body);
         return $this;
@@ -160,20 +157,18 @@ class Message implements MailMessageInterface
     }
 
     /**
-     * Create mime message from the string.
+     * Create HTML mime message from the string.
      *
-     * @param string $body
-     * @param string $messageType
+     * @param string $htmlBody
      * @return \Zend\Mime\Message
      */
-    private function createMimeFromString($body, $messageType)
+    private function createHtmlMimeFromString($htmlBody)
     {
-        $part = new Part($body);
-        $part->setCharset($this->zendMessage->getEncoding());
-        $part->setEncoding(Mime::ENCODING_QUOTEDPRINTABLE);
-        $part->setType($messageType);
+        $htmlPart = new Part($htmlBody);
+        $htmlPart->setCharset($this->zendMessage->getEncoding());
+        $htmlPart->setType(Mime::TYPE_HTML);
         $mimeMessage = new \Zend\Mime\Message();
-        $mimeMessage->addPart($part);
+        $mimeMessage->addPart($htmlPart);
         return $mimeMessage;
     }
 
@@ -182,7 +177,7 @@ class Message implements MailMessageInterface
      */
     public function setBodyHtml($html)
     {
-        $this->setMessageType(Mime::TYPE_HTML);
+        $this->setMessageType(self::TYPE_HTML);
         return $this->setBody($html);
     }
 
@@ -191,7 +186,7 @@ class Message implements MailMessageInterface
      */
     public function setBodyText($text)
     {
-        $this->setMessageType(Mime::TYPE_TEXT);
+        $this->setMessageType(self::TYPE_TEXT);
         return $this->setBody($text);
     }
 }

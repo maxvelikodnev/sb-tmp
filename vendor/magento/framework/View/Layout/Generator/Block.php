@@ -222,13 +222,9 @@ class Block implements Layout\GeneratorInterface
         // create block
         $className = isset($attributes['class']) && !empty($attributes['class']) ?
             $attributes['class'] : $this->defaultClass;
-        $block = $this->createBlock(
-            $className,
-            $elementName,
-            [
-                'data' => $this->evaluateArguments($data['arguments'])
-            ]
-        );
+        $block = $this->createBlock($className, $elementName, [
+            'data' => $this->evaluateArguments($data['arguments'])
+        ]);
         if (!empty($attributes['template'])) {
             $block->setTemplate($attributes['template']);
         }

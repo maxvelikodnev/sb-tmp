@@ -2,11 +2,10 @@
 
 namespace Dotdigitalgroup\Email\Model\Apiconnector;
 
-use Dotdigitalgroup\Email\Model\Sync\SyncInterface;
-use Magento\Store\Api\Data\WebsiteInterface;
-use Magento\Customer\Model\ResourceModel\Customer\Collection as CustomerCollection;
-
-class Contact implements SyncInterface
+/**
+ * manages the sync of dotmailer Contact.
+ */
+class Contact
 {
     /**
      * @var \Dotdigitalgroup\Email\Model\ResourceModel\Contact
@@ -49,24 +48,6 @@ class Contact implements SyncInterface
     private $contactCollectionFactory;
 
     /**
-     * @var CustomerDataFieldProviderFactory
-     */
-    private $customerDataFieldProviderFactory;
-
-    /**
-     * @var array
-     */
-    private $additionalCustomerData = [];
-
-    /**
-     * @var array
-     */
-    private static $emailFields = [
-        'email' => 'Email',
-        'email_type' => 'EmailType',
-    ];
-
-    /**
      * Contact constructor.
      *
      * @param CustomerFactory $customerFactory
@@ -75,7 +56,6 @@ class Contact implements SyncInterface
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Contact $contactResource
      * @param ContactImportQueueExport $contactImportQueueExport
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Contact\CollectionFactory $contactCollectionFactory
-     * @param CustomerDataFieldProvider $customerDataFieldProvider
      */
     public function __construct(
         \Dotdigitalgroup\Email\Model\Apiconnector\CustomerFactory $customerFactory,
@@ -83,8 +63,7 @@ class Contact implements SyncInterface
         \Dotdigitalgroup\Email\Helper\Data $helper,
         \Dotdigitalgroup\Email\Model\ResourceModel\Contact $contactResource,
         \Dotdigitalgroup\Email\Model\Apiconnector\ContactImportQueueExport $contactImportQueueExport,
-        \Dotdigitalgroup\Email\Model\ResourceModel\Contact\CollectionFactory $contactCollectionFactory,
-        CustomerDataFieldProviderFactory $customerDataFieldProviderFactory
+        \Dotdigitalgroup\Email\Model\ResourceModel\Contact\CollectionFactory $contactCollectionFactory
     ) {
         $this->file = $file;
         $this->helper = $helper;
@@ -93,7 +72,6 @@ class Contact implements SyncInterface
         $this->contactResource = $contactResource;
         $this->contactImportQueueExport = $contactImportQueueExport;
         $this->contactCollectionFactory = $contactCollectionFactory;
-        $this->customerDataFieldProviderFactory = $customerDataFieldProviderFactory;
     }
 
     /**
@@ -101,7 +79,7 @@ class Contact implements SyncInterface
      *
      * @return array
      */
-    public function sync(\DateTime $from = null)
+    public function sync()
     {
         //result message
         $result = ['success' => true, 'message' => ''];
@@ -110,8 +88,12 @@ class Contact implements SyncInterface
         //export bulk contacts
         foreach ($this->helper->getWebsites() as $website) {
             $apiEnabled = $this->helper->isEnabled($website);
-            $customerSyncEnabled = $this->helper->isCustomerSyncEnabled($website);
-            $customerAddressBook = $this->helper->getCustomerAddressBook($website);
+            $customerSyncEnabled = $this->helper->isCustomerSyncEnabled(
+                $website
+            );
+            $customerAddressBook = $this->helper->getCustomerAddressBook(
+                $website
+            );
 
             //api, customer sync and customer address book must be enabled
             if ($apiEnabled && $customerSyncEnabled && $customerAddressBook) {
@@ -125,53 +107,93 @@ class Contact implements SyncInterface
                 }
             }
         }
-        //sync processed
-        $message = '----------- Customer sync ----------- : '
-            . gmdate('H:i:s', microtime(true) - $this->start)
-            . ', Total contacts = ' . $this->countCustomers;
-
+        //sync proccessed
         if ($this->countCustomers) {
+            $message = '----------- Customer sync ----------- : ' .
+                gmdate('H:i:s', microtime(true) - $this->start) .
+                ', Total contacts = ' . $this->countCustomers;
             $this->helper->log($message);
+            $message .= $result['message'];
+            $result['message'] = $message;
         }
-
-        $result['message'] .= $message;
 
         return $result;
     }
 
     /**
-     * @param WebsiteInterface $website
+     * @param \Magento\Store\Api\Data\WebsiteInterface $website
+     *
      * @return int
      */
-    public function exportCustomersForWebsite(WebsiteInterface $website)
+    public function exportCustomersForWebsite(\Magento\Store\Api\Data\WebsiteInterface $website)
     {
-        $contacts = $this->getContacts($website);
+        $allMappedHash = [];
+        //admin sync limit of batch size for contacts
+        $syncLimit = $this->helper->getSyncLimit($website);
+        //address book id mapped
+        $customerAddressBook = $this->helper->getCustomerAddressBook($website);
 
-        // no contacts found
-        if ($contacts->getSize() === 0) {
+        //skip website if address book not mapped
+        if (!$customerAddressBook) {
             return 0;
         }
 
+        $onlySubscribers = $this->helper->isOnlySubscribersForContactSync($website->getId());
+        $contacts = $this->contactCollectionFactory->create();
+        $contacts = ($onlySubscribers) ? $contacts->getContactsToImportByWebsite($website->getId(), $syncLimit, true) :
+            $contacts->getContactsToImportByWebsite($website->getId(), $syncLimit);
+
+        // no contacts found
+        if (!$contacts->getSize()) {
+            return 0;
+        }
         //customer filename
         $customersFile = strtolower(
             $website->getCode() . '_customers_' . date('d_m_Y_His') . '.csv'
         );
         $this->helper->log('Customers file : ' . $customersFile);
-
-        // get customer IDs, custom attributes and generate export data columns
+        //get customers ids
         $customerIds = $contacts->getColumnValues('customer_id');
-        $columns = $this->getContactExportColumns($website);
+        /*
+         * HEADERS.
+         */
+        $mappedHash = $this->helper->getWebsiteCustomerMappingDatafields(
+            $website
+        );
+        $headers = $mappedHash;
+
+        //custom customer attributes
+        $customAttributes = $this->helper->getCustomAttributes($website);
+
+        if ($customAttributes) {
+            foreach ($customAttributes as $data) {
+                $headers[] = $data['datafield'];
+                $allMappedHash[$data['attribute']] = $data['datafield'];
+            }
+        }
+        $headers[] = 'Email';
+        $headers[] = 'EmailType';
+
+        $this->file->outputCSV(
+            $this->file->getFilePath($customersFile),
+            $headers
+        );
+        /*
+         * END HEADERS.
+         */
 
         //customer collection
         $customerCollection = $this->contactResource->buildCustomerCollection($customerIds);
 
         //Customer sales data
-        $this->addAdditionalCustomerData($this->getCustomerSalesData($customerIds, $website->getId()));
+        $salesData = $this->getCustomerSalesData($customerIds, $website->getId());
 
         $this->createCsvFile(
             $customerCollection,
-            $columns,
-            $customersFile
+            $mappedHash,
+            $customAttributes,
+            $customersFile,
+            $salesData
         );
 
         $customerNum = count($customerIds);
@@ -195,72 +217,38 @@ class Contact implements SyncInterface
     }
 
     /**
-     * @param WebsiteInterface $website
-     * @return \Dotdigitalgroup\Email\Model\ResourceModel\Contact\Collection
-     */
-    public function getContacts(WebsiteInterface $website)
-    {
-        $syncLimit = $this->helper->getSyncLimit($website);
-        return $this->contactCollectionFactory->create()
-            ->getContactsToImportByWebsite(
-                $website->getId(),
-                $syncLimit,
-                $this->helper->isOnlySubscribersForContactSync($website->getId())
-            );
-    }
-
-    /**
-     * @param array $additionalCustomerData
-     * @return $this
-     */
-    public function addAdditionalCustomerData(array $additionalCustomerData)
-    {
-        $this->additionalCustomerData += $additionalCustomerData;
-        return $this;
-    }
-
-    /**
-     * Get fields to be exported
-     *
-     * @param WebsiteInterface $website
-     * @return array
-     */
-    public function getContactExportColumns(WebsiteInterface $website)
-    {
-        $customerDataFields = $this->customerDataFieldProviderFactory
-            ->create(['data' => ['website' => $website]])
-            ->getCustomerDataFields();
-
-        $customAttributes = $this->helper->getCustomAttributes($website);
-
-        return self::$emailFields
-            + $customerDataFields
-            + array_combine(
-                array_column($customAttributes, 'attribute'),
-                array_column($customAttributes, 'datafield')
-            );
-    }
-
-    /**
-     * @param CustomerCollection $customerCollection
-     * @param array $columns
+     * @param \Magento\Customer\Model\ResourceModel\Customer\Collection $customerCollection
+     * @param array $mappedHash
+     * @param array $customAttributes
      * @param string $customersFile
+     * @param array $salesData
      */
     private function createCsvFile(
-        CustomerCollection $customerCollection,
-        array $columns,
-        string $customersFile
+        $customerCollection,
+        $mappedHash,
+        $customAttributes,
+        $customersFile,
+        $salesData
     ) {
-        // write headings row
-        $this->file->outputCSV($this->file->getFilePath($customersFile), $columns);
-
         foreach ($customerCollection as $customer) {
-            if (isset($this->additionalCustomerData[$customer->getId()])) {
-                $this->setAdditionalDataOnCustomer($customer);
+            if (isset($salesData[$customer->getId()])) {
+                $customer = $this->setSalesDataOnCustomer($salesData[$customer->getId()], $customer);
+            }
+            $connectorCustomer = $this->emailCustomer->create();
+            $connectorCustomer->setMappingHash($mappedHash);
+            $connectorCustomer->setContactData($customer);
+
+            if ($connectorCustomer) {
+                foreach ($customAttributes as $data) {
+                    $attribute = $data['attribute'];
+                    $value = $customer->getData($attribute);
+                    $connectorCustomer->setData($value);
+                }
             }
 
-            $connectorCustomer = $this->emailCustomer->create()
-                ->init($customer, $columns);
+            //contact email and email type
+            $connectorCustomer->setData($customer->getEmail());
+            $connectorCustomer->setData('Html');
 
             // save csv file data for customers
             $this->file->outputCSV(
@@ -274,31 +262,33 @@ class Contact implements SyncInterface
     }
 
     /**
+     * @param array $salesData
      * @param \Magento\Customer\Model\Customer $customer
+     *
+     * @return \Magento\Customer\Model\Customer
      */
-    private function setAdditionalDataOnCustomer(\Magento\Customer\Model\Customer $customer)
+    private function setSalesDataOnCustomer($salesData, $customer)
     {
-        foreach ($this->additionalCustomerData[$customer->getId()] as $column => $value) {
+        foreach ($salesData as $column => $value) {
             $customer->setData($column, $value);
         }
+        return $customer;
     }
 
     /**
      * @param array $customerIds
      * @param int $websiteId
+     *
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getCustomerSalesData(array $customerIds, $websiteId = 0)
+    private function getCustomerSalesData($customerIds, $websiteId = 0)
     {
         $statuses = $this->helper->getWebsiteConfig(
             \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_SYNC_DATA_FIELDS_STATUS,
             $websiteId
         );
-
-        return $this->contactResource->getSalesDataForCustomersWithOrderStatusesAndBrand(
-            $customerIds,
-            explode(',', $statuses)
-        );
+        $statuses = explode(',', $statuses);
+        return $this->contactResource
+            ->getSalesDataForCustomersWithOrderStatusesAndBrand($customerIds, $statuses);
     }
 }

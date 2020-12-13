@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel;
 
-use Dotdigitalgroup\Email\Setup\SchemaInterface as Schema;
+use Dotdigitalgroup\Email\Setup\Schema;
 
 class Abandoned extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {

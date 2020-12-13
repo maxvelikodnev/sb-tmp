@@ -80,8 +80,10 @@ class ReviewSaveAutomation implements \Magento\Framework\Event\ObserverInterface
     }
 
     /**
+     * If it's configured to capture on shipment - do this.
      *
      * @param \Magento\Framework\Event\Observer $observer
+     *
      * @return $this
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -94,21 +96,17 @@ class ReviewSaveAutomation implements \Magento\Framework\Event\ObserverInterface
         ) {
             $customerId = $dataObject->getCustomerId();
             $this->helper->setConnectorContactToReImport($customerId);
-
             //save review info in the table
-            $storeId = $dataObject->getStoreId()
-                ?: $this->reviewResource->getStoreIdFromReview($dataObject->getReviewId());
-            $this->registerReview($dataObject, $storeId);
-
-            $store = $this->storeManager->getStore($storeId);
-            $websiteId = $store->getWebsiteId();
-
-            if (!$this->helper->isEnabled($websiteId)) {
-                return $this;
-            }
-
+            $this->registerReview($dataObject);
+            $store = $this->storeManager->getStore($dataObject->getStoreId());
+            $storeName = $store->getName();
+            $website = $this->storeManager->getStore($store)->getWebsite();
             $customer = $this->customerFactory->create();
             $this->customerResource->load($customer, $customerId);
+            //if api is not enabled
+            if (!$this->helper->isEnabled($website)) {
+                return $this;
+            }
 
             $programId
                 = $this->helper->getWebsiteConfig('connector_automation/visitor_automation/review_automation');
@@ -118,8 +116,8 @@ class ReviewSaveAutomation implements \Magento\Framework\Event\ObserverInterface
                     ->setAutomationType(\Dotdigitalgroup\Email\Model\Sync\Automation::AUTOMATION_TYPE_NEW_REVIEW)
                     ->setEnrolmentStatus(\Dotdigitalgroup\Email\Model\Sync\Automation::AUTOMATION_STATUS_PENDING)
                     ->setTypeId($dataObject->getReviewId())
-                    ->setWebsiteId($websiteId)
-                    ->setStoreName($store->getName())
+                    ->setWebsiteId($website->getId())
+                    ->setStoreName($storeName)
                     ->setProgramId($programId);
                 $this->automationResource->save($automation);
             }
@@ -132,18 +130,16 @@ class ReviewSaveAutomation implements \Magento\Framework\Event\ObserverInterface
      * Register review.
      *
      * @param mixed $review
-     * @param string $storeId
      *
      * @return null
      */
-    private function registerReview($review, $storeId)
+    private function registerReview($review)
     {
         try {
             $reviewModel = $this->reviewFactory->create();
             $reviewModel->setReviewId($review->getReviewId())
                 ->setCustomerId($review->getCustomerId())
-                ->setStoreId($storeId)
-                ->setReviewImported(0);
+                ->setStoreId($review->getStoreId());
             $this->reviewResource->save($reviewModel);
         } catch (\Exception $e) {
             $this->helper->debug((string)$e, []);

@@ -9,10 +9,8 @@ namespace Magento\Framework\Cache\Backend;
 /**
  * Remote synchronized cache
  *
- * This class created for correct work witch local caches and multiple web nodes,
- * in order to be sure that we always have up to date local version of cache.
- * This class will be check cache version from remote cache and in case it newer
- * than local one, it will update local one from remote cache a.k.a two level cache.
+ * This class created for correct work local caches with multiple web nodes,
+ * that will be check cache status from remote cache
  */
 class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache_Backend_ExtendedInterface
 {
@@ -38,15 +36,11 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     protected $cacheInvalidationTime;
 
     /**
-     * Suffix for hash to compare data version in cache storage.
-     */
-    private const HASH_SUFFIX = ':hash';
-
-    /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected $_options = [
         'remote_backend' => '',
+        'remote_backend_invalidation_time_id' => 'default_remote_backend_invalidation_time',
         'remote_backend_custom_naming' => true,
         'remote_backend_autoload' => true,
         'remote_backend_options' => [],
@@ -58,7 +52,6 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
 
     /**
      * @param array $options
-     * @throws \Zend_Cache_Exception
      */
     public function __construct(array $options = [])
     {
@@ -104,7 +97,18 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * Update remote cache status info
+     *
+     * @return void
+     */
+    private function updateRemoteCacheStatusInfo()
+    {
+        $this->remote->save(time(), $this->_options['remote_backend_invalidation_time_id'], [], null);
+        $this->cacheInvalidationTime = null;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function setDirectives($directives)
     {
@@ -112,129 +116,57 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * Return hash sign of the data.
-     *
-     * @param string $data
-     * @return string
-     */
-    private function getDataVersion(string $data)
-    {
-        return \hash('sha256', $data);
-    }
-
-    /**
-     * Load data version by id from remote.
-     *
-     * @param string $id
-     * @return false|string
-     */
-    private function loadRemoteDataVersion(string $id)
-    {
-        return $this->remote->load(
-            $id . self::HASH_SUFFIX
-        );
-    }
-
-    /**
-     * Save new data version to remote.
-     *
-     * @param string $data
-     * @param string $id
-     * @param array $tags
-     * @param mixed $specificLifetime
-     * @return bool
-     */
-    private function saveRemoteDataVersion(string $data, string $id, array $tags, $specificLifetime = false)
-    {
-        return $this->remote->save($this->getDataVersion($data), $id . self::HASH_SUFFIX, $tags, $specificLifetime);
-    }
-
-    /**
-     * Remove remote data version.
-     *
-     * @param string $id
-     * @return bool
-     */
-    private function removeRemoteDataVersion($id)
-    {
-        return $this->remote->remove($id . self::HASH_SUFFIX);
-    }
-
-    /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function load($id, $doNotTestCacheValidity = false)
     {
-        $localData = $this->local->load($id);
-        $remoteData = false;
-
-        if (false === $localData) {
-            $remoteData = $this->remote->load($id);
-
-            if (false === $remoteData) {
-                return false;
-            }
+        $dataModificationTime = $this->local->test($id);
+        if ($this->cacheInvalidationTime === null) {
+            $this->cacheInvalidationTime = $this->remote->load($this->_options['remote_backend_invalidation_time_id']);
+        }
+        if ($dataModificationTime >= $this->cacheInvalidationTime) {
+            return $this->local->load($id, $doNotTestCacheValidity);
         } else {
-            if ($this->getDataVersion($localData) !== $this->loadRemoteDataVersion($id)) {
-                $localData = false;
-                $remoteData = $this->remote->load($id);
-            }
+            return false;
         }
-
-        if ($remoteData !== false) {
-            $this->local->save($remoteData, $id);
-            $localData = $remoteData;
-        }
-
-        return $localData;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function test($id)
     {
-        return $this->local->test($id) ?? $this->remote->test($id);
+        return $this->local->test($id);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function save($data, $id, $tags = [], $specificLifetime = false)
     {
-        $dataToSave = $data;
-        $remHash = $this->loadRemoteDataVersion($id);
-
-        if ($remHash !== false && $this->getDataVersion($data) === $remHash) {
-            $dataToSave = $this->remote->load($id);
-        } else {
-            $this->remote->save($data, $id, $tags, $specificLifetime);
-            $this->saveRemoteDataVersion($data, $id, $tags, $specificLifetime);
-        }
-
-        return $this->local->save($dataToSave, $id, [], $specificLifetime);
+        return $this->local->save($data, $id, $tags, $specificLifetime);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function remove($id)
     {
-         return $this->removeRemoteDataVersion($id) &&
-            $this->remote->remove($id) &&
-            $this->local->remove($id);
+        $this->updateRemoteCacheStatusInfo();
+        return $this->local->remove($id);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = [])
     {
-        return $this->remote->clean($mode, $tags);
+        $this->updateRemoteCacheStatusInfo();
+        return $this->local->clean($mode, $tags);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getIds()
     {
@@ -242,7 +174,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getTags()
     {
@@ -250,7 +182,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getIdsMatchingTags($tags = [])
     {
@@ -258,7 +190,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getIdsNotMatchingTags($tags = [])
     {
@@ -266,7 +198,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getIdsMatchingAnyTags($tags = [])
     {
@@ -274,7 +206,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getFillingPercentage()
     {
@@ -282,7 +214,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getMetadatas($id)
     {
@@ -290,7 +222,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function touch($id, $extraLifetime)
     {
@@ -298,7 +230,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getCapabilities()
     {

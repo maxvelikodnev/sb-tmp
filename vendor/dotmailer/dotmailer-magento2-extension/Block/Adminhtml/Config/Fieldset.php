@@ -15,7 +15,7 @@ class Fieldset extends \Magento\Config\Block\System\Config\Form\Fieldset
             \Dotdigitalgroup\Email\Block\Adminhtml\Config\Configuration\Preview::class,
             'ddg_automation_dynamic_preview'
         )->setTemplate(
-            'Dotdigitalgroup_Email::system/preview.phtml'
+            'system/preview.phtml'
         );
         $this->setElement($element);
         $header = $this->_getHeaderHtml($element);

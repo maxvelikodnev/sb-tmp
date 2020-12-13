@@ -1,9 +1,10 @@
 <?php
 /**
+ * HTTP response
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\Framework\App\Response;
 
 use Magento\Framework\App\Http\Context;
@@ -16,7 +17,7 @@ use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\Session\Config\ConfigInterface;
 
 /**
- * HTTP Response.
+ * HTTP response
  *
  * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
@@ -181,7 +182,7 @@ class Http extends \Magento\Framework\HTTP\PhpEnvironment\Response
     }
 
     /**
-     * Remove links to other objects.
+     * Sleep magic method.
      *
      * @return string[]
      * @codeCoverageIgnore

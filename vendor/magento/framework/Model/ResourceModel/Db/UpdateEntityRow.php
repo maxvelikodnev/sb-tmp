@@ -29,8 +29,6 @@ class UpdateEntityRow
     }
 
     /**
-     * Prepare data.
-     *
      * @param EntityMetadata $metadata
      * @param array $data
      * @return array
@@ -50,8 +48,6 @@ class UpdateEntityRow
     }
 
     /**
-     * Read entity row.
-     *
      * @param string $entityType
      * @param array $data
      * @return bool

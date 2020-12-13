@@ -12,17 +12,16 @@ namespace Klarna\Core\Block\Info;
 
 use Klarna\Core\Model\MerchantPortal;
 use Klarna\Core\Model\OrderRepository;
-use Magento\Framework\DataObject;
 use Magento\Framework\DataObjectFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Framework\App\State;
-use Magento\Framework\Exception\LocalizedException;
-use Klarna\Core\Api\OrderInterface;
-use Magento\Sales\Api\Data\OrderInterface as MagentoOrder;
 
 /**
+ * Class Klarna
+ *
+ * @package Klarna\Core\Block\Info
  * @api
  */
 class Klarna extends \Magento\Payment\Block\Info
@@ -32,29 +31,36 @@ class Klarna extends \Magento\Payment\Block\Info
      */
     private $dataObjectFactory;
     /**
+     * Klarna Order Repository
      *
      * @var OrderRepository
      */
     private $orderRepository;
+
     /**
      * @var Resolver
      */
     private $locale;
+
     /**
      * @var MerchantPortal
      */
     private $merchantPortal;
+
     /**
      * @var State
      */
     private $appState;
 
     /**
+     * Klarna constructor.
+     *
      * @param Context           $context
      * @param OrderRepository   $orderRepository
      * @param MerchantPortal    $merchantPortal
      * @param Resolver          $locale
      * @param DataObjectFactory $dataObjectFactory
+     * @param State             $appState
      * @param array             $data
      */
     public function __construct(
@@ -63,6 +69,7 @@ class Klarna extends \Magento\Payment\Block\Info
         MerchantPortal $merchantPortal,
         Resolver $locale,
         DataObjectFactory $dataObjectFactory,
+        State $appState,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -71,7 +78,7 @@ class Klarna extends \Magento\Payment\Block\Info
         $this->locale = $locale;
         $this->merchantPortal = $merchantPortal;
         $this->dataObjectFactory = $dataObjectFactory;
-        $this->appState = $context->getAppState();
+        $this->appState = $appState;
     }
 
     /**
@@ -85,36 +92,9 @@ class Klarna extends \Magento\Payment\Block\Info
     }
 
     /**
-     * Get specific information for the invoice pdf.
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getSpecificInformation(): array
-    {
-        $result = $this->getDisplayedInformation();
-        $result->unsetData((string)__('Merchant Portal'));
-
-        return $result->getData();
-    }
-
-    /**
-     * Get specific information for the payment section in the admin order page.
-     *
-     * @return array
-     */
-    public function getFullSpecificInformation(): array
-    {
-        $result = $this->getDisplayedInformation();
-        return $result->getData();
-    }
-
-    /**
-     * Getting all displayed information
-     *
-     * @return DataObject
-     * @throws LocalizedException
-     */
-    private function getDisplayedInformation(): DataObject
+    public function getSpecificInformation()
     {
         $data = parent::getSpecificInformation();
         $transport = $this->dataObjectFactory->create(['data' => $data]);
@@ -140,16 +120,16 @@ class Klarna extends \Magento\Payment\Block\Info
 
         $this->addInvoicesToDisplay($transport, $order);
 
-        return $transport;
+        return $transport->getData();
     }
 
     /**
      * Add Klarna Reservation ID to order view
      *
-     * @param DataObject     $transport
-     * @param OrderInterface $klarnaOrder
+     * @param \Magento\Framework\DataObject|array $transport
+     * @param \Klarna\Core\Api\OrderInterface     $klarnaOrder
      */
-    private function addReservationToDisplay(DataObject $transport, OrderInterface $klarnaOrder)
+    private function addReservationToDisplay($transport, $klarnaOrder)
     {
         if ($klarnaOrder->getReservationId()
             && $klarnaOrder->getReservationId() != $klarnaOrder->getKlarnaOrderId()
@@ -161,15 +141,13 @@ class Klarna extends \Magento\Payment\Block\Info
     /**
      * Add Klarna Merchant Portal link to order view
      *
-     * @param DataObject     $transport
-     * @param MagentoOrder   $order
-     * @param OrderInterface $klarnaOrder
+     * @param \Magento\Framework\DataObject|array    $transport
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param \Klarna\Core\Api\OrderInterface        $klarnaOrder
      */
-    private function addMerchantPortalLinkToDisplay(
-        DataObject $transport,
-        MagentoOrder $order,
-        OrderInterface $klarnaOrder
-    ) {
+    private function addMerchantPortalLinkToDisplay($transport, $order, $klarnaOrder)
+    {
+         //get merchant link only in admin
         if ($this->appState->getAreaCode() === \Magento\Framework\App\Area::AREA_ADMINHTML) {
             $merchantPortalLink = $this->merchantPortal->getOrderMerchantPortalLink($order, $klarnaOrder);
             if ($merchantPortalLink) {
@@ -184,10 +162,10 @@ class Klarna extends \Magento\Payment\Block\Info
     /**
      * Add invoices to order view
      *
-     * @param DataObject $transport
-     * @param MagentoOrder $order
+     * @param \Magento\Framework\DataObject|array    $transport
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
      */
-    private function addInvoicesToDisplay(DataObject $transport, MagentoOrder $order)
+    private function addInvoicesToDisplay($transport, $order)
     {
         $invoices = $order->getInvoiceCollection();
         foreach ($invoices as $invoice) {

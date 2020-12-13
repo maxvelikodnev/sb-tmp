@@ -56,7 +56,7 @@ class RendererProxy extends SelectRenderer
     }
 
     /**
-     * Remove links to other objects.
+     * Sleep magic method.
      *
      * @return array
      */

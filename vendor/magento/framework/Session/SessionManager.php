@@ -10,8 +10,7 @@ namespace Magento\Framework\Session;
 use Magento\Framework\Session\Config\ConfigInterface;
 
 /**
- * Standard session management.
- *
+ * Session Manager
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
@@ -201,6 +200,9 @@ class SessionManager implements SessionManagerInterface
                     session_commit();
                     session_id($_SESSION['new_session_id']);
                 }
+                $sid = $this->sidResolver->getSid($this);
+                // potential custom logic for session id (ex. switching between hosts)
+                $this->setSessionId($sid);
                 session_start();
                 if (isset($_SESSION['destroyed'])
                     && $_SESSION['destroyed'] < time() - $this->sessionConfig->getCookieLifetime()
@@ -209,7 +211,7 @@ class SessionManager implements SessionManagerInterface
                 }
 
                 $this->validator->validate($this);
-                $this->renewCookie(null);
+                $this->renewCookie($sid);
 
                 register_shutdown_function([$this, 'writeClose']);
 
@@ -408,9 +410,6 @@ class SessionManager implements SessionManagerInterface
     {
         $this->_addHost();
         if ($sessionId !== null && preg_match('#^[0-9a-zA-Z,-]+$#', $sessionId)) {
-            if ($this->getSessionId() !== $sessionId) {
-                $this->writeClose();
-            }
             session_id($sessionId);
         }
         return $this;

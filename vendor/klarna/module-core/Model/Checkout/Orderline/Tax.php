@@ -37,6 +37,8 @@ class Tax extends AbstractLine
     private $configHelper;
 
     /**
+     * AbstractLine constructor.
+     *
      * @param DataConverter        $helper
      * @param Calculation          $calculator
      * @param ScopeConfigInterface $config

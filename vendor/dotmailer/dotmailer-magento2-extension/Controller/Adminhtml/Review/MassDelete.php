@@ -2,11 +2,10 @@
 
 namespace Dotdigitalgroup\Email\Controller\Adminhtml\Review;
 
-use Dotdigitalgroup\Email\Helper\MassDeleteCsrf;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Ui\Component\MassAction\Filter;
 
-class MassDelete extends MassDeleteCsrf
+class MassDelete extends \Magento\Backend\App\Action
 {
     /**
      * Authorization level of a basic admin session
@@ -18,7 +17,7 @@ class MassDelete extends MassDeleteCsrf
     /**
      * @var \Dotdigitalgroup\Email\Model\ResourceModel\Review\CollectionFactory
      */
-    protected $collectionFactory;
+    private $collectionFactory;
 
     /**
      * @var \Magento\Framework\Message\ManagerInterface
@@ -28,12 +27,12 @@ class MassDelete extends MassDeleteCsrf
     /**
      * @var Filter
      */
-    protected $filter;
+    private $filter;
 
     /**
      * @var \Dotdigitalgroup\Email\Model\ResourceModel\Review
      */
-    protected $collectionResource;
+    private $reviewResource;
 
     /**
      * MassDelete constructor.
@@ -51,7 +50,27 @@ class MassDelete extends MassDeleteCsrf
     ) {
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
-        $this->collectionResource = $reviewResource;
+        $this->reviewResource = $reviewResource;
         parent::__construct($context);
+    }
+
+    /**
+     * @return \Magento\Backend\Model\View\Result\Redirect
+     */
+    public function execute()
+    {
+        $collection = $this->filter->getCollection($this->collectionFactory->create());
+        $collectionSize = $collection->getSize();
+
+        foreach ($collection as $item) {
+            $this->reviewResource->delete($item);
+        }
+
+        $this->messageManager->addSuccess(__('A total of %1 record(s) have been deleted.', $collectionSize));
+
+        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+
+        return $resultRedirect->setPath('*/*/');
     }
 }

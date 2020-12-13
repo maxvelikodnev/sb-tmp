@@ -7,7 +7,6 @@ define(
         'Magento_Customer/js/customer-data',
         'Magento_Checkout/js/model/quote',
         'Amazon_Payment/js/model/storage',
-        'amazonCore',
         'mage/storage',
         'Magento_Checkout/js/model/full-screen-loader',
         'Amazon_Payment/js/action/place-order',
@@ -18,8 +17,7 @@ define(
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/url-builder',
         'amazonPaymentConfig',
-        'uiRegistry',
-        'Amazon_Payment/js/messages'
+        'uiRegistry'
     ],
     function (
         $,
@@ -29,7 +27,6 @@ define(
         customerData,
         quote,
         amazonStorage,
-        amazonCore,
         storage,
         fullScreenLoader,
         placeOrderAction,
@@ -40,12 +37,12 @@ define(
         additionalValidators,
         urlBuilder,
         amazonPaymentConfig,
-        registry,
-        amazonMessages
+        registry
     ) {
         'use strict';
 
-        var countryData = customerData.get('directory-data');
+        var context,
+            countryData = customerData.get('directory-data');
 
         return Component.extend({
             defaults: {
@@ -66,6 +63,7 @@ define(
              * Inits
              */
             initialize: function () {
+                context = this;
                 this._super();
             },
 
@@ -73,10 +71,10 @@ define(
              * Init payment widget
              */
             initPaymentWidget: function () {
-                var $amazonPayment = $(this.apInputDOMId);
+                var $amazonPayment = $(context.apInputDOMId);
 
-                this.initDefaultValues();
-                this.renderPaymentWidget();
+                context.initDefaultValues();
+                context.renderPaymentWidget();
                 $amazonPayment.trigger('click'); //activate Amazon Pay method on render
                 $amazonPayment.trigger('rendered');
             },
@@ -86,11 +84,11 @@ define(
              */
             initDefaultValues: function () {
                 registry.get('amazonPayment', function (amazonPayment) {
-                    this.widgetScope = amazonPayment.loginScope;
-                    this.sellerId = amazonPayment.merchantId;
-                    this.presentmentCurrency = amazonPayment.presentmentCurrency;
-                    this.useMultiCurrency = amazonPayment.useMultiCurrency;
-                }.bind(this));
+                    context.widgetScope = amazonPayment.loginScope;
+                    context.sellerId = amazonPayment.merchantId;
+                    context.presentmentCurrency = amazonPayment.presentmentCurrency;
+                    context.useMultiCurrency = amazonPayment.useMultiCurrency;
+                });
             },
 
             /**
@@ -98,8 +96,8 @@ define(
              */
             renderPaymentWidget: function () {
                 var widget = new OffAmazonPayments.Widgets.Wallet({ // eslint-disable-line no-undef
-                    sellerId: this.sellerId,
-                    scope: this.widgetScope,
+                    sellerId: context.sellerId,
+                    scope: context.widgetScope,
                     amazonOrderReferenceId: amazonStorage.getOrderReference(),
 
                     /**
@@ -107,8 +105,8 @@ define(
                      */
                     onPaymentSelect: function () { // orderReference
                         amazonStorage.isPlaceOrderDisabled(true);
-                        this.setBillingAddressFromAmazon();
-                    }.bind(this),
+                        context.setBillingAddressFromAmazon();
+                    },
                     design: {
                         designMode: 'responsive'
                     },
@@ -116,17 +114,18 @@ define(
                     /**
                      * Error callback
                      */
-                    onError: amazonCore.handleWidgetError
+                    onError: function (error) {
+                        errorProcessor.process(error);
+                    }
                 });
-                if (this.useMultiCurrency) {
-                    widget.setPresentmentCurrency(this.presentmentCurrency);
-                    $(this.presentmentDOMId).hide();
+                if (context.useMultiCurrency) {
+                    widget.setPresentmentCurrency(context.presentmentCurrency);
+                    $(context.presentmentDOMId).hide();
                 }
                 else {
-                    $(this.presentmentDOMId).show();
+                    $(context.presentmentDOMId).show();
                 }
-                widget.bind(this.paymentWidgetDOMId);
-                amazonMessages.displayMessages();
+                widget.bind(context.paymentWidgetDOMId);
             },
 
             /**
@@ -184,10 +183,10 @@ define(
                         amazonStorage.isPlaceOrderDisabled(false);
 
                         if (window.checkoutConfig.amazonLogin.amazon_customer_email) {
-                            var customerField = $(this.customerEmail).val();
+                            var customerField = $(context.customerEmail).val();
 
                             if (!customerField) {
-                                $(this.customerEmail).val(window.checkoutConfig.amazonLogin.amazon_customer_email);
+                                $(context.customerEmail).val(window.checkoutConfig.amazonLogin.amazon_customer_email);
                             }
                         }
                     }
@@ -229,8 +228,8 @@ define(
                     placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
 
                     $.when(placeOrder).fail(function () {
-                        this.isPlaceOrderActionAllowed(true);
-                    }.bind(this)).done(this.afterPlaceOrder.bind(this));
+                        context.isPlaceOrderActionAllowed(true);
+                    }).done(this.afterPlaceOrder.bind(this));
 
                     return true;
                 }

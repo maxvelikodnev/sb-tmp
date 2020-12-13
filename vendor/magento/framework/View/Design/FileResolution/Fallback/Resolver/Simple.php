@@ -6,7 +6,6 @@
 
 namespace Magento\Framework\View\Design\FileResolution\Fallback\Resolver;
 
-use function GuzzleHttp\Psr7\str;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
@@ -50,10 +49,11 @@ class Simple implements Fallback\ResolverInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resolve($type, $file, $area = null, ThemeInterface $theme = null, $locale = null, $module = null)
     {
+
         $params = ['area' => $area, 'theme' => $theme, 'locale' => $locale];
         foreach ($params as $key => $param) {
             if ($param === null) {
@@ -103,8 +103,7 @@ class Simple implements Fallback\ResolverInterface
         $fileRead = $this->readFactory->create($realPath);
 
         // Check if file path starts with web lib directory path
-        $absolutePath = $directoryWeb->getAbsolutePath();
-        if ($absolutePath && strpos($fileRead->getAbsolutePath(), $absolutePath) === 0) {
+        if (strpos($fileRead->getAbsolutePath(), $directoryWeb->getAbsolutePath()) === 0) {
             return true;
         }
 

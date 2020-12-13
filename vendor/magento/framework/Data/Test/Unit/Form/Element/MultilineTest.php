@@ -5,14 +5,8 @@
  */
 namespace Magento\Framework\Data\Test\Unit\Form\Element;
 
-/**
- * Test for \Magento\Framework\Data\Form\Element\Multiline
- */
 class MultilineTest extends \PHPUnit\Framework\TestCase
 {
-    /** @var \Magento\Framework\TestFramework\Unit\Helper\ObjectManager */
-    private $objectManager;
-
     /**
      * @var \Magento\Framework\Data\Form\Element\Multiline
      */
@@ -43,11 +37,9 @@ class MultilineTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-
-        $this->escaper = $this->objectManager->getObject(
-            \Magento\Framework\Escaper::class
-        );
+        $this->escaper = $this->getMockBuilder(\Magento\Framework\Escaper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $this->element = new \Magento\Framework\Data\Form\Element\Multiline(
             $this->elementFactory,

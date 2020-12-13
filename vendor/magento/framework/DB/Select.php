@@ -43,7 +43,7 @@ class Select extends \Zend_Db_Select
     const STRAIGHT_JOIN = 'straightjoin';
 
     /**
-     * Straight join SQL directive.
+     * Sql straight join
      */
     const SQL_STRAIGHT_JOIN = 'STRAIGHT_JOIN';
 
@@ -401,7 +401,7 @@ class Select extends \Zend_Db_Select
     /**
      * Render STRAIGHT_JOIN clause
      *
-     * @param string $sql SQL query
+     * @param string   $sql SQL query
      * @return string
      */
     protected function _renderStraightjoin($sql)
@@ -435,7 +435,7 @@ class Select extends \Zend_Db_Select
             }
         }
 
-        parent::_tableCols($correlationName, $cols, $afterCorrelationName);
+        return parent::_tableCols($correlationName, $cols, $afterCorrelationName);
     }
 
     /**
@@ -453,7 +453,7 @@ class Select extends \Zend_Db_Select
     /**
      * Render FOR UPDATE clause
      *
-     * @param string $sql SQL query
+     * @param string   $sql SQL query
      * @return string
      */
     protected function _renderForupdate($sql)
@@ -510,7 +510,7 @@ class Select extends \Zend_Db_Select
     }
 
     /**
-     * Remove links to other objects.
+     * Sleep magic method.
      *
      * @return string[]
      * @since 100.0.11

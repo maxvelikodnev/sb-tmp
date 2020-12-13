@@ -3,7 +3,7 @@ require(['jquery',
     'domReady!',
     'mage/translate'], function ($) {
     'use strict';
-
+    
     function removeTooltip(element)
     {
         element.css('position','');
@@ -12,47 +12,33 @@ require(['jquery',
 
     function addTooltip(toolTipText,element)
     {
-        var $toolTip = $('<div class="ddg-tooltip">' + toolTipText + '</div>');
-        $toolTip.css({
-            position: 'absolute',
-            top: '-15px',
-            backgroundColor: '#333',
-            color: '#fff',
-            padding: '5px',
-            borderRadius: '5px'
-        });
-
         element.attr('data-title', toolTipText);
-        element.css('backgroundColor', '#fff')
-            .parent()
-            .css('position', 'relative')
-            .append($toolTip);
+        element.parent().append("<div class='ddg-tooltip'>" + toolTipText + "</div>");
+        element.parent().css('position','relative');
     }
 
-    $(document).on('click', '.ddg-dynamic-content', function() {
-        if ($(this).val() == '') return;
-
+    $('.ddg-dynamic-content').click(function(){
         var toolTipText = $.mage.__('Copied!');
 
         $(this).select();
         removeTooltip($(this));
         addTooltip(toolTipText,$(this));
-
         setTimeout(function() {
-            removeTooltip($(this));
-        }.bind(this), 850);
 
+            removeTooltip($(this));
+        }, 850);
         document.execCommand("copy");
     });
 
-    $(document).on('mouseenter', '.ddg-dynamic-content', function() {
-        if ($(this).val() == '') return;
+    $('.ddg-dynamic-content').hover( function() {
+            var toolTipText = $.mage.__('Click to copy URL');
 
-        var toolTipText = $.mage.__('Click to copy URL');
-        addTooltip(toolTipText,$(this));
-    });
-    $(document).on('mouseleave', '.ddg-dynamic-content', function() {
-        removeTooltip($(this));
-    });
+            addTooltip(toolTipText,$(this));
+        }
+        ,function() {
+            removeTooltip($(this));
+        }
+    );
+
 });
 

@@ -30,11 +30,12 @@ class Head implements Layout\ReaderInterface
     const HEAD_TITLE = 'title';
     const HEAD_META = 'meta';
     const HEAD_ATTRIBUTE = 'attribute';
-    private const HEAD_FONT = 'font';
     /**#@-*/
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
+     * @return string[]
      */
     public function getSupportedNodes()
     {
@@ -56,18 +57,15 @@ class Head implements Layout\ReaderInterface
             case self::HEAD_SCRIPT:
                 $node->addAttribute('content_type', 'js');
                 break;
-            case self::HEAD_FONT:
-                $node->addAttribute('content_type', 'font');
-                break;
         }
     }
 
     /**
-     * Read children elements structure and fill scheduled structure
+     * {@inheritdoc}
      *
      * @param Layout\Reader\Context $readerContext
      * @param Layout\Element $headElement
-     * @return $this|Layout\ReaderInterface
+     * @return $this
      */
     public function interpret(
         Layout\Reader\Context $readerContext,
@@ -138,7 +136,6 @@ class Head implements Layout\ReaderInterface
             case self::HEAD_CSS:
             case self::HEAD_SCRIPT:
             case self::HEAD_LINK:
-            case self::HEAD_FONT:
                 $this->addContentTypeByNodeName($node);
                 $pageConfigStructure->addAssets($node->getAttribute('src'), $this->getAttributes($node));
                 break;

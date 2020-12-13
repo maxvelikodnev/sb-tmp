@@ -221,10 +221,9 @@ abstract class AbstractDb extends AbstractResource
     }
 
     /**
-     * Main table setter.
+     * Set main entity table name and primary key field name
      *
-     * Set main entity table name and primary key field name.
-     * If field name is omitted {table_name}_id will be used.
+     * If field name is omitted {table_name}_id will be used
      *
      * @param string $mainTable
      * @param string|null $idFieldName
@@ -257,10 +256,7 @@ abstract class AbstractDb extends AbstractResource
     }
 
     /**
-     * Main table getter.
-     *
-     * Returns main table name - extracted from "module/table" style and
-     * validated by db adapter.
+     * Returns main table name - extracted from "module/table" style and validated by db adapter
      *
      * @throws LocalizedException
      * @return string
@@ -363,7 +359,7 @@ abstract class AbstractDb extends AbstractResource
         $object->afterLoad();
         $object->setOrigData();
         $object->setHasDataChanges(false);
-
+        
         return $this;
     }
 
@@ -549,7 +545,7 @@ abstract class AbstractDb extends AbstractResource
     }
 
     /**
-     * Check that model data fields that can be saved has really changed comparing with origData.
+     * Check that model data fields that can be saved has really changed comparing with origData
      *
      * @param \Magento\Framework\Model\AbstractModel $object
      * @return bool
@@ -598,7 +594,7 @@ abstract class AbstractDb extends AbstractResource
         $fields = $this->getUniqueFields();
         if (!empty($fields)) {
             if (!is_array($fields)) {
-                $fields = $this->_uniqueFields = [['field' => $fields, 'title' => $fields]];
+                $this->_uniqueFields = [['field' => $fields, 'title' => $fields]];
             }
 
             $data = new \Magento\Framework\DataObject($this->_prepareDataForSave($object));
@@ -790,24 +786,6 @@ abstract class AbstractDb extends AbstractResource
     }
 
     /**
-     * Check if column data type is numeric
-     *
-     * Based on column description
-     *
-     * @param array $columnDescription
-     * @return bool
-     */
-    private function isNumericValue(array $columnDescription): bool
-    {
-        $result = true;
-        if (!empty($columnDescription['DATA_TYPE'])
-            && in_array($columnDescription['DATA_TYPE'], ['tinyint', 'smallint', 'mediumint', 'int', 'bigint'])) {
-            $result = false;
-        }
-        return $result;
-    }
-
-    /**
      * Update existing object
      *
      * @param \Magento\Framework\Model\AbstractModel $object
@@ -816,35 +794,29 @@ abstract class AbstractDb extends AbstractResource
      */
     protected function updateObject(\Magento\Framework\Model\AbstractModel $object)
     {
-        $connection = $this->getConnection();
-        $tableDescription = $connection->describeTable($this->getMainTable());
-        $preparedValue = $connection->prepareColumnValue($tableDescription[$this->getIdFieldName()], $object->getId());
-        $condition  = (!$this->isNumericValue($tableDescription[$this->getIdFieldName()]))
-            ? sprintf('%s=%d', $this->getIdFieldName(), $preparedValue)
-            : $connection->quoteInto($this->getIdFieldName() . '=?', $preparedValue);
-
+        $condition = $this->getConnection()->quoteInto($this->getIdFieldName() . '=?', $object->getId());
         /**
          * Not auto increment primary key support
          */
         if ($this->_isPkAutoIncrement) {
             $data = $this->prepareDataForUpdate($object);
             if (!empty($data)) {
-                $connection->update($this->getMainTable(), $data, $condition);
+                $this->getConnection()->update($this->getMainTable(), $data, $condition);
             }
         } else {
-            $select = $connection->select()->from(
+            $select = $this->getConnection()->select()->from(
                 $this->getMainTable(),
                 [$this->getIdFieldName()]
             )->where(
                 $condition
             );
-            if ($connection->fetchOne($select) !== false) {
+            if ($this->getConnection()->fetchOne($select) !== false) {
                 $data = $this->prepareDataForUpdate($object);
                 if (!empty($data)) {
-                    $connection->update($this->getMainTable(), $data, $condition);
+                    $this->getConnection()->update($this->getMainTable(), $data, $condition);
                 }
             } else {
-                $connection->insert(
+                $this->getConnection()->insert(
                     $this->getMainTable(),
                     $this->_prepareDataForSave($object)
                 );

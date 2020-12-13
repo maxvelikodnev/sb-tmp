@@ -38,9 +38,6 @@ class CompiledTest extends \PHPUnit\Framework\TestCase
     /** @var ObjectManager */
     private $objectManager;
 
-    /**
-     * Setup tests
-     */
     protected function setUp()
     {
         $this->objectManager = new ObjectManager($this);
@@ -60,9 +57,6 @@ class CompiledTest extends \PHPUnit\Framework\TestCase
         $this->objectManager->setBackwardCompatibleProperty($this->factory, 'definitions', $this->definitionsMock);
     }
 
-    /**
-     * Test create simple
-     */
     public function testCreateSimple()
     {
         $expectedConfig = $this->getSimpleConfig();
@@ -112,9 +106,6 @@ class CompiledTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($result->getNullValue());
     }
 
-    /**
-     * Test create simple configured arguments
-     */
     public function testCreateSimpleConfiguredArguments()
     {
         $expectedConfig = $this->getSimpleNestedConfig();
@@ -179,9 +170,6 @@ class CompiledTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($result->getNullValue());
     }
 
-    /**
-     * Test create get arguments in runtime
-     */
     public function testCreateGetArgumentsInRuntime()
     {
         // Stub OM to create test assets
@@ -320,21 +308,18 @@ class CompiledTest extends \PHPUnit\Framework\TestCase
                     1 => DependencyTesting::class,
                     2 => true,
                     3 => null,
-                    4 => false,
                 ],
             1 => [
                     0 => 'sharedDependency',
                     1 => DependencySharedTesting::class,
                     2 => true,
                     3 => null,
-                    4 => false,
                 ],
             2 => [
                     0 => 'value',
                     1 => null,
                     2 => false,
                     3 => 'value',
-                    4 => false,
                 ],
             3 => [
                     0 => 'valueArray',
@@ -344,21 +329,18 @@ class CompiledTest extends \PHPUnit\Framework\TestCase
                             0 => 'default_value1',
                             1 => 'default_value2',
                         ],
-                    4 => false,
                 ],
             4 => [
                     0 => 'globalValue',
                     1 => null,
                     2 => false,
                     3 => '',
-                    4 => false,
                 ],
             5 => [
                     0 => 'nullValue',
                     1 => null,
                     2 => false,
                     3 => null,
-                    4 => false,
                 ],
         ];
     }

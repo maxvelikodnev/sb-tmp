@@ -3,9 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-declare(strict_types=1);
-
 namespace Magento\Framework\Image\Test\Unit\Adapter;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -26,13 +23,6 @@ class Gd2Test extends \PHPUnit\Framework\TestCase
      * @var array simulation of getimagesize()
      */
     public static $imageData = [];
-
-    /**
-     * Simulation of filesize() function
-     *
-     * @var int
-     */
-    public static $imageSize = 1;
 
     /**
      * Adapter for testing
@@ -150,13 +140,5 @@ class Gd2Test extends \PHPUnit\Framework\TestCase
         $type2 = $this->adapter->getImageType();
 
         $this->assertNotEquals($type1, $type2);
-    }
-
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testOpenInvalidURL()
-    {
-        $this->adapter->open('bar://foo.bar');
     }
 }

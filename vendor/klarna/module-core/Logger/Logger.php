@@ -15,6 +15,11 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Monolog\Logger as MonoLogger;
 
+/**
+ * Class Logger
+ *
+ * @package Klarna\Core\Logger
+ */
 class Logger extends MonoLogger
 {
     /**
@@ -31,6 +36,8 @@ class Logger extends MonoLogger
     private $cleanser;
 
     /**
+     * Logger constructor.
+     *
      * @param string                              $name
      * @param ScopeConfigInterface                $config
      * @param Cleanser                            $cleanser
@@ -75,7 +82,7 @@ class Logger extends MonoLogger
             $message = $this->cleanser->checkForSensitiveData($message);
         }
         if (is_array($message)) {
-            $message = json_encode($message, JSON_PRETTY_PRINT);
+            $message = print_r($message, true);
         }
         return parent::addRecord($level, $message, $context);
     }

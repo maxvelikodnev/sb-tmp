@@ -103,16 +103,11 @@ class Config extends Template
             'oAuthHashRedirectUrl'     => $this->coreHelper->getOAuthRedirectUrl(),
             'isQuoteDirty'             => $this->categoryExclusionHelper->isQuoteDirty(),
             'region'                   => $this->coreHelper->getRegion(),
-            'useMultiCurrency'         => $this->config->useMultiCurrency(),
-            'scaRegions'               => $this->coreHelper->getScaRegions()
+            'useMultiCurrency'         => $this->config->useMultiCurrency()
         ];
 
         if ($this->coreHelper->isSandboxEnabled()) {
             $config['sandboxSimulationOptions'] = $this->transformSandboxSimulationOptions();
-        }
-
-        if ($orderReferenceId = $this->getRequest()->getParam('orderReferenceId')) {
-            $config['orderReferenceId'] = preg_replace('/[^A-Z0-9-]/', '', $orderReferenceId);
         }
 
         return $config;

@@ -44,14 +44,6 @@
                        showInWebsite="1" showInStore="0">
                     <label>Google API secret key</label>
                 </field>
-                <field id="type" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0"
-                       showInStore="0" canRestore="1">
-                    <label>reCaptcha type</label>
-                    <source_model>MSP\ReCaptcha\Model\Config\Source\Type</source_model>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
             </group>
             <group id="backend" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0"
                    showInStore="1">
@@ -67,7 +59,7 @@
                     <source_model>MSP\ReCaptcha\Model\Config\Source\Theme</source_model>
                     <depends>
                         <field id="enabled">1</field>
-                        <field id="msp_securitysuite_recaptcha/general/type">recaptcha</field>
+                        <field id="type">recaptcha</field>
                     </depends>
                 </field>
                 <field id="size" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0"
@@ -76,17 +68,8 @@
                     <source_model>MSP\ReCaptcha\Model\Config\Source\Size</source_model>
                     <depends>
                         <field id="enabled">1</field>
-                        <field id="msp_securitysuite_recaptcha/general/type">recaptcha</field>
+                        <field id="type">recaptcha</field>
                     </depends>
-                </field>
-                <field id="min_score" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0"
-                       showInStore="0" canRestore="1">
-                    <label>Minimum score</label>
-                    <depends>
-                        <field id="enabled">1</field>
-                        <field id="msp_securitysuite_recaptcha/general/type">recaptcha_v3</field>
-                    </depends>
-                    <comment>From 0.0 to 1.0, where 0.0 is absolutely a robot and 1.0 is a human.</comment>
                 </field>
             </group>
             <group id="frontend" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
@@ -97,23 +80,22 @@
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="type" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1"
+                       showInStore="0" canRestore="1">
+                    <label>reCaptcha type</label>
+                    <source_model>MSP\ReCaptcha\Model\Config\Source\Type</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
                 <field id="position" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1"
                        showInStore="0" canRestore="1">
-                    <label>Invisible badge position</label>
+                    <label>Badge position</label>
                     <source_model>MSP\ReCaptcha\Model\Config\Source\Position</source_model>
                     <depends>
                         <field id="enabled">1</field>
+                        <field id="type">invisible</field>
                     </depends>
-                    <comment>Only for Invisible ReCaptcha v2 or v3.</comment>
-                </field>
-                <field id="min_score" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1"
-                       showInStore="0" canRestore="1">
-                    <label>Minimum score</label>
-                    <depends>
-                        <field id="enabled">1</field>
-                        <field id="msp_securitysuite_recaptcha/general/type">recaptcha_v3</field>
-                    </depends>
-                    <comment>From 0.0 to 1.0, where 0.0 is absolutely a robot and 1.0 is a human.</comment>
                 </field>
                 <field id="theme" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1"
                        showInStore="0" canRestore="1">
@@ -121,7 +103,7 @@
                     <source_model>MSP\ReCaptcha\Model\Config\Source\Theme</source_model>
                     <depends>
                         <field id="enabled">1</field>
-                        <field id="msp_securitysuite_recaptcha/general/type">recaptcha</field>
+                        <field id="type">recaptcha</field>
                     </depends>
                 </field>
                 <field id="lang" translate="label" type="text" sortOrder="65" showInDefault="1" showInWebsite="1"
@@ -143,7 +125,7 @@
                     <source_model>MSP\ReCaptcha\Model\Config\Source\Size</source_model>
                     <depends>
                         <field id="enabled">1</field>
-                        <field id="msp_securitysuite_recaptcha/general/type">recaptcha</field>
+                        <field id="type">recaptcha</field>
                     </depends>
                 </field>
                 <field id="enabled_login" translate="label" type="select" sortOrder="200" showInDefault="1"
@@ -188,16 +170,7 @@
                 </field>
 		        <field id="enabled_newsletter" translate="label" type="select" sortOrder="250" showInDefault="1"
                        showInWebsite="1" showInStore="0" canRestore="1">
-                    <label>Use invisible ReCaptcha in newsletter</label>
-                    <comment>Requires an Invisible ReCaptcha v2 or v3 key. If enabled, a badge will be displayed in every page.</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
-                <field id="enabled_sendfriend" translate="label" type="select" sortOrder="260" showInDefault="1"
-                       showInWebsite="1" showInStore="0" canRestore="1">
-                    <label>Use in Send To Friend</label>
+                    <label>Use in Newsletter</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enabled">1</field>

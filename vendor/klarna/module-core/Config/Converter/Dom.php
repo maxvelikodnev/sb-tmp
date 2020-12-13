@@ -15,6 +15,7 @@ use Magento\Framework\Config\ConverterInterface;
 /**
  * Converter class to manipulate XML into Array
  *
+ * @package Klarna\Core\Config\Converter
  */
 class Dom implements ConverterInterface
 {
@@ -94,7 +95,7 @@ class Dom implements ConverterInterface
         }
         return array_shift($element);
     }
-    // phpcs:disable Magento2.Performance.ForeachArrayMerge
+
     /**
      * Process external_payment_methods tree
      *
@@ -114,7 +115,7 @@ class Dom implements ConverterInterface
         }
         return $result;
     }
-    // phpcs:enable
+
     /**
      * Get an attribute from a node by attribute name
      *
@@ -159,7 +160,7 @@ class Dom implements ConverterInterface
         }
         return $data;
     }
-    // phpcs:disable Magento2.Performance.ForeachArrayMerge
+
     /**
      * Process a tree from a node
      *
@@ -200,7 +201,7 @@ class Dom implements ConverterInterface
         }
         return $result;
     }
-    // phpcs:enable
+
     /**
      * @param \DOMElement[] $lines
      * @return array

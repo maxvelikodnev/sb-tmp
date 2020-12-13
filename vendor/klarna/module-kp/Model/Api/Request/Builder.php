@@ -22,6 +22,9 @@ use Klarna\Kp\Model\Api\RequestFactory;
 use Magento\Framework\DataObject;
 
 /**
+ * Class Builder
+ *
+ * @package Klarna\Kp\Model\Api\Request
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.TooManyFields)
  */
@@ -113,6 +116,8 @@ class Builder
     private $orderlineFactory;
 
     /**
+     * Builder constructor.
+     *
      * @param RequestFactory     $requestFactory
      * @param AddressFactory     $addressFactory
      * @param AttachmentFactory  $attachmentFactory

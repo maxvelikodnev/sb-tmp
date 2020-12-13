@@ -23,6 +23,11 @@ use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Class AssignData
+ *
+ * @package Klarna\Kp\Observer
+ */
 class AssignData extends AbstractDataAssignObserver
 {
     /**
@@ -43,6 +48,8 @@ class AssignData extends AbstractDataAssignObserver
     private $config;
 
     /**
+     * AssignData constructor.
+     *
      * @param QuoteRepositoryInterface $klarnaQuoteRepository
      * @param LoggerInterface          $log
      * @param DataObjectFactory        $dataObjectFactory

@@ -6,7 +6,6 @@
 
 namespace Vertex\Tax\Test\Unit\Model;
 
-use Magento\Framework\Serialize\Serializer\Serialize;
 use Magento\Framework\DataObject;
 use Magento\Framework\DataObjectFactory;
 use Vertex\Data\LineItem;
@@ -33,9 +32,6 @@ class TaxRegistryTest extends TestCase
     /** @var TaxRegistry */
     private $taxRegistry;
 
-    /** @var Serialize */
-    private $serializer;
-
     /**
      * Perform test setup.
      */
@@ -49,10 +45,6 @@ class TaxRegistryTest extends TestCase
         $this->dataObjectFactoryMock = $this->createMock(DataObjectFactory::class);
         $this->dataObjectFactoryMock->method('create')
             ->willReturn($dataObject);
-
-        $this->serializer = $this->getObject(
-            Serialize::class
-        );
 
         $this->taxDataObject = $this->getObject(
             TaxQuoteResponse::class,
@@ -111,10 +103,7 @@ class TaxRegistryTest extends TestCase
         $actualResult = $this->taxRegistry->lookup($storageKey);
 
         $this->assertEquals(gettype($actualResult), 'array');
-        $this->assertEquals(
-            $this->serializer->serialize($data),
-            $this->serializer->serialize($actualResult)
-        );
+        $this->assertEquals(serialize($data), serialize($actualResult));
     }
 
     /**

@@ -13,8 +13,9 @@ use Magento\Framework\Filesystem\DriverInterface;
 use Magento\Framework\Filesystem\Glob;
 
 /**
- * Class File for Filesystem Driver
+ * Class File
  *
+ * @package Magento\Framework\Filesystem\Driver
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class File implements DriverInterface
@@ -592,13 +593,7 @@ class File implements DriverInterface
      */
     public function fileReadLine($resource, $length, $ending = null)
     {
-        try {
-            $result = @stream_get_line($resource, $length, $ending);
-        } catch (\Throwable $e) {
-            throw new FileSystemException(
-                new \Magento\Framework\Phrase('File cannot be read %1', [$this->getWarningMessage()])
-            );
-        }
+        $result = @stream_get_line($resource, $length, $ending);
         if (false === $result) {
             throw new FileSystemException(
                 new \Magento\Framework\Phrase('File cannot be read %1', [$this->getWarningMessage()])
@@ -975,20 +970,17 @@ class File implements DriverInterface
      */
     public function getRealPathSafety($path)
     {
-        if (strpos($path, DIRECTORY_SEPARATOR . '.') === false) {
+        if (strpos($path, DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR) === false) {
             return $path;
         }
 
         //Removing redundant directory separators.
         $path = preg_replace(
-            '/\\' . DIRECTORY_SEPARATOR . '\\' . DIRECTORY_SEPARATOR . '+/',
+            '/\\' .DIRECTORY_SEPARATOR .'\\' .DIRECTORY_SEPARATOR .'+/',
             DIRECTORY_SEPARATOR,
             $path
         );
         $pathParts = explode(DIRECTORY_SEPARATOR, $path);
-        if (end($pathParts) == '.') {
-            $pathParts[count($pathParts) - 1] = '';
-        }
         $realPath = [];
         foreach ($pathParts as $pathPart) {
             if ($pathPart == '.') {

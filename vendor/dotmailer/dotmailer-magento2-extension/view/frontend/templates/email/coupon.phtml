@@ -16,7 +16,7 @@
         <?php endif; ?><?php if (in_array('underline', $style)) : ?>
             text-decoration: underline;
         <?php endif; ?>
-            font-family: <?= $block->getHtmlFontFamily();?>;
+            font-family: <?= $block->escapeHtml($block->getFont());?>;
             background-color: <?= $block->escapeHtml($block->getBackgroundColor());?>;
         }
     </style>

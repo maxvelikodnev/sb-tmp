@@ -15,9 +15,6 @@ namespace Magento\Framework\Data\Form\Element;
 
 use Magento\Framework\Escaper;
 
-/**
- * Form editable multiselect element.
- */
 class Editablemultiselect extends \Magento\Framework\Data\Form\Element\Multiselect
 {
     /**
@@ -80,7 +77,8 @@ class Editablemultiselect extends \Magento\Framework\Data\Form\Element\Multisele
         $html .= "
                 <script type='text/javascript'>
                 require([
-                    'jquery'
+                    'jquery',
+                    'jquery/ui'
                 ], function( $ ){
 
                     function isResolved(){

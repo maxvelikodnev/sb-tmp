@@ -41,21 +41,6 @@ class MergeService
     protected $state;
 
     /**
-     * List of supported types that can be processed by merge service
-     *
-     * @var array
-     */
-    private const SUPPORTED_MERGE_TYPE = [
-        'css',
-        'js',
-        'eot',
-        'svg',
-        'ttf',
-        'woff',
-        'woff2',
-    ];
-
-    /**
      * Constructor
      *
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
@@ -87,7 +72,7 @@ class MergeService
     {
         $isCss = $contentType == 'css';
         $isJs = $contentType == 'js';
-        if (!in_array($contentType, self::SUPPORTED_MERGE_TYPE, true)) {
+        if (!$isCss && !$isJs) {
             throw new \InvalidArgumentException("Merge for content type '{$contentType}' is not supported.");
         }
 

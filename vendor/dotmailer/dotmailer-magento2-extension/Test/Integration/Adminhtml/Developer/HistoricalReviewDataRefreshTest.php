@@ -2,9 +2,6 @@
 
 namespace Dotdigitalgroup\Email\Tests\Integration\Adminhtml\Developer;
 
-/**
- * @magentoAppArea adminhtml
- */
 class HistoricalReviewDataRefreshTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
     /**
@@ -73,7 +70,7 @@ class HistoricalReviewDataRefreshTest extends \Magento\TestFramework\TestCase\Ab
 
         $collection = $this->objectManager->create($this->model)
             ->getCollection();
-        $collection->addFieldToFilter('review_imported', 0);
+        $collection->addFieldToFilter('review_imported', ['null' => true]);
 
         $this->runReset('2017-02-09', '2017-02-10', $this->url);
 
@@ -98,12 +95,12 @@ class HistoricalReviewDataRefreshTest extends \Magento\TestFramework\TestCase\Ab
 
         $collection = $this->objectManager->create($this->model)
             ->getCollection();
-        $collection->addFieldToFilter('review_imported', 0);
+        $collection->addFieldToFilter('review_imported', ['null' => true]);
 
         $this->runReset('2017-02-09', '2017-01-10', $this->url);
 
         $this->assertSessionMessages(
-            $this->equalTo(['To date cannot be earlier than from date.']),
+            $this->equalTo(['To Date cannot be earlier then From Date.']),
             \Magento\Framework\Message\MessageInterface::TYPE_ERROR
         );
 
@@ -128,12 +125,12 @@ class HistoricalReviewDataRefreshTest extends \Magento\TestFramework\TestCase\Ab
 
         $collection = $this->objectManager->create($this->model)
             ->getCollection();
-        $collection->addFieldToFilter('review_imported', 0);
+        $collection->addFieldToFilter('review_imported', ['null' => true]);
 
         $this->runReset('2017-02-09', 'not valid', $this->url);
 
         $this->assertSessionMessages(
-            $this->equalTo(['From date or to date is not valid.']),
+            $this->equalTo(['From or To date is not a valid date.']),
             \Magento\Framework\Message\MessageInterface::TYPE_ERROR
         );
 
@@ -170,7 +167,7 @@ class HistoricalReviewDataRefreshTest extends \Magento\TestFramework\TestCase\Ab
 
         $collection = $this->objectManager->create($this->model)
             ->getCollection();
-        $collection->addFieldToFilter('review_imported', 0);
+        $collection->addFieldToFilter('review_imported', ['null' => true]);
 
         $this->runReset('', '', $this->url);
 
@@ -195,7 +192,7 @@ class HistoricalReviewDataRefreshTest extends \Magento\TestFramework\TestCase\Ab
 
         $collection = $this->objectManager->create($this->model)
             ->getCollection();
-        $collection->addFieldToFilter('review_imported', 0);
+        $collection->addFieldToFilter('review_imported', ['null' => true]);
 
         $this->runReset('2017-02-10', '', $this->url);
 
@@ -220,7 +217,7 @@ class HistoricalReviewDataRefreshTest extends \Magento\TestFramework\TestCase\Ab
 
         $collection = $this->objectManager->create($this->model)
             ->getCollection();
-        $collection->addFieldToFilter('review_imported', 0);
+        $collection->addFieldToFilter('review_imported', ['null' => true]);
 
         $this->runReset('', '2017-02-10', $this->url);
 

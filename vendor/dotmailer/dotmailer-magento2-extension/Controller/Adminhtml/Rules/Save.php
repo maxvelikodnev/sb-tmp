@@ -2,8 +2,6 @@
 
 namespace Dotdigitalgroup\Email\Controller\Adminhtml\Rules;
 
-use Dotdigitalgroup\Email\Model\ExclusionRule\RuleValidator;
-
 class Save extends \Magento\Backend\App\AbstractAction
 {
     /**
@@ -34,11 +32,6 @@ class Save extends \Magento\Backend\App\AbstractAction
     private $escaper;
 
     /**
-     * @var RuleValidator
-     */
-    private $ruleValidator;
-
-    /**
      * Save constructor.
      *
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Rules $rulesResource
@@ -52,15 +45,13 @@ class Save extends \Magento\Backend\App\AbstractAction
         \Magento\Backend\App\Action\Context $context,
         \Dotdigitalgroup\Email\Model\RulesFactory $rulesFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
-        \Magento\Framework\Escaper $escaper,
-        RuleValidator $ruleValidator
+        \Magento\Framework\Escaper $escaper
     ) {
         parent::__construct($context);
         $this->rulesResource = $rulesResource;
         $this->ruleFactory  = $rulesFactory;
         $this->storeManager = $storeManagerInterface;
         $this->escaper      = $escaper;
-        $this->ruleValidator = $ruleValidator;
     }
 
     /**
@@ -112,8 +103,6 @@ class Save extends \Magento\Backend\App\AbstractAction
                 }
 
                 $ruleModel = $this->evaluateRequestParams($data, $ruleModel);
-
-                $this->ruleValidator->validate($ruleModel);
                 $this->rulesResource->save($ruleModel);
 
                 $this->messageManager->addSuccessMessage(
@@ -126,14 +115,6 @@ class Save extends \Magento\Backend\App\AbstractAction
                         ['id' => $ruleModel->getId()]
                     );
                 }
-            } catch (\Magento\Framework\Exception\ValidatorException $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
-                return $this->_redirect(
-                    '*/*/edit',
-                    [
-                        'id' => $id
-                    ]
-                );
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             }

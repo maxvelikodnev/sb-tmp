@@ -162,7 +162,7 @@ class Encryptor implements EncryptorInterface
      */
     public function getLatestHashVersion(): int
     {
-        if (extension_loaded('sodium') && defined('SODIUM_CRYPTO_PWHASH_ALG_ARGON2ID13')) {
+        if (extension_loaded('sodium')) {
             return self::HASH_VERSION_ARGON2ID13;
         }
 
@@ -273,12 +273,11 @@ class Encryptor implements EncryptorInterface
     {
         try {
             $this->explodePasswordHash($hash);
-            $recreated = $password;
             foreach ($this->getPasswordVersion() as $hashVersion) {
                 if ($hashVersion === self::HASH_VERSION_ARGON2ID13) {
-                    $recreated = $this->getArgonHash($recreated, $this->getPasswordSalt());
+                    $recreated = $this->getArgonHash($password, $this->getPasswordSalt());
                 } else {
-                    $recreated = $this->generateSimpleHash($this->getPasswordSalt() . $recreated, $hashVersion);
+                    $recreated = $this->generateSimpleHash($this->getPasswordSalt() . $password, $hashVersion);
                 }
                 $hash = $this->getPasswordHash();
             }
@@ -315,8 +314,8 @@ class Encryptor implements EncryptorInterface
      * Explode password hash
      *
      * @param string $hash
-     * @return array
      * @throws \RuntimeException When given hash cannot be processed.
+     * @return array
      */
     private function explodePasswordHash($hash)
     {
@@ -399,7 +398,6 @@ class Encryptor implements EncryptorInterface
             ':' . $this->getCipherVersion() .
             ':' . base64_encode($crypt->encrypt($data));
     }
-
     /**
      * Look for key and crypt versions in encrypted data before decrypting
      *
@@ -581,15 +579,13 @@ class Encryptor implements EncryptorInterface
             $salt = str_pad($salt, SODIUM_CRYPTO_PWHASH_SALTBYTES, $salt);
         }
 
-        return bin2hex(
-            sodium_crypto_pwhash(
-                SODIUM_CRYPTO_SIGN_SEEDBYTES,
-                $data,
-                $salt,
-                SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
-                SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE,
-                $this->hashVersionMap[self::HASH_VERSION_ARGON2ID13]
-            )
-        );
+        return bin2hex(sodium_crypto_pwhash(
+            SODIUM_CRYPTO_SIGN_SEEDBYTES,
+            $data,
+            $salt,
+            SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
+            SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE,
+            $this->hashVersionMap[self::HASH_VERSION_ARGON2ID13]
+        ));
     }
 }

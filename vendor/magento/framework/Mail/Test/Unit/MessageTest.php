@@ -5,40 +5,44 @@
  */
 namespace Magento\Framework\Mail\Test\Unit;
 
-/**
- * test Magento\Framework\Mail\Message
- */
 class MessageTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var \Magento\Framework\Mail\Message
+     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\Mail\Message
      */
-    protected $message;
+    protected $_messageMock;
 
     protected function setUp()
     {
-        $this->message = new \Magento\Framework\Mail\Message();
+        $this->_messageMock = $this->createPartialMock(
+            \Magento\Framework\Mail\Message::class,
+            ['setBody', 'setMessageType']
+        );
     }
 
     public function testSetBodyHtml()
     {
-        $this->message->setBodyHtml('body');
+        $this->_messageMock->expects($this->once())
+            ->method('setMessageType')
+            ->with('text/html');
 
-        $part = $this->message->getBody()->getParts()[0];
-        $this->assertEquals('text/html', $part->getType());
-        $this->assertEquals('quoted-printable', $part->getEncoding());
-        $this->assertEquals('utf-8', $part->getCharset());
-        $this->assertEquals('body', $part->getContent());
+        $this->_messageMock->expects($this->once())
+            ->method('setBody')
+            ->with('body');
+
+        $this->_messageMock->setBodyHtml('body');
     }
 
     public function testSetBodyText()
     {
-        $this->message->setBodyText('body');
+        $this->_messageMock->expects($this->once())
+            ->method('setMessageType')
+            ->with('text/plain');
 
-        $part = $this->message->getBody()->getParts()[0];
-        $this->assertEquals('text/plain', $part->getType());
-        $this->assertEquals('quoted-printable', $part->getEncoding());
-        $this->assertEquals('utf-8', $part->getCharset());
-        $this->assertEquals('body', $part->getContent());
+        $this->_messageMock->expects($this->once())
+            ->method('setBody')
+            ->with('body');
+
+        $this->_messageMock->setBodyText('body');
     }
 }

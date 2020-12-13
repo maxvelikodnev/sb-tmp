@@ -3,13 +3,8 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Framework\View\Test\Unit\TemplateEngine;
 
-/**
- * Test template engine that enables PHP templates to be used for rendering.
- */
 class PhpTest extends \PHPUnit\Framework\TestCase
 {
     const TEST_PROP_VALUE = 'TEST_PROP_VALUE';
@@ -60,7 +55,7 @@ class PhpTest extends \PHPUnit\Framework\TestCase
      * Test the render() function with a nonexistent filename.
      *
      * Expect an exception if the specified file does not exist.
-     * @expectedException PHPUnit\Framework\Exception
+     * @expectedException \Exception
      */
     public function testRenderException()
     {
@@ -71,7 +66,6 @@ class PhpTest extends \PHPUnit\Framework\TestCase
         )->disableOriginalConstructor()->getMock();
 
         $filename = 'This_is_not_a_file';
-
         $this->_phpEngine->render($blockMock, $filename);
     }
 

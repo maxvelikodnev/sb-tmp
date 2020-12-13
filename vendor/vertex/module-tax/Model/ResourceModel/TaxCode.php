@@ -8,7 +8,6 @@ namespace Vertex\Tax\Model\ResourceModel;
 
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Context;
-use Magento\Framework\DB\Adapter\AdapterInterface;
 use Vertex\Tax\Model\ExceptionLogger;
 
 /**
@@ -91,12 +90,7 @@ class TaxCode extends AbstractDb
         $connection->beginTransaction();
         try {
             $processed = array_map('array_pop', $insertData);
-            $connection->insertArray(
-                $this->getTable($this->table ?: self::TABLE),
-                [self::FIELD_ID, self::FIELD_TAX_CODE],
-                $processed,
-                AdapterInterface::INSERT_IGNORE
-            );
+            $connection->insertMultiple($this->getTable($this->table ?: self::TABLE), $processed);
             $connection->commit();
         } catch (\Exception $exception) {
             $this->logger->critical($exception);

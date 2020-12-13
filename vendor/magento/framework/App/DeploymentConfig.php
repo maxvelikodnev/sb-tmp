@@ -86,6 +86,7 @@ class DeploymentConfig
      */
     public function isAvailable()
     {
+        $this->data = null;
         $this->load();
         return isset($this->flatData[ConfigOptionsListConstants::CONFIG_PATH_INSTALL_DATE]);
     }
@@ -140,7 +141,7 @@ class DeploymentConfig
      */
     private function load()
     {
-        if (empty($this->data)) {
+        if (null === $this->data) {
             $this->data = $this->reader->load();
             if ($this->overrideData) {
                 $this->data = array_replace($this->data, $this->overrideData);
@@ -172,12 +173,10 @@ class DeploymentConfig
                 $newPath = $key;
             }
             if (isset($cache[$newPath])) {
-                //phpcs:ignore Magento2.Exceptions.DirectThrow
                 throw new \Exception("Key collision {$newPath} is already defined.");
             }
             $cache[$newPath] = $param;
             if (is_array($param)) {
-                //phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $cache = array_merge($cache, $this->flattenParams($param, $newPath));
             }
         }

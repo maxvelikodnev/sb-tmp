@@ -3,7 +3,6 @@
 namespace Dotdigitalgroup\Email\Model\Mail;
 
 use Dotdigitalgroup\Email\Helper\Transactional;
-use Dotdigitalgroup\Email\Logger\Logger;
 
 class SmtpTransportZend1
 {
@@ -18,24 +17,15 @@ class SmtpTransportZend1
     private $zendMailTransportSmtp1Factory;
 
     /**
-     * @var Logger
-     */
-    private $logger;
-
-    /**
-     * SmtpTransportZend1 constructor.
      * @param Transactional $transactionalEmailSettings
      * @param ZendMailTransportSmtp1Factory $zendMailTransportSmtp1Factory
-     * @param Logger $logger
      */
     public function __construct(
         Transactional $transactionalEmailSettings,
-        ZendMailTransportSmtp1Factory $zendMailTransportSmtp1Factory,
-        Logger $logger
+        ZendMailTransportSmtp1Factory $zendMailTransportSmtp1Factory
     ) {
         $this->transactionalEmailSettings = $transactionalEmailSettings;
         $this->zendMailTransportSmtp1Factory = $zendMailTransportSmtp1Factory;
-        $this->logger = $logger;
     }
 
     /**
@@ -47,13 +37,7 @@ class SmtpTransportZend1
      */
     public function send($message, $storeId)
     {
-        try {
-            $host = $this->transactionalEmailSettings->getSmtpHost($storeId);
-        } catch (\Exception $e) {
-            $this->logger->debug('Smtp Host is not defined', [$e]);
-            return;
-        }
-
+        $host = $this->transactionalEmailSettings->getSmtpHost($storeId);
         $config = $this->transactionalEmailSettings->getTransportConfig($storeId);
 
         $smtp = $this->zendMailTransportSmtp1Factory->create($host, $config);

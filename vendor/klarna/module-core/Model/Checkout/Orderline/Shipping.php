@@ -83,9 +83,9 @@ class Shipping extends AbstractLine
             }
         }
 
-        if (($object instanceof Invoice || $object instanceof Creditmemo) && !$object->getIsVirtual()) {
+        if ($object instanceof Invoice || $object instanceof Creditmemo) {
             $unitPrice = $object->getBaseShippingInclTax();
-            $taxRate   = $this->calculateShippingTax($checkout, $object->getStore());
+            $taxRate = $this->calculateShippingTax($checkout, $object->getStore());
             $taxAmount = $object->getShippingTaxAmount() + $object->getShippingHiddenTaxAmount();
 
             $checkout->addData(
@@ -94,8 +94,9 @@ class Shipping extends AbstractLine
                     'shipping_tax_rate'     => $this->helper->toApiFloat($taxRate),
                     'shipping_total_amount' => $this->helper->toApiFloat($unitPrice),
                     'shipping_tax_amount'   => $this->helper->toApiFloat($taxAmount),
-                    'shipping_title'        => __('Shipping & Handling')->getText(),
-                    'shipping_reference'    => $object->getOrder()->getShippingMethod()
+                    'shipping_title'        => 'Shipping',
+                    'shipping_reference'    => 'shipping'
+
                 ]
             );
         }
@@ -112,7 +113,9 @@ class Shipping extends AbstractLine
      */
     public function fetch(BuilderInterface $checkout)
     {
-        if ($checkout->getShippingReference()) {
+        $object = $checkout->getObject();
+        $totals = $object->getTotals();
+        if (isset($totals['shipping']) && !$object->isVirtual()) {
             $checkout->addOrderLine(
                 [
                     'type'             => self::ITEM_TYPE_SHIPPING,

@@ -1,13 +1,11 @@
 
 = Elasticsearch-PHP
 
-include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
-
 include::overview.asciidoc[]
 
-include::installation.asciidoc[]
-
 include::quickstart.asciidoc[]
+
+include::installation.asciidoc[]
 
 include::configuration.asciidoc[]
 
@@ -39,8 +37,4 @@ include::breaking-changes.asciidoc[]
 
 include::community.asciidoc[]
 
-include::experimental-beta-apis.asciidoc[]
-
 include::build/classes.asciidoc[]
-
-include::{asciidoc-dir}/../../shared/attributes.asciidoc[]

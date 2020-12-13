@@ -2,9 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Model\Email;
 
-use Dotdigitalgroup\Email\Model\Sync\SyncInterface;
-
-class Template extends \Magento\Framework\DataObject implements SyncInterface
+class Template extends \Magento\Framework\DataObject
 {
     /**
      * HTML template type.
@@ -12,9 +10,9 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
     const TEMPLATE_TYPE = 1;
 
     const XML_PATH_WISHLIST_EMAIL_EMAIL_TEMPLATE = 'wishlist/email/email_template';
-    const XML_PATH_DDG_TEMPLATE_NEW_ACCOUNT =
+    const XML_PATH_DDG_TEMPLATE_NEW_ACCCOUNT =
         'dotmailer_email_templates/email_templates/customer_create_account_email_template';
-    const XML_PATH_DDG_TEMPLATE_NEW_ACCOUNT_CONFIRMATION_KEY =
+    const XML_PATH_DDG_TEMPLATE_NEW_ACCCOUNT_CONFIRMATION_KEY =
         'dotmailer_email_templates/email_templates/customer_create_account_email_confirmation_template';
     const XML_PATH_DDG_TEMPLATE_NEW_ACCOUNT_CONFIRMATION =
         'dotmailer_email_templates/email_templates/customer_create_account_email_confirmed_template';
@@ -22,8 +20,6 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
         'dotmailer_email_templates/email_templates/customer_password_forgot_email_template';
     const XML_PATH_DDG_TEMPLATE_REMIND_PASSWORD =
         'dotmailer_email_templates/email_templates/customer_password_remind_email_template';
-    const XML_PATH_DDG_TEMPLATE_RESET_PASSWORD =
-        'dotmailer_email_templates/email_templates/customer_password_reset_password_template';
     const XML_PATH_DDG_TEMPLATE_WISHLIST_PRODUCT_SHARE =
         'dotmailer_email_templates/email_templates/wishlist_email_email_template';
     const XML_PATH_DDG_TEMPLATE_FORGOT_ADMIN_PASSWORD =
@@ -88,8 +84,6 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
             \Magento\Customer\Model\EmailNotification::XML_PATH_CONFIRM_EMAIL_TEMPLATE,
         'customer_password_forgot_email_template' =>
             \Magento\Customer\Model\EmailNotification::XML_PATH_FORGOT_EMAIL_TEMPLATE,
-        'customer_password_reset_password_template' =>
-            \Magento\Customer\Model\EmailNotification::XML_PATH_RESET_PASSWORD_TEMPLATE,
         'customer_password_remind_email_template' =>
             \Magento\Customer\Model\EmailNotification::XML_PATH_REMIND_EMAIL_TEMPLATE,
         'wishlist_email_email_template' => self::XML_PATH_WISHLIST_EMAIL_EMAIL_TEMPLATE,
@@ -140,18 +134,17 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
     ];
 
     /**
-     * Config path id to dotmailer config.
+     * Config path id to dotmialer config.
      *
      * @var array
      */
     public $templateConfigIdToDotmailerConfigPath = [
-        'customer_create_account_email_template' => self::XML_PATH_DDG_TEMPLATE_NEW_ACCOUNT,
+        'customer_create_account_email_template' => self::XML_PATH_DDG_TEMPLATE_NEW_ACCCOUNT,
         'customer_create_account_email_confirmation_template' =>
-            self::XML_PATH_DDG_TEMPLATE_NEW_ACCOUNT_CONFIRMATION_KEY,
+            self::XML_PATH_DDG_TEMPLATE_NEW_ACCCOUNT_CONFIRMATION_KEY,
         'customer_create_account_email_confirmed_template' => self::XML_PATH_DDG_TEMPLATE_NEW_ACCOUNT_CONFIRMATION,
         'customer_password_forgot_email_template' => self::XML_PATH_DDG_TEMPLATE_FORGOT_PASSWORD,
         'customer_password_remind_email_template' => self::XML_PATH_DDG_TEMPLATE_REMIND_PASSWORD,
-        'customer_password_reset_password_template' => self::XML_PATH_DDG_TEMPLATE_RESET_PASSWORD,
         'admin_emails_forgot_email_template' => self::XML_PATH_DDG_TEMPLATE_FORGOT_ADMIN_PASSWORD,
         'newsletter_subscription_success_email_template' => self::XML_PATH_DDG_TEMPLATE_SUBSCRIPTION_SUCCESS,
         'newsletter_subscription_confirm_email_template' => self::XML_PATH_DDG_TEMPLATE_SUBSCRIPTION_CONFIRMATION,
@@ -182,37 +175,37 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
     /**
      * @var \Magento\Email\Model\ResourceModel\Template\CollectionFactory
      */
-    private $templateCollectionFactory;
+    public $templateCollectionFactory;
 
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data
      */
-    private $helper;
+    public $helper;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
-    private $storeManager;
+    public $storeManager;
 
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
-    private $scopeConfig;
+    public $scopeConfig;
 
     /**
-     * @var \Magento\Email\Model\ResourceModel\Template
+     * @var \Magento\Email\Model\ResourceModel\TemplateFactory
      */
-    private $templateResource;
+    public $templateResource;
 
     /**
-     * @var \Magento\Email\Model\TemplateFactory
+     * @var \Magento\Email\Model\TempalteFactory
      */
-    private $templateFactory;
+    public $templateFactory;
 
     /**
      * @var array
      */
-    private $processedCampaigns = [];
+    public $proccessedCampaings = [];
 
     /**
      * Template constructor.
@@ -275,7 +268,7 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
      *
      * @return array
      */
-    public function sync(\DateTime $from = null)
+    public function sync()
     {
         $result = ['store' => 'Stores : ', 'message' => 'Done.'];
         $lastWebsiteId = '0';
@@ -288,7 +281,7 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
             //reset the campaign ids for each website
             $websiteId = $store->getWebsiteId();
             if ($websiteId != $lastWebsiteId) {
-                $this->processedCampaigns = [];
+                $this->proccessedCampaings = [];
                 $lastWebsiteId = $websiteId;
             }
 
@@ -297,12 +290,12 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
                 $configPath = $this->templateConfigMapping[$configTemplateId];
                 $emailTemplateId = $this->getConfigValue($configPath, $storeId);
 
-                if ($campaignId && $emailTemplateId && ! in_array($campaignId, $this->processedCampaigns)) {
+                if ($campaignId && $emailTemplateId && ! in_array($campaignId, $this->proccessedCampaings)) {
                     //sync template for store
                     $this->syncEmailTemplate($campaignId, $emailTemplateId, $store);
                     $result['store'] .= ', ' . $store->getCode();
 
-                    $this->processedCampaigns[$campaignId] = $campaignId;
+                    $this->proccessedCampaings[$campaignId] = $campaignId;
                 }
             }
         }
@@ -406,19 +399,6 @@ class Template extends \Magento\Framework\DataObject implements SyncInterface
         } catch (\Exception $e) {
             $this->helper->log($e->getMessage());
         }
-
-        return $template;
-    }
-
-    /**
-     * @param $templateId
-     *
-     * @return \Magento\Email\Model\Template
-     */
-    public function loadTemplate($templateId)
-    {
-        $template = $this->templateFactory->create();
-        $this->templateResource->load($template, $templateId);
 
         return $template;
     }

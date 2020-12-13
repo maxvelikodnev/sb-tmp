@@ -30,9 +30,10 @@ define(
 
         var isAmazonAccountLoggedIn = ko.observable(false),
             isAmazonEnabled = ko.observable(amazonPaymentConfig.getValue('isPwaEnabled')),
-            orderReferenceId = ko.observable(amazonPaymentConfig.getValue('orderReferenceId')),
             orderReference,
             addressConsentToken = amazonCore.accessToken,
+            //eslint-disable-next-line no-use-before-define
+            isAmazonDefined = amazonCore.amazonDefined.subscribe(checkAmazonDefined),
             //eslint-disable-next-line no-use-before-define
             amazonLoginError = amazonCore.amazonLoginError.subscribe(setAmazonLoggedOutIfLoginError),
             amazonDeclineCode = ko.observable(false),
@@ -47,25 +48,27 @@ define(
             isAmazonCartInValid = ko.computed(function () {
                 return isAmazonAccountLoggedIn() && isQuoteDirty();
             }),
-            isLoginRedirectPage = $('body').hasClass('amazon-login-login-processauthhash'),
-            amazonCustomerEmail = ko.computed(function () {
-                // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-                if (window.checkoutConfig.hasOwnProperty('amazonLogin') &&
-                    typeof window.checkoutConfig.amazonLogin.amazon_customer_email === 'string'
-                ) {
-                    return window.checkoutConfig.amazonLogin.amazon_customer_email;
-                }
-                // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-                return '';
-            });
+            isLoginRedirectPage = $('body').hasClass('amazon-login-login-processauthhash');
 
-
+        /**
+         * Subscribes to amazonDefined observable which runs when amazon object becomes available
+         * @param {String} amazonDefined
+         */
+        function checkAmazonDefined(amazonDefined) {
+            if (amazonDefined && !isLoginRedirectPage) {
+                verifyAmazonLoggedIn(); //eslint-disable-line no-use-before-define
+                //remove subscription to amazonDefined once loaded
+                isAmazonDefined.dispose();
+            }
+        }
 
         /**
          * Log out amazon user
          */
         function amazonLogOut() {
-            amazonCore.AmazonLogout();
+            if (amazonCore.amazonDefined()) {
+                amazonCore.AmazonLogout();
+            }
             this.isAmazonAccountLoggedIn(false);
         }
 
@@ -86,20 +89,24 @@ define(
             }
         });
 
-        verifyAmazonLoggedIn();
+        //run this on loading storage model. If not defined subscribe will trigger when true
+        checkAmazonDefined(amazonCore.amazonDefined());
         setAmazonLoggedOutIfLoginError(amazonCore.amazonLoginError());
 
         /**
          * Verifies amazon user is logged in
          */
         function verifyAmazonLoggedIn() {
-            isAmazonAccountLoggedIn(!!amazonCore.accessToken());
+            amazonCore.verifyAmazonLoggedIn().then(function (response) {
+                if (!amazonCore.amazonLoginError()) {
+                    isAmazonAccountLoggedIn(response);
+                }
+            });
         }
 
         return {
             isAmazonAccountLoggedIn: isAmazonAccountLoggedIn,
             isAmazonEnabled: isAmazonEnabled,
-            orderReferenceId: orderReferenceId,
             amazonDeclineCode: amazonDeclineCode,
             sandboxSimulationReference: sandboxSimulationReference,
             isPlaceOrderDisabled: isPlaceOrderDisabled,
@@ -108,8 +115,6 @@ define(
             isQuoteDirty: isQuoteDirty,
             isPwaVisible: isPwaVisible,
             amazonlogOut: amazonLogOut,
-            amazonDefined: amazonCore.amazonDefined,
-            amazonCustomerEmail: amazonCustomerEmail,
 
             /**
              * Set order reference
@@ -122,7 +127,7 @@ define(
              * Get order reference
              */
             getOrderReference: function () {
-                return this.orderReferenceId() || orderReference;
+                return orderReference;
             },
 
             /**

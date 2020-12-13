@@ -23,6 +23,11 @@ use Magento\Quote\Model\QuoteRepository as MageQuoteRepository;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderRepository as MageOrderRepository;
 
+/**
+ * Class AbstractCommand
+ *
+ * @package Klarna\Ordermanagement\Gateway\Command
+ */
 abstract class AbstractCommand extends DataObject implements CommandInterface
 {
     /**
@@ -66,6 +71,8 @@ abstract class AbstractCommand extends DataObject implements CommandInterface
     public $messageManager;
 
     /**
+     * AbstractCommand constructor.
+     *
      * @param KlarnaOrderRepository $klarnaOrderRepository
      * @param MageQuoteRepository   $mageQuoteRepository
      * @param MageOrderRepository   $mageOrderRepository

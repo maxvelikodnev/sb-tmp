@@ -4,7 +4,6 @@ namespace Dotdigitalgroup\Email\Controller\Customer;
 
 use Magento\Customer\Api\CustomerRepositoryInterface as CustomerRepository;
 use Magento\Newsletter\Model\Subscriber;
-use Dotdigitalgroup\Email\Model\Newsletter\CsvGenerator;
 
 class Newsletter extends \Magento\Framework\App\Action\Action
 {
@@ -44,11 +43,6 @@ class Newsletter extends \Magento\Framework\App\Action\Action
     protected $subscriberFactory;
 
     /**
-     * @var CsvGenerator
-     */
-    private $csvGenerator;
-
-    /**
      * Newsletter constructor.
      *
      * @param \Dotdigitalgroup\Email\Helper\Data                            $helper
@@ -59,7 +53,6 @@ class Newsletter extends \Magento\Framework\App\Action\Action
      * @param \Magento\Framework\Data\Form\FormKey\Validator                $formKeyValidator
      * @param CustomerRepository                                            $customerRepository
      * @param \Magento\Newsletter\Model\SubscriberFactory                   $subscriberFactory
-     * @param CsvGenerator                                                  $csvGenerator
      */
     public function __construct(
         \Dotdigitalgroup\Email\Helper\Data $helper,
@@ -69,8 +62,7 @@ class Newsletter extends \Magento\Framework\App\Action\Action
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator,
         CustomerRepository $customerRepository,
-        \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory,
-        CsvGenerator $csvGenerator
+        \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory
     ) {
         $this->helper           = $helper;
         $this->customerSession  = $session;
@@ -79,7 +71,6 @@ class Newsletter extends \Magento\Framework\App\Action\Action
         $this->formKeyValidator = $formKeyValidator;
         $this->customerRepository = $customerRepository;
         $this->subscriberFactory = $subscriberFactory;
-        $this->csvGenerator = $csvGenerator;
         parent::__construct($context);
     }
 
@@ -93,8 +84,7 @@ class Newsletter extends \Magento\Framework\App\Action\Action
         }
 
         $this->processGeneralSubscription();
-        $store = $this->customerSession->getCustomer()->getStore();
-        $website = $store->getWebsite();
+        $website = $this->customerSession->getCustomer()->getStore()->getWebsite();
 
         //if enabled
         if ($this->helper->isEnabled($website)) {
@@ -103,9 +93,8 @@ class Newsletter extends \Magento\Framework\App\Action\Action
             $contactId = $this->getContactId($contactFromTable);
 
             $client = $this->helper->getWebsiteApiClient($website);
-            $contact = isset($contactId)
-                ? $client->getContactById($contactId)
-                : $this->createContact($client, $customerEmail, $store, $contactFromTable);
+            $contact = isset($contactId) ? $client->getContactById($contactId) :
+                $this->createContact($client, $customerEmail, $website, $contactFromTable);
 
             if (isset($contact->id)) {
                 $additionalSubscriptionsSuccess = $this->processAdditionalSubscriptions(
@@ -130,7 +119,7 @@ class Newsletter extends \Magento\Framework\App\Action\Action
                     );
                 } else {
                     $this->messageManager->addSuccessMessage(
-                        __('Your subscription preferences have been saved.')
+                        __('The subscription preferences has been saved.')
                     );
                 }
             } else {
@@ -147,28 +136,30 @@ class Newsletter extends \Magento\Framework\App\Action\Action
     /**
      * @param $apiClient
      * @param string $customerEmail
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     * @param \Dotdigitalgroup\Email\Model\Contact $contactFromTable
+     * @param $website
+     * @param $contactFromTable
      *
      * @return object
      */
-    private function createContact($apiClient, $customerEmail, $store, $contactFromTable)
+    private function createContact($apiClient, $customerEmail, $website, $contactFromTable)
     {
         $consentModel = $this->consentFactory->create();
         $consentData = $consentModel->getFormattedConsentDataByContactForApi(
-            $store->getWebsiteId(),
+            $website->getId(),
             $customerEmail
         );
 
         if (empty(! $consentData)) {
+            $needToConfirm = $this->helper->getWebsiteConfig(
+                \Magento\Newsletter\Model\Subscriber::XML_PATH_CONFIRMATION_FLAG,
+                $website->getId()
+            );
+            $optInType = ($needToConfirm)? 'Double' : 'Single';
             $contactData = [
                 'Email' => $customerEmail,
-                'EmailType' => 'Html'
+                'EmailType' => 'Html',
+                'OptInType' => $optInType,
             ];
-            $optInType = $this->csvGenerator->isOptInTypeDouble($store);
-            if ($optInType) {
-                $contactData['OptInType'] = 'Double';
-            }
 
             $contact = $apiClient->postContactWithConsent(
                 $contactData,
@@ -270,11 +261,7 @@ class Newsletter extends \Magento\Framework\App\Action\Action
             $processedFields[$dataField->name] = $dataField->type;
         }
         foreach ($paramDataFields as $key => $value) {
-            /*
-             * Allow boolean "0" to pass (e.g. "No" for "Yes/No" select)
-             * as well as any other truthy $value
-             */
-            if (isset($processedFields[$key]) && ($value || $value === "0")) {
+            if (isset($processedFields[$key]) && $value) {
                 if ($processedFields[$key] == 'Numeric') {
                     $paramDataFields[$key] = (int)$value;
                 }
@@ -283,9 +270,6 @@ class Newsletter extends \Magento\Framework\App\Action\Action
                 }
                 if ($processedFields[$key] == 'Date') {
                     $paramDataFields[$key] = $this->localeDate->date($value)->format(\Zend_Date::ISO_8601);
-                }
-                if ($processedFields[$key] == 'Boolean') {
-                    $paramDataFields[$key] = (bool)$value;
                 }
                 $data[] = [
                     'Key' => $key,
@@ -402,7 +386,6 @@ class Newsletter extends \Magento\Framework\App\Action\Action
     private function getContactId($contactFromTable)
     {
         $contactId = null;
-
         if (!$this->customerSession->getConnectorContactId()) {
             $contactId = $this->customerSession->getConnectorContactId();
         } elseif ($contactFromTable->getContactId()) {
@@ -418,51 +401,39 @@ class Newsletter extends \Magento\Framework\App\Action\Action
     private function processGeneralSubscription()
     {
         $customerId = $this->customerSession->getCustomerId();
-        $message = null;
-        $isSuccess = true;
-
         if ($customerId === null) {
-            $isSuccess = false;
-            $message = __('Something went wrong while saving your subscription.');
+            $this->messageManager->addError(__('Something went wrong while saving your subscription.'));
         } else {
             try {
                 $customer = $this->customerRepository->getById($customerId);
                 $storeId = $this->helper->storeManager->getStore()->getId();
                 $customer->setStoreId($storeId);
-
                 $isSubscribedState = $customer->getExtensionAttributes()
                     ->getIsSubscribed();
-
-                $isSubscribedParam = (bool) $this->getRequest()->getParam('is_subscribed', false);
-
+                $isSubscribedParam = (boolean)$this->getRequest()
+                    ->getParam('is_subscribed', false);
                 if ($isSubscribedParam !== $isSubscribedState) {
                     $this->customerRepository->save($customer);
-                    $subscribeModel = $this->subscriberFactory->create();
-
                     if ($isSubscribedParam) {
-                        $subscribeModel->subscribeCustomerById($customerId);
+                        $subscribeModel = $this->subscriberFactory->create()
+                            ->subscribeCustomerById($customerId);
                         $subscribeStatus = $subscribeModel->getStatus();
-
-                        $message = $subscribeStatus == Subscriber::STATUS_SUBSCRIBED
-                            ? __('We have saved your subscription.')
-                            : __('A confirmation request has been sent.');
+                        if ($subscribeStatus == Subscriber::STATUS_SUBSCRIBED) {
+                            $this->messageManager->addSuccess(__('We have saved your subscription.'));
+                        } else {
+                            $this->messageManager->addSuccess(__('A confirmation request has been sent.'));
+                        }
                     } else {
-                        $subscribeModel->unsubscribeCustomerById($customerId);
-                        $message = __('We have removed your newsletter subscription.');
+                        $this->subscriberFactory->create()
+                            ->unsubscribeCustomerById($customerId);
+                        $this->messageManager->addSuccess(__('We have removed your newsletter subscription.'));
                     }
                 } else {
-                    $message = __('We have updated your subscription.');
+                    $this->messageManager->addSuccess(__('We have updated your subscription.'));
                 }
             } catch (\Exception $e) {
-                $isSuccess = false;
-                $message = __('Something went wrong while saving your subscription.');
+                $this->messageManager->addError(__('Something went wrong while saving your subscription.'));
             }
-        }
-
-        if ($isSuccess) {
-            $this->messageManager->addSuccessMessage($message);
-        } else {
-            $this->messageManager->addErrorMessage($message);
         }
     }
 }

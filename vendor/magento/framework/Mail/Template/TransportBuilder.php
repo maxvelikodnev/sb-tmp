@@ -5,29 +5,19 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Framework\Mail\Template;
 
 use Magento\Framework\App\TemplateTypesInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\MailException;
-use Magento\Framework\Mail\AddressConverter;
-use Magento\Framework\Mail\EmailMessageInterfaceFactory;
-use Magento\Framework\Mail\Exception\InvalidArgumentException;
 use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Mail\MessageInterfaceFactory;
-use Magento\Framework\Mail\MimeInterface;
-use Magento\Framework\Mail\MimeMessageInterfaceFactory;
-use Magento\Framework\Mail\MimePartInterfaceFactory;
-use Magento\Framework\Mail\TemplateInterface;
-use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Mail\TransportInterfaceFactory;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Phrase;
 
 /**
- * TransportBuilder for Mail Templates
+ * TransportBuilder
  *
  * @api
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -66,7 +56,7 @@ class TransportBuilder
     /**
      * Mail Transport
      *
-     * @var TransportInterface
+     * @var \Magento\Framework\Mail\TransportInterface
      */
     protected $transport;
 
@@ -80,71 +70,43 @@ class TransportBuilder
     /**
      * Object Manager
      *
-     * @var ObjectManagerInterface
+     * @var \Magento\Framework\ObjectManagerInterface
      */
     protected $objectManager;
 
     /**
      * Message
      *
-     * @var MessageInterface
+     * @var \Magento\Framework\Mail\Message
      */
     protected $message;
 
     /**
      * Sender resolver
      *
-     * @var SenderResolverInterface
+     * @var \Magento\Framework\Mail\Template\SenderResolverInterface
      */
     protected $_senderResolver;
 
     /**
-     * @var TransportInterfaceFactory
+     * @var \Magento\Framework\Mail\TransportInterfaceFactory
      */
     protected $mailTransportFactory;
 
     /**
-     * Param that used for storing all message data until it will be used
-     *
-     * @var array
+     * @var \Magento\Framework\Mail\MessageInterfaceFactory
      */
-    private $messageData = [];
+    private $messageFactory;
 
     /**
-     * @var EmailMessageInterfaceFactory
-     */
-    private $emailMessageInterfaceFactory;
-
-    /**
-     * @var MimeMessageInterfaceFactory
-     */
-    private $mimeMessageInterfaceFactory;
-
-    /**
-     * @var MimePartInterfaceFactory
-     */
-    private $mimePartInterfaceFactory;
-
-    /**
-     * @var AddressConverter|null
-     */
-    private $addressConverter;
-
-    /**
-     * TransportBuilder constructor
-     *
      * @param FactoryInterface $templateFactory
      * @param MessageInterface $message
      * @param SenderResolverInterface $senderResolver
      * @param ObjectManagerInterface $objectManager
      * @param TransportInterfaceFactory $mailTransportFactory
-     * @param MessageInterfaceFactory|null $messageFactory
-     * @param EmailMessageInterfaceFactory|null $emailMessageInterfaceFactory
-     * @param MimeMessageInterfaceFactory|null $mimeMessageInterfaceFactory
-     * @param MimePartInterfaceFactory|null $mimePartInterfaceFactory
-     * @param addressConverter|null $addressConverter
+     * @param MessageInterfaceFactory $messageFactory
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         FactoryInterface $templateFactory,
@@ -152,24 +114,14 @@ class TransportBuilder
         SenderResolverInterface $senderResolver,
         ObjectManagerInterface $objectManager,
         TransportInterfaceFactory $mailTransportFactory,
-        MessageInterfaceFactory $messageFactory = null,
-        EmailMessageInterfaceFactory $emailMessageInterfaceFactory = null,
-        MimeMessageInterfaceFactory $mimeMessageInterfaceFactory = null,
-        MimePartInterfaceFactory $mimePartInterfaceFactory = null,
-        AddressConverter $addressConverter = null
+        MessageInterfaceFactory $messageFactory = null
     ) {
         $this->templateFactory = $templateFactory;
         $this->objectManager = $objectManager;
         $this->_senderResolver = $senderResolver;
         $this->mailTransportFactory = $mailTransportFactory;
-        $this->emailMessageInterfaceFactory = $emailMessageInterfaceFactory ?: $this->objectManager
-            ->get(EmailMessageInterfaceFactory::class);
-        $this->mimeMessageInterfaceFactory = $mimeMessageInterfaceFactory ?: $this->objectManager
-            ->get(MimeMessageInterfaceFactory::class);
-        $this->mimePartInterfaceFactory = $mimePartInterfaceFactory ?: $this->objectManager
-            ->get(MimePartInterfaceFactory::class);
-        $this->addressConverter = $addressConverter ?: $this->objectManager
-            ->get(AddressConverter::class);
+        $this->messageFactory = $messageFactory ?: $this->objectManager->get(MessageInterfaceFactory::class);
+        $this->message = $this->messageFactory->create();
     }
 
     /**
@@ -177,13 +129,11 @@ class TransportBuilder
      *
      * @param array|string $address
      * @param string $name
-     *
      * @return $this
      */
     public function addCc($address, $name = '')
     {
-        $this->addAddressByType('cc', $address, $name);
-
+        $this->message->addCc($address, $name);
         return $this;
     }
 
@@ -192,14 +142,11 @@ class TransportBuilder
      *
      * @param array|string $address
      * @param string $name
-     *
      * @return $this
-     * @throws InvalidArgumentException
      */
     public function addTo($address, $name = '')
     {
-        $this->addAddressByType('to', $address, $name);
-
+        $this->message->addTo($address, $name);
         return $this;
     }
 
@@ -207,14 +154,11 @@ class TransportBuilder
      * Add bcc address
      *
      * @param array|string $address
-     *
      * @return $this
-     * @throws InvalidArgumentException
      */
     public function addBcc($address)
     {
-        $this->addAddressByType('bcc', $address);
-
+        $this->message->addBcc($address);
         return $this;
     }
 
@@ -223,32 +167,28 @@ class TransportBuilder
      *
      * @param string $email
      * @param string|null $name
-     *
      * @return $this
-     * @throws InvalidArgumentException
      */
     public function setReplyTo($email, $name = null)
     {
-        $this->addAddressByType('replyTo', $email, $name);
-
+        $this->message->setReplyTo($email, $name);
         return $this;
     }
 
     /**
      * Set mail from address
      *
-     * @param string|array $from
-     *
-     * @return $this
-     * @throws InvalidArgumentException
-     * @see setFromByScope()
-     *
      * @deprecated 102.0.1 This function sets the from address but does not provide
      * a way of setting the correct from addresses based on the scope.
+     * @see setFromByScope()
+     *
+     * @param string|array $from
+     * @return $this
+     * @throws \Magento\Framework\Exception\MailException
      */
     public function setFrom($from)
     {
-        return $this->setFromByScope($from);
+        return $this->setFromByScope($from, null);
     }
 
     /**
@@ -256,17 +196,14 @@ class TransportBuilder
      *
      * @param string|array $from
      * @param string|int $scopeId
-     *
      * @return $this
-     * @throws InvalidArgumentException
-     * @throws MailException
+     * @throws \Magento\Framework\Exception\MailException
      * @since 102.0.1
      */
     public function setFromByScope($from, $scopeId = null)
     {
         $result = $this->_senderResolver->resolve($from, $scopeId);
-        $this->addAddressByType('from', $result['email'], $result['name']);
-
+        $this->message->setFromAddress($result['email'], $result['name']);
         return $this;
     }
 
@@ -274,13 +211,11 @@ class TransportBuilder
      * Set template identifier
      *
      * @param string $templateIdentifier
-     *
      * @return $this
      */
     public function setTemplateIdentifier($templateIdentifier)
     {
         $this->templateIdentifier = $templateIdentifier;
-
         return $this;
     }
 
@@ -288,7 +223,6 @@ class TransportBuilder
      * Set template model
      *
      * @param string $templateModel
-     *
      * @return $this
      */
     public function setTemplateModel($templateModel)
@@ -301,13 +235,11 @@ class TransportBuilder
      * Set template vars
      *
      * @param array $templateVars
-     *
      * @return $this
      */
     public function setTemplateVars($templateVars)
     {
         $this->templateVars = $templateVars;
-
         return $this;
     }
 
@@ -320,24 +252,20 @@ class TransportBuilder
     public function setTemplateOptions($templateOptions)
     {
         $this->templateOptions = $templateOptions;
-
         return $this;
     }
 
     /**
      * Get mail transport
      *
-     * @return TransportInterface
+     * @return \Magento\Framework\Mail\TransportInterface
      * @throws LocalizedException
      */
     public function getTransport()
     {
-        try {
-            $this->prepareMessage();
-            $mailTransport = $this->mailTransportFactory->create(['message' => clone $this->message]);
-        } finally {
-            $this->reset();
-        }
+        $this->prepareMessage();
+        $mailTransport = $this->mailTransportFactory->create(['message' => clone $this->message]);
+        $this->reset();
 
         return $mailTransport;
     }
@@ -349,7 +277,7 @@ class TransportBuilder
      */
     protected function reset()
     {
-        $this->messageData = [];
+        $this->message = $this->messageFactory->create();
         $this->templateIdentifier = null;
         $this->templateVars = null;
         $this->templateOptions = null;
@@ -359,7 +287,7 @@ class TransportBuilder
     /**
      * Get template
      *
-     * @return TemplateInterface
+     * @return \Magento\Framework\Mail\TemplateInterface
      */
     protected function getTemplate()
     {
@@ -377,15 +305,14 @@ class TransportBuilder
     protected function prepareMessage()
     {
         $template = $this->getTemplate();
-        $content = $template->processTemplate();
-
+        $body = $template->processTemplate();
         switch ($template->getType()) {
             case TemplateTypesInterface::TYPE_TEXT:
-                $partType = MimeInterface::TYPE_TEXT;
+                $this->message->setBodyText($body);
                 break;
 
             case TemplateTypesInterface::TYPE_HTML:
-                $partType = MimeInterface::TYPE_HTML;
+                $this->message->setBodyHtml($body);
                 break;
 
             default:
@@ -393,53 +320,7 @@ class TransportBuilder
                     new Phrase('Unknown template type')
                 );
         }
-
-        /** @var \Magento\Framework\Mail\MimePartInterface $mimePart */
-        $mimePart = $this->mimePartInterfaceFactory->create(
-            [
-                'content' => $content,
-                'type' => $partType
-            ]
-        );
-        $this->messageData['encoding'] = $mimePart->getCharset();
-        $this->messageData['body'] = $this->mimeMessageInterfaceFactory->create(
-            ['parts' => [$mimePart]]
-        );
-
-        $this->messageData['subject'] = html_entity_decode(
-            (string)$template->getSubject(),
-            ENT_QUOTES
-        );
-
-        $this->message = $this->emailMessageInterfaceFactory->create($this->messageData);
-
+        $this->message->setSubject(html_entity_decode($template->getSubject(), ENT_QUOTES));
         return $this;
-    }
-
-    /**
-     * Handles possible incoming types of email (string or array)
-     *
-     * @param string $addressType
-     * @param string|array $email
-     * @param string|null $name
-     *
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    private function addAddressByType(string $addressType, $email, ?string $name = null): void
-    {
-        if (is_string($email)) {
-            $this->messageData[$addressType][] = $this->addressConverter->convert($email, $name);
-            return;
-        }
-        $convertedAddressArray = $this->addressConverter->convertMany($email);
-        if (isset($this->messageData[$addressType])) {
-            $this->messageData[$addressType] = array_merge(
-                $this->messageData[$addressType],
-                $convertedAddressArray
-            );
-        } else {
-            $this->messageData[$addressType] = $convertedAddressArray;
-        }
     }
 }

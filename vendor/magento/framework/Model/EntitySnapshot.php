@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Framework\Model;
 
@@ -45,8 +44,6 @@ class EntitySnapshot
     }
 
     /**
-     * Register snapshot of entity data.
-     *
      * @param string $entityType
      * @param object $entity
      * @return void
@@ -58,7 +55,7 @@ class EntitySnapshot
         $entityData = $hydrator->extract($entity);
         $attributes = $this->attributeProvider->getAttributes($entityType);
         $this->snapshotData[$entityType][$entityData[$metadata->getIdentifierField()]]
-            = array_intersect(\array_keys($entityData), $attributes);
+            = array_intersect_key($entityData, $attributes);
     }
 
     /**

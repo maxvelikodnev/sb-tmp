@@ -24,11 +24,11 @@ class Importersync extends \Magento\Backend\App\AbstractAction
     /**
      * Importersync constructor.
      *
-     * @param \Dotdigitalgroup\Email\Model\Sync\ImporterFactory $importerFactory
-     * @param \Magento\Backend\App\Action\Context $context
+     * @param \Dotdigitalgroup\Email\Model\ImporterFactory $importerFactory
+     * @param \Magento\Backend\App\Action\Context          $context
      */
     public function __construct(
-        \Dotdigitalgroup\Email\Model\Sync\ImporterFactory $importerFactory,
+        \Dotdigitalgroup\Email\Model\ImporterFactory $importerFactory,
         \Magento\Backend\App\Action\Context $context
     ) {
         $this->importerFactory = $importerFactory;
@@ -44,8 +44,9 @@ class Importersync extends \Magento\Backend\App\AbstractAction
      */
     public function execute()
     {
-        $this->importerFactory->create()
-            ->sync();
+        /** @var \Dotdigitalgroup\Email\Model\Importer $importer */
+        $importer = $this->importerFactory->create();
+        $importer->processQueue();
 
         $this->messageManager->addSuccessMessage('Done.');
 

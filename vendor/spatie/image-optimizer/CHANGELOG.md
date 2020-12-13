@@ -2,35 +2,6 @@
 
 All notable changes to `image-optimizer` will be documented in this file
 
-## 1.3.1 - 2020-10-20
-
-- fix empty string setBinaryPath() (#129)
-
-## 1.3.0 - 2020-10-10
-
-- add support for php 8.0
-
-## 1.2.1 - 2019-11-23
-
-- allow symfony 5 components
-
-## 1.2.0 - 2019-08-28
-
-- add support for webp
-
-## 1.1.6 - 2019-08-26
-
-- do not export docs directory
-
-## 1.1.5 - 2019-01-15
-
-- fix for svg's
-- make compatible with PHPUnit 8
-
-## 1.1.4 - 2019-01-14
-
-- fix deprecation warning for passing strings to processes
-
 ## 1.1.3 - 2018-11-19
 
 - require the fileinfo extension

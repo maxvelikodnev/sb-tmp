@@ -17,7 +17,6 @@
  * @copyright  Copyright (c) 2017 Skeeller srl (http://www.magespecialist.it)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-declare(strict_types=1);
 
 namespace MSP\ReCaptcha\Setup;
 
@@ -49,7 +48,7 @@ class UpgradeData implements UpgradeDataInterface
      * @param string $srcPath
      * @param string $dstPath
      */
-    private function moveConfig(ModuleDataSetupInterface $setup, $srcPath, $dstPath): void
+    private function moveConfig(ModuleDataSetupInterface $setup, $srcPath, $dstPath)
     {
         $value = $this->scopeConfig->getValue($srcPath);
 
@@ -60,15 +59,11 @@ class UpgradeData implements UpgradeDataInterface
         } else {
             $connection = $setup->getConnection();
             $configData = $setup->getTable('core_config_data');
-            $connection->update($configData, ['path' => $dstPath], 'path=' . $connection->quote($srcPath));
+            $connection->update($configData, ['path' => $dstPath], 'path='.$connection->quote($srcPath));
         }
     }
 
-    /**
-     * Upgrade to 1.1.0
-     * @param ModuleDataSetupInterface $setup
-     */
-    private function upgradeTo010100(ModuleDataSetupInterface $setup): void
+    private function upgradeTo010100(ModuleDataSetupInterface $setup)
     {
         $this->moveConfig(
             $setup,
@@ -77,11 +72,7 @@ class UpgradeData implements UpgradeDataInterface
         );
     }
 
-    /**
-     * Upgrade to 1.2.0
-     * @param ModuleDataSetupInterface $setup
-     */
-    private function upgradeTo010200(ModuleDataSetupInterface $setup): void
+    private function upgradeTo010101(ModuleDataSetupInterface $setup)
     {
         $this->moveConfig(
             $setup,
@@ -96,20 +87,11 @@ class UpgradeData implements UpgradeDataInterface
     }
 
     /**
-     * Upgrade to 1.6.0
+     * Upgrades data for a module
+     *
      * @param ModuleDataSetupInterface $setup
-     */
-    private function upgradeTo010600(ModuleDataSetupInterface $setup): void
-    {
-        $this->moveConfig(
-            $setup,
-            'msp_securitysuite_recaptcha/frontend/type',
-            'msp_securitysuite_recaptcha/general/type'
-        );
-    }
-
-    /**
-     * @inheritDoc
+     * @param ModuleContextInterface $context
+     * @return void
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
@@ -120,11 +102,7 @@ class UpgradeData implements UpgradeDataInterface
         }
 
         if (version_compare($context->getVersion(), '1.2.0') < 0) {
-            $this->upgradeTo010200($setup);
-        }
-
-        if (version_compare($context->getVersion(), '1.6.0') < 0) {
-            $this->upgradeTo010600($setup);
+            $this->upgradeTo010101($setup);
         }
 
         $setup->endSetup();

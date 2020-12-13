@@ -8,8 +8,7 @@ define([
     return Component.extend({
         defaults: {
             template: 'Amazon_Payment/shipping-address/inline-form',
-            formSelector: 'co-shipping-form',
-            accountFormSelector: 'customer-email-fieldset'
+            formSelector: 'co-shipping-form'
         },
 
         /**
@@ -32,14 +31,10 @@ define([
          * Show/hide inline form
          */
         hideInlineForm: function(hide) {
-            var shippingForm = document.getElementById(this.formSelector);
-            var accountForm = document.getElementById(this.accountFormSelector);
+            let elem = document.getElementById(this.formSelector);
 
-            if (shippingForm) {
-                shippingForm.style.display = hide ? 'none' : 'block';
-            }
-            if (accountForm) {
-                accountForm.parentElement.style.display = hide ? 'none' : 'block';
+            if (elem) {
+                document.getElementById(this.formSelector).style.display = hide ? 'none' : 'block';
             }
         }
     });

@@ -4,11 +4,12 @@
  * See COPYING.txt for license details.
  */
 
+/**
+ * System cache model
+ * support id and tags prefix support,
+ */
 namespace Magento\Framework\App;
 
-/**
- * System cache model support id and tags prefix support.
- */
 class Cache implements CacheInterface
 {
     /**
@@ -29,13 +30,12 @@ class Cache implements CacheInterface
     protected $_frontend;
 
     /**
-     * @param Cache\Frontend\Pool $frontendPool
-     * @param string|null $cacheIdentifier
+     * @param \Magento\Framework\App\Cache\Frontend\Pool $frontendPool
      */
-    public function __construct(\Magento\Framework\App\Cache\Frontend\Pool $frontendPool, $cacheIdentifier = null)
+    public function __construct(\Magento\Framework\App\Cache\Frontend\Pool $frontendPool)
     {
         $this->_frontendPool = $frontendPool;
-        $this->_frontend = $frontendPool->get($cacheIdentifier ?? $this->_frontendIdentifier);
+        $this->_frontend = $frontendPool->get($this->_frontendIdentifier);
     }
 
     /**

@@ -10,80 +10,85 @@
 
 namespace Klarna\Kp\Api\Data;
 
+/**
+ * Interface AddressInterface
+ *
+ * @package Klarna\Kp\Api\Data
+ */
 interface AddressInterface extends ApiObjectInterface
 {
     /**
-     * Set title. Possible values Mr or Mrs
+     * Title. Possible values Mr or Mrs
      *
      * @param string $title
      */
     public function setTitle($title);
 
     /**
-     * Set given name. [REQUIRED field]
+     * Given name. [REQUIRED field]
      *
-     * @param string $givenName
+     * @param string $given_name
      */
-    public function setGivenName($givenName);
+    public function setGivenName($given_name);
 
     /**
-     * Set family name. [REQUIRED field]
+     * Family name. [REQUIRED field]
      *
-     * @param string $familyName
+     * @param string $family_name
      */
-    public function setFamilyName($familyName);
+    public function setFamilyName($family_name);
 
     /**
-     * Set e-mail address. [REQUIRED field]
+     * E+mail address. [REQUIRED field]
      *
      * @param string $email
      */
     public function setEmail($email);
 
     /**
-     * Set phone number.
+     * Phone number.
      *
      * @param string $phone
      */
     public function setPhone($phone);
 
     /**
-     * Set street address, first line. [REQUIRED field]
+     * Street address, first line. [REQUIRED field]
      *
-     * @param string $streetAddress
+     * @param string $street_address
      */
-    public function setStreetAddress($streetAddress);
+    public function setStreetAddress($street_address);
 
     /**
-     * Set street address, second line.
+     * Street address, second line.
      *
-     * @param string $streetAddress
+     * @param string $street_address
      */
-    public function setStreetAddress2($streetAddress);
+    public function setStreetAddress2($street_address);
 
     /**
-     * Set city. [REQUIRED field]
+     * City. [REQUIRED field]
      *
      * @param string $city
      */
     public function setCity($city);
 
     /**
-     * Set region
+     * Region
      *
      * @param string $region
      */
     public function setRegion($region);
 
     /**
-     * Set postal/post code. [REQUIRED field]
+     * Postal/post code. [REQUIRED field]
      *
-     * @param string $postalCode
+     * @param string $postal_code
      */
-    public function setPostalCode($postalCode);
+    public function setPostalCode($postal_code);
 
     /**
-     * Set country(ISO 3166 alpha+2). [REQUIRED field]
+     * ISO 3166 alpha+2: Country. [REQUIRED field]
      *
      * @param string $country
      */

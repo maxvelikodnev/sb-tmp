@@ -35,12 +35,6 @@ define([
         initialize: function () {
 
             self = this;
-            amazonStorage.isAmazonAccountLoggedIn.subscribe(function (value) {
-                if (!value) {
-                    this._reloadPaymentMethods();
-                }
-            }, this);
-
             this._hidePaymentMethodsOnLoad(); //hide methods on load
 
             //subscribe to payment methods to remove other payment methods from render list

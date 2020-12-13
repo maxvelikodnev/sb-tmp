@@ -13,7 +13,7 @@ class Imported implements \Magento\Framework\Data\OptionSourceInterface
     {
         return [
             [
-                'value' => '0',
+                'value' => 'null',
                 'label' => 'Not Imported',
 
             ],

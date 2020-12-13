@@ -16,6 +16,11 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * Class ConfigPlugin
+ *
+ * @package Klarna\Kp\Plugin\Model
+ */
 class ConfigPlugin
 {
     /**
@@ -24,6 +29,8 @@ class ConfigPlugin
     private $config;
 
     /**
+     * ConfigPlugin constructor.
+     *
      * @param ScopeConfigInterface $config
      */
     public function __construct(ScopeConfigInterface $config)

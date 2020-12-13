@@ -2,8 +2,6 @@
 
 namespace Dotdigitalgroup\Email\Model\Connector;
 
-use Dotdigitalgroup\Email\Model\Product\AttributeFactory;
-
 /**
  * Transactional data for orders, including mapped custom order attributes to sync.
  *
@@ -113,11 +111,6 @@ class Order
     public $helper;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    private $storeManager;
-
-    /**
      * @var \Magento\Customer\Model\CustomerFactory
      */
     public $customerFactory;
@@ -128,39 +121,58 @@ class Order
     public $productFactory;
 
     /**
-     * @var KeyValidator
+     * @var \Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory
      */
-    private $validator;
+    public $attributeCollection;
 
     /**
-     * @var AttributeFactory $attributeHandler
+     * @var \Magento\Eav\Model\Entity\Attribute\SetFactory
      */
-    private $attributeHandler;
+    public $setFactory;
+
+    /**
+     * @var \Magento\Catalog\Model\ResourceModel\Product
+     */
+    private $productResource;
+
+    /**
+     * @var \Magento\Framework\Stdlib\StringUtils
+     */
+    private $stringUtils;
 
     /**
      * Order constructor.
      *
+     * @param \Magento\Eav\Model\Entity\Attribute\SetFactory $setFactory
+     * @param \Magento\Eav\Api\AttributeSetRepositoryInterface $attributeSet
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory $attributeCollection
      * @param \Magento\Catalog\Model\ProductFactory $productFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product $productResource
      * @param \Magento\Customer\Model\CustomerFactory $customerFactory
      * @param \Dotdigitalgroup\Email\Helper\Data $helperData
      * @param \Magento\Store\Model\StoreManagerInterface $storeManagerInterface
-     * @param KeyValidator $validator
-     * @param AttributeFactory $attributeHandler
+     * @param \Magento\Framework\Stdlib\StringUtils $stringUtils
      */
     public function __construct(
+        \Magento\Eav\Model\Entity\Attribute\SetFactory $setFactory,
+        \Magento\Eav\Api\AttributeSetRepositoryInterface $attributeSet,
+        \Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory $attributeCollection,
         \Magento\Catalog\Model\ProductFactory $productFactory,
+        \Magento\Catalog\Model\ResourceModel\Product $productResource,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
         \Dotdigitalgroup\Email\Helper\Data $helperData,
         \Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
-        KeyValidator $validator,
-        AttributeFactory $attributeHandler
+        \Magento\Framework\Stdlib\StringUtils $stringUtils
     ) {
+        $this->attributeSet        = $attributeSet;
+        $this->setFactory          = $setFactory;
+        $this->attributeCollection = $attributeCollection;
         $this->productFactory      = $productFactory;
         $this->customerFactory     = $customerFactory;
         $this->helper              = $helperData;
-        $this->storeManager = $storeManagerInterface;
-        $this->validator = $validator;
-        $this->attributeHandler = $attributeHandler;
+        $this->productResource     = $productResource;
+        $this->_storeManager       = $storeManagerInterface;
+        $this->stringUtils         = $stringUtils;
     }
 
     /**
@@ -175,7 +187,7 @@ class Order
         $this->id = $orderData->getIncrementId();
         $this->email = $orderData->getCustomerEmail();
         $this->quoteId = $orderData->getQuoteId();
-        $this->storeName = $this->storeManager->getStore($orderData->getStoreId())->getName();
+        $this->storeName = $orderData->getStoreName();
         $this->purchaseDate = $orderData->getCreatedAt();
         $this->deliveryMethod = $orderData->getShippingDescription();
         $this->deliveryTotal = (float)number_format(
@@ -201,7 +213,7 @@ class Order
         /*
          * custom order attributes
          */
-        $website = $this->storeManager->getStore($orderData->getStore())->getWebsite();
+        $website = $this->_storeManager->getStore($orderData->getStore())->getWebsite();
 
         $customAttributes
             = $this->helper->getConfigSelectedCustomOrderAttributes(
@@ -263,7 +275,7 @@ class Order
         $this->orderTotal = (float)number_format($orderTotal, 2, '.', '');
         $this->orderStatus = $orderData->getStatus();
 
-        unset($this->storeManager);
+        unset($this->_storeManager);
 
         return $this;
     }
@@ -330,100 +342,71 @@ class Order
     private function processOrderItems($orderData, $syncCustomOption)
     {
         foreach ($orderData->getAllItems() as $productItem) {
-            if ($productItem->getProduct() === null) {
-                continue;
-            }
-            if (in_array($productItem->getProduct()->getTypeId(), ['configurable', 'bundle'])) {
-                // We store data for configurable and bundle products, to be output alongside their children
-                unset($parentProductModel, $parentLineItem);
-                $parentProductModel = $productItem->getProduct();
-                $parentLineItem = $productItem;
-
-                // Custom options stored against parent order items
-                $customOptions = ($syncCustomOption) ? $this->_getOrderItemOptions($productItem) : [];
-
-                continue;
+            //product custom options
+            $customOptions = [];
+            if ($syncCustomOption) {
+                $customOptions = $this->_getOrderItemOptions($productItem);
             }
 
-            if (empty($customOptions)) {
-                $customOptions = ($syncCustomOption) ? $this->_getOrderItemOptions($productItem) : [];
-            }
-
-            if (isset($parentProductModel) &&
-                isset($parentLineItem) &&
-                $parentLineItem->getId() === $productItem->getParentItemId()) {
-                $productModel = $parentProductModel;
-                $childProductModel = $productItem->getProduct();
-            } else {
-                $productModel = $productItem->getProduct();
-                $childProductModel = null;
-            }
-
-            /**
-             * Price
-             */
-            if (isset($parentLineItem) && $parentLineItem->getProduct()->getTypeId() === 'configurable') {
-                $price = $parentLineItem->getPrice();
-            } else {
-                $price = $productItem->getPrice();
-            }
+            $productModel = $productItem->getProduct();
 
             if ($productModel) {
-                /**
-                 * Categories
-                 */
+                // category names
                 $categoryCollection = $productModel->getCategoryCollection()
                     ->addAttributeToSelect('name');
                 $productCat = [];
                 foreach ($categoryCollection as $cat) {
                     $categories = [];
                     $categories[] = $cat->getName();
-                    $productCat[]['Name'] = mb_substr(
-                        implode(', ', $categories),
-                        0,
-                        \Dotdigitalgroup\Email\Helper\Data::DM_FIELD_LIMIT
+                    $productCat[]['Name'] = $this->limitLength(
+                        implode(', ', $categories)
                     );
                 }
 
-                /**
-                 * Product attributes
-                 */
-                $configAttributes = $this->getProductAttributesToSync($orderData->getStore()->getWebsite());
+                $attributes = [];
+                //selected attributes from config
+                $configAttributes = $this->helper->getWebsiteConfig(
+                    \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_SYNC_ORDER_PRODUCT_ATTRIBUTES,
+                    $orderData->getStore()->getWebsite()
+                );
 
-                $attributeSetName = $this->attributeHandler->create()
-                    ->getAttributeSetName($productModel);
+                if ($configAttributes) {
+                    $configAttributes = explode(',', $configAttributes);
+                    //attributes from attribute set
+                    $attributesFromAttributeSet = $this->_getAttributesArray(
+                        $productModel->getAttributeSetId()
+                    );
 
-                $attributes = $this->processProductAttributes($configAttributes, $productModel);
-                $childAttributes = $this->processProductAttributes($configAttributes, $childProductModel);
+                    $attributes = $this->processConfigAttributes(
+                        $configAttributes,
+                        $attributesFromAttributeSet,
+                        $productModel,
+                        $attributes
+                    );
+                }
 
-                /**
-                 * Output
-                 */
+                $attributeSetName = $this->getAttributeSetName($productModel);
+
                 $productData = [
                     'name' => $productItem->getName(),
-                    'parent_name' => $productModel->getName(),
                     'sku' => $productItem->getSku(),
                     'qty' => (int)number_format(
                         $productItem->getData('qty_ordered'),
                         2
                     ),
                     'price' => (float)number_format(
-                        $price,
+                        $productItem->getPrice(),
                         2,
                         '.',
                         ''
                     ),
                     'attribute-set' => $attributeSetName,
-                    'categories' => $productCat
+                    'categories' => $productCat,
+                    'attributes' => $attributes,
+                    'custom-options' => $customOptions,
                 ];
-                if ($configAttributes && $attributes && $attributes->hasValues()) {
-                    $productData['product_attributes'] = $attributes;
-                }
-                if ($configAttributes && $childAttributes && $childAttributes->hasValues()) {
-                    $productData['child_product_attributes'] = $childAttributes;
-                }
-                if ($customOptions) {
-                    $productData['custom-options'] = $customOptions;
+                if (!$customOptions) {
+                    unset($productData['custom-options']);
                 }
                 $this->products[] = $productData;
             } else {
@@ -436,22 +419,85 @@ class Order
                         2
                     ),
                     'price' => (float)number_format(
-                        $price,
+                        $productItem->getPrice(),
                         2,
                         '.',
                         ''
                     ),
                     'attribute-set' => '',
                     'categories' => [],
+                    'attributes' => [],
+                    'custom-options' => $customOptions,
                 ];
-                if ($customOptions) {
-                    $productData['custom-options'] = $customOptions;
+                if (!$customOptions) {
+                    unset($productData['custom-options']);
                 }
                 $this->products[] = $productData;
             }
-
-            unset($customOptions);
         }
+    }
+
+    /**
+     * @param mixed $configAttributes
+     * @param mixed $attributesFromAttributeSet
+     * @param mixed $productModel
+     * @param mixed $attributes
+     *
+     * @return array
+     */
+    private function processConfigAttributes($configAttributes, $attributesFromAttributeSet, $productModel, $attributes)
+    {
+        foreach ($configAttributes as $attributeCode) {
+            //if config attribute is in attribute set
+            if (in_array($attributeCode, $attributesFromAttributeSet)) {
+                //attribute input type
+                $inputType = $this->productResource
+                    ->getAttribute($attributeCode)
+                    ->getFrontend()
+                    ->getInputType();
+
+                //fetch attribute value from product depending on input type
+                switch ($inputType) {
+                    case 'multiselect':
+                    case 'select':
+                    case 'dropdown':
+                        $value = $productModel->getAttributeText($attributeCode);
+                        break;
+                    case 'date':
+                        $value = $productModel->getData($attributeCode);
+                        break;
+                    default:
+                        $value = $productModel->getData($attributeCode);
+                        break;
+                }
+
+                $attributes = $this->processAttributeValue($attributes, $value, $attributeCode);
+            }
+        }
+        return $attributes;
+    }
+
+    /**
+     * @param array $attributes
+     * @param string|array $value
+     * @param string $attributeCode
+     *
+     * @return array
+     */
+    private function processAttributeValue($attributes, $value, $attributeCode)
+    {
+        if ($value && !is_array($value)) {
+            // check limit on text and assign value to array
+            $attributes[][$attributeCode] = $this->limitLength($value);
+        } elseif ($value && is_array($value)) {
+            $values = (isset($value['values']))? implode(',', $value['values']) : implode(',', $value);
+
+            if ($values) {
+                $attributes[][$attributeCode] = $this->limitLength($values);
+            }
+        }
+
+        return $attributes;
     }
 
     /**
@@ -477,7 +523,7 @@ class Order
 
     /**
      * Exposes the class as an array of objects.
-     * Return any exposed data that will included into the import as transactional data for Orders.
+     * Return any exposed data that will included into the import as transactinoal data for Orders.
      *
      * @return array
      */
@@ -486,15 +532,14 @@ class Order
         $properties = array_diff_key(
             get_object_vars($this),
             array_flip([
-                'storeManager',
+                '_storeManager',
                 'helper',
                 'customerFactory',
                 'productFactory',
                 'attributeCollection',
+                'setFactory',
                 'attributeSet',
-                'productResource',
-                'attributeHandler',
-                'validator'
+                'productResource'
             ])
         );
         //remove null/0/false values
@@ -504,7 +549,7 @@ class Order
     }
 
     /**
-     * Get attribute value for the field.
+     * Get attrubute value for the field.
      *
      * @param array $field
      * @param \Magento\Sales\Model\Order $orderData
@@ -541,8 +586,7 @@ class Order
                 case 'timestamp':
                 case 'datetime':
                 case 'date':
-                    $date = new \DateTime($orderData->$function());
-                    $value = $date->format(\DateTime::ISO8601);
+                    $value = $orderData->$function();
                     break;
 
                 default:
@@ -566,6 +610,43 @@ class Order
     public function _assignCustom($field, $value)
     {
         $this->custom[$field['COLUMN_NAME']] = $value;
+    }
+
+    /**
+     * Get attributes from attribute set.
+     *
+     * @param int $attributeSetId
+     *
+     * @return array
+     */
+    public function _getAttributesArray($attributeSetId)
+    {
+        $result = [];
+        $attributes = $this->attributeCollection->create()
+            ->setAttributeSetFilter($attributeSetId)
+            ->getItems();
+
+        foreach ($attributes as $attribute) {
+            $result[] = $attribute->getAttributeCode();
+        }
+
+        return $result;
+    }
+
+    /**
+     *  Check string length and limit to 250.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    private function limitLength($value)
+    {
+        if ($this->stringUtils->strlen($value) > \Dotdigitalgroup\Email\Helper\Data::DM_FIELD_LIMIT) {
+            $value = mb_substr($value, 0, \Dotdigitalgroup\Email\Helper\Data::DM_FIELD_LIMIT);
+        }
+
+        return $value;
     }
 
     /**
@@ -597,15 +678,11 @@ class Order
                     $orderItemOption
                 )
             ) {
-                $label = $this->validator->cleanLabel(
-                    $orderItemOption['label'],
+                $label = str_replace(
+                    ' ',
                     '-',
-                    '-',
-                    $orderItemOption['option_id']
+                    $orderItemOption['label']
                 );
-                if (empty($label)) {
-                    continue;
-                }
                 $options[][$label] = $orderItemOption['value'];
             }
         }
@@ -614,40 +691,12 @@ class Order
     }
 
     /**
-     * @param \Magento\Store\Model\Website $website
-     * @return array|bool
-     */
-    private function getProductAttributesToSync($website)
-    {
-        $configAttributes = $this->attributeHandler->create()
-            ->getConfigAttributesForSync($website);
-
-        if (!$configAttributes) {
-            return false;
-        }
-
-        return explode(',', $configAttributes);
-    }
-
-    /**
-     * @param array $configAttributes
      * @param \Magento\Catalog\Model\Product $product
-     * @return \Dotdigitalgroup\Email\Model\Product\Attribute|null
+     * @return string
      */
-    private function processProductAttributes($configAttributes, $product)
+    public function getAttributeSetName($product)
     {
-        if (!$configAttributes || !$product) {
-            return null;
-        }
-        $attributeModel = $this->attributeHandler->create();
-        $attributesFromAttributeSet = $attributeModel->getAttributesArray(
-            $product->getAttributeSetId()
-        );
-
-        return $attributeModel->processConfigAttributes(
-            $configAttributes,
-            $attributesFromAttributeSet,
-            $product
-        );
+        $attributeSetRepository = $this->attributeSet->get($product->getAttributeSetId());
+        return $attributeSetRepository->getAttributeSetName();
     }
 }

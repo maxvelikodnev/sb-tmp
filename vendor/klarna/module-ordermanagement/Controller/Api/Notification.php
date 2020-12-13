@@ -22,25 +22,20 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\DataObject;
 use Magento\Framework\DataObjectFactory;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\OrderRepository as MageOrderRepository;
-use Magento\Store\Api\Data\StoreInterface;
 use Psr\Log\LoggerInterface;
 
 /**
  * Order update from pending status
  *
+ * @package Klarna\Ordermanagement\Controller\Api
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Notification extends Action implements CsrfAwareActionInterface
 {
-    /**
-     * @var Ordermanagement
-     */
-    private $orderManagement;
     /**
      * @var ConfigHelper
      */
@@ -71,6 +66,8 @@ class Notification extends Action implements CsrfAwareActionInterface
     private $dataObjectFactory;
 
     /**
+     * Notification constructor.
+     *
      * @param Context             $context
      * @param LoggerInterface     $logger
      * @param JsonFactory         $resultJsonFactory
@@ -78,7 +75,6 @@ class Notification extends Action implements CsrfAwareActionInterface
      * @param MageOrderRepository $mageOrderRepository
      * @param ConfigHelper        $configHelper
      * @param DataObjectFactory   $dataObjectFactory
-     * @param Ordermanagement     $orderManagement
      */
     public function __construct(
         Context $context,
@@ -87,17 +83,15 @@ class Notification extends Action implements CsrfAwareActionInterface
         OrderRepository $orderRepository,
         MageOrderRepository $mageOrderRepository,
         ConfigHelper $configHelper,
-        DataObjectFactory $dataObjectFactory,
-        Ordermanagement $orderManagement = null
+        DataObjectFactory $dataObjectFactory
     ) {
         parent::__construct($context);
-        $this->resultJsonFactory   = $resultJsonFactory;
+        $this->resultJsonFactory = $resultJsonFactory;
         $this->mageOrderRepository = $mageOrderRepository;
-        $this->orderRepository     = $orderRepository;
-        $this->configHelper        = $configHelper;
-        $this->logger              = $logger;
-        $this->dataObjectFactory   = $dataObjectFactory;
-        $this->orderManagement     = $orderManagement ?: $this->_objectManager->create(Ordermanagement::class);
+        $this->orderRepository = $orderRepository;
+        $this->configHelper = $configHelper;
+        $this->logger = $logger;
+        $this->dataObjectFactory = $dataObjectFactory;
     }
 
     /**
@@ -135,7 +129,6 @@ class Notification extends Action implements CsrfAwareActionInterface
             if (!$order->getId()) {
                 throw new KlarnaException(__('Magento order not found'));
             }
-            $this->validateNotification($checkoutId, $notification, $order->getStore());
 
             /** @var Payment $payment */
             $payment = $order->getPayment();
@@ -153,7 +146,6 @@ class Notification extends Action implements CsrfAwareActionInterface
                     $payment->setNotificationResult(true);
                     $payment->setIsFraudDetected(true);
                     $payment->deny(false);
-                    $this->cancelOrderInKlarna($checkoutId);
                     break;
                 case Ordermanagement::ORDER_NOTIFICATION_FRAUD_ACCEPTED:
                     $payment->setNotificationResult(true);
@@ -224,40 +216,5 @@ class Notification extends Action implements CsrfAwareActionInterface
     public function validateForCsrf(RequestInterface $request): ?bool
     {
         return true;
-    }
-
-    /**
-     * Dispatches event to cancel the order in Klarna's systems
-     */
-    private function cancelOrderInKlarna($checkoutId)
-    {
-        $this->_eventManager->dispatch(
-            'klarna_cancel_order',
-            [
-                'klarna_order_id'   => $checkoutId,
-                'method_code'       => $this->configHelper::KP_METHOD_CODE,
-                'controller_action' => $this,
-                'reason'            => 'Order rejected because of suspected fraud'
-            ]
-        );
-    }
-
-    /**
-     * Validates that the contents of $notification are from Klarna
-     *
-     * @param string         $checkoutId
-     * @param DataObject     $notification
-     * @param StoreInterface $store
-     * @throws KlarnaException
-     */
-    private function validateNotification(string $checkoutId, DataObject $notification, StoreInterface $store)
-    {
-        $this->orderManagement->resetForStore($store, $this->configHelper::KP_METHOD_CODE);
-        $klarnaOrder = $this->orderManagement->getPlacedKlarnaOrder($checkoutId);
-        $fraudStatus = 'FRAUD_RISK_' . $klarnaOrder->getFraudStatus();
-
-        if ($fraudStatus !== $notification->getEventType()) {
-            throw new KlarnaException(__('Notification doesn\'t appear to be from Klarna'));
-        }
     }
 }

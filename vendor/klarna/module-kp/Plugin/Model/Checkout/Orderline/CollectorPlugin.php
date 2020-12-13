@@ -16,6 +16,11 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * Class CollectorPlugin
+ *
+ * @package Klarna\Kp\Plugin\Model\Checkout\Orderline
+ */
 class CollectorPlugin
 {
     /**
@@ -24,6 +29,8 @@ class CollectorPlugin
     private $config;
 
     /**
+     * CollectorPlugin constructor.
+     *
      * @param ScopeConfigInterface $config
      */
     public function __construct(ScopeConfigInterface $config)

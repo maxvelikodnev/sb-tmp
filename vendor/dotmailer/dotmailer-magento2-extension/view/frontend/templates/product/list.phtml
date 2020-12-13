@@ -3,12 +3,15 @@
 // @codingStandardsIgnoreFile
 ?>
 <?php
-    $i = 0;
-    $mode = $block->getMode();
-    $products = $block->getLoadedProductCollection();
+$i = 0;
+$mode = $block->getMode();
+$products = $block->getLoadedProductCollection();
 ?>
-<?php if ($products) : ?>
-    <?php $dynamicStyle = $block->getDynamicStyles(); ?>
+
+<?php if (!empty($products)) : ?>
+    <?php
+    $dynamicStyle = $block->helper->getDynamicStyles();
+    ?>
     <style>
         .product-name{
             color: <?= $block->escapeHtml($dynamicStyle['nameColor']);?>;
@@ -32,7 +35,7 @@
             text-decoration: underline;
         <?php endif; ?>
         }
-        .product-url{
+        .proudct-url{
             color: <?= $block->escapeHtml($dynamicStyle['urlColor']);?>;
             font-size: <?= $block->escapeHtml($dynamicStyle['urlFontSize']);?>;
         <?php if (in_array('bold', $dynamicStyle['linkStyle'])) : ?>
@@ -73,8 +76,9 @@
             }
         }
     </style>
-    <?php foreach ($products as $key => $_product) : ?>
-    <?php $productUrl = $block->getConfigurableParentUrl($_product); ?>
+<?php endif; ?>
+
+<?php foreach ($products as $key => $_product) :?>
     <?php if ($i == 0) : ?>
         <table class="product-table" border="0" width="147" cellpadding="0" cellspacing="0"
         style='border-collapse: collapse; font-size:12px';><tr>
@@ -84,20 +88,19 @@
     <?php endif;?>
 
     <td style="vertical-align: text-top; padding-right: 2px;">
-        <a href="<?= $block->escapeHtml($productUrl); ?>"
+        <a href="<?= $block->escapeHtml($_product->getProductUrl()) ?>"
            title="<?= $block->escapeHtml(
-                $block->stripTags(
+               $block->stripTags(
                    $block->getImageLabel(
                        $_product,
                        'small_image'
                    ),
                    null,
                    true
-                )
-            ); ?>"
-            class="product-image">
-            <img src="<?= $block->getProductImageUrl($_product, 'product_small_image') ?>" alt="<?= $_product->getName() ?>">
-        </a>
+               )
+           ); ?>"
+           class="product-image"><?= $block->getImage($_product, 'product_small_image')->toHtml(); ?>
+            </a>
         <div class="product-name" align="center"><b><?= $block->escapeHtml(
                 mb_substr(
                     $_product->getName(),
@@ -112,7 +115,7 @@
             <?= /* @noEscape */ $productPriceHtml; ?>
         </div>
         <div align="center">
-            <a class="product-url" href="<?= $block->escapeHtml($productUrl); ?>">
+            <a class="proudct-url" href="<?= $block->escapeHtml($_product->getProductUrl()); ?>">
                 <?php if ($urlText = $block->getTextForUrl($_product->getStoreId())) : ?>
                     <?= $block->escapeHtml($urlText); ?>
                 <?php else : ?>
@@ -128,6 +131,5 @@
 <?php endforeach; ?>
 <?php if ($i > 0) : ?>
     </table>
-<?php endif; ?>
-<?php endif; ?>
+<?php endif;
 

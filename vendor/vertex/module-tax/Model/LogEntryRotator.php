@@ -13,7 +13,7 @@ use Vertex\Tax\Api\Data\LogEntryInterface;
 use Vertex\Tax\Api\Data\LogEntrySearchResultsInterface;
 use Vertex\Tax\Api\LogEntryRepositoryInterface;
 use Vertex\Tax\Model\Config\Source\RotationAction;
-use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Vertex\Tax\Model\LogEntryExportFactory;
 
 /**
  * Move DB-based log entries to flat-file format.
@@ -35,37 +35,40 @@ class LogEntryRotator
     /** @var LogEntryRepositoryInterface */
     private $logEntryRepository;
 
-    /** @var TimezoneInterface */
-    private $timezone;
-
+    /**
+     * @param DateTime $dateTime
+     * @param LogEntryRepositoryInterface $logEntryRepository
+     * @param SearchCriteriaBuilderFactory $criteriaBuilderFactory
+     * @param \Vertex\Tax\Model\LogEntryExportFactory $exportFactory
+     * @param Config $config
+     */
     public function __construct(
         DateTime $dateTime,
         LogEntryRepositoryInterface $logEntryRepository,
         SearchCriteriaBuilderFactory $criteriaBuilderFactory,
         LogEntryExportFactory $exportFactory,
-        TimezoneInterface $timezone,
         Config $config
     ) {
         $this->dateTime = $dateTime;
         $this->logEntryRepository = $logEntryRepository;
         $this->criteriaBuilderFactory = $criteriaBuilderFactory;
         $this->exportFactory = $exportFactory;
-        $this->timezone = $timezone;
         $this->config = $config;
     }
 
     /**
      * Rotate log entries older than the given lifetime value.
      *
+     * @param int $lifetime The lifetime in seconds
+     * @return void
      * @throws \Magento\Framework\Exception\CouldNotDeleteException
      * @throws \Magento\Framework\Exception\FileSystemException
      * @throws \Magento\Framework\Exception\NotFoundException
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function rotate(int $lifetime) :void
+    public function rotate($lifetime)
     {
-        $dateTime = $this->timezone->scopeDate(null, time() - $lifetime, true);
-        $clearAfter = $this->dateTime->formatDate($dateTime);
+        $clearAfter = $this->dateTime->formatDate(time() - $lifetime);
 
         /** @var SearchCriteriaBuilder $findCriteriaBuilder */
         $findCriteriaBuilder = $this->criteriaBuilderFactory->create();
@@ -73,7 +76,7 @@ class LogEntryRotator
         $findCriteriaBuilder->setPageSize(100);
         $findCriteria = $findCriteriaBuilder->create();
 
-        while (($entries = $this->logEntryRepository->getList($findCriteria)) && $entries->getTotalCount()) {
+        while(($entries = $this->logEntryRepository->getList($findCriteria)) && $entries->getTotalCount()) {
             /** @var LogEntrySearchResultsInterface $entries */
 
             if ($this->config->getRotationAction() === RotationAction::TYPE_EXPORT) {

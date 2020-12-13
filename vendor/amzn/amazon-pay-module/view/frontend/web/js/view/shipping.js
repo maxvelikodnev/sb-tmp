@@ -2,14 +2,22 @@
 define(
     [
         'jquery',
+        'underscore',
+        'ko',
         'Magento_Checkout/js/view/shipping',
         'Magento_Customer/js/model/customer',
+        'Magento_Checkout/js/action/set-shipping-information',
+        'Magento_Checkout/js/model/step-navigator',
         'Amazon_Payment/js/model/storage'
     ],
     function (
         $,
+        _,
+        ko,
         Component,
         customer,
+        setShippingInformationAction,
+        stepNavigator,
         amazonStorage
     ) {
         'use strict';
@@ -41,20 +49,32 @@ define(
             },
 
             /**
-             * Overridden validateShippingInformation for Amazon Pay to bypass validation
-             *
-             * @inheritDoc
+             * New setShipping Action for Amazon Pay to bypass validation
              */
-            validateShippingInformation: function () {
-                if (!amazonStorage.isAmazonAccountLoggedIn()) {
-                    return this._super();
+            setShippingInformation: function () {
+
+                /**
+                 * Set Amazon shipping info
+                 */
+                function setShippingInformationAmazon() {
+                    setShippingInformationAction().done(
+                        function () {
+                            stepNavigator.next();
+                        }
+                    );
                 }
 
-                if (!customer.isLoggedIn()) {
-                    return this.validateGuestEmail();
-                }
+                if (amazonStorage.isAmazonAccountLoggedIn() && customer.isLoggedIn()) {
+                    setShippingInformationAmazon();
+                } else if (amazonStorage.isAmazonAccountLoggedIn() && !customer.isLoggedIn()) {
 
-                return true;
+                    if (this.validateGuestEmail()) {
+                        setShippingInformationAmazon();
+                    }
+                    //if using guest checkout or guest checkout with amazon pay we need to use the main validation
+                } else if (this.validateShippingInformation()) {
+                    setShippingInformationAmazon();
+                }
             }
         });
     }

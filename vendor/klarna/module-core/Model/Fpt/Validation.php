@@ -19,6 +19,11 @@ use Magento\Sales\Model\AbstractModel;
 use Magento\Sales\Model\Order\Creditmemo\Item as CreditMemoItem;
 use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
 
+/**
+ * Class Validation
+ *
+ * @package Klarna\Core\Model\Fpt
+ */
 class Validation
 {
 

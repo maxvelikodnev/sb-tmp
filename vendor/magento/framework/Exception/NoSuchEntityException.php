@@ -32,6 +32,7 @@ class NoSuchEntityException extends LocalizedException
      */
     public function __construct(Phrase $phrase = null, \Exception $cause = null, $code = 0)
     {
+
         if ($phrase === null) {
             $phrase = new Phrase('No such entity.');
         }

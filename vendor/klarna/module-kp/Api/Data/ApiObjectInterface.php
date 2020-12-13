@@ -10,6 +10,11 @@
 
 namespace Klarna\Kp\Api\Data;
 
+/**
+ * Interface ApiObjectInterface
+ *
+ * @package Klarna\Kp\Api\Data
+ */
 interface ApiObjectInterface
 {
     /**

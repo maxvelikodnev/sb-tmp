@@ -160,7 +160,7 @@ class RegisterWishlist implements \Magento\Framework\Event\ObserverInterface
 
             //first item added to wishlist
             if ($itemCount == 1 && $originalItemCount == 0) {
-                $emailWishlist->setWishlistImported(0);
+                $emailWishlist->setWishlistImported(null);
             } elseif ($emailWishlist->getWishlistImported()) {
                 $emailWishlist->setWishlistModified(1);
             }

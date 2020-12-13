@@ -7,15 +7,13 @@ declare(strict_types=1);
 
 namespace Magento\Framework\GraphQl\Exception;
 
-use Magento\Framework\Exception\AggregateExceptionInterface;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Phrase;
-use GraphQL\Error\ClientAware;
 
 /**
  * Exception for GraphQL to be thrown when user supplies invalid input
  */
-class GraphQlInputException extends LocalizedException implements AggregateExceptionInterface, ClientAware
+class GraphQlInputException extends InputException implements \GraphQL\Error\ClientAware
 {
     const EXCEPTION_CATEGORY = 'graphql-input';
 
@@ -23,13 +21,6 @@ class GraphQlInputException extends LocalizedException implements AggregateExcep
      * @var boolean
      */
     private $isSafe;
-
-    /**
-     * The array of errors that have been added via the addError() method
-     *
-     * @var \Magento\Framework\Exception\LocalizedException[]
-     */
-    private $errors = [];
 
     /**
      * Initialize object
@@ -59,27 +50,5 @@ class GraphQlInputException extends LocalizedException implements AggregateExcep
     public function getCategory() : string
     {
         return self::EXCEPTION_CATEGORY;
-    }
-
-    /**
-     * Add child error if used as aggregate exception
-     *
-     * @param LocalizedException $exception
-     * @return $this
-     */
-    public function addError(LocalizedException $exception): self
-    {
-        $this->errors[] = $exception;
-        return $this;
-    }
-
-    /**
-     * Get child errors if used as aggregate exception
-     *
-     * @return LocalizedException[]
-     */
-    public function getErrors(): array
-    {
-        return $this->errors;
     }
 }

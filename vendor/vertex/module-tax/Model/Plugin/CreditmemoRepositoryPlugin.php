@@ -8,6 +8,7 @@ namespace Vertex\Tax\Model\Plugin;
 
 use Magento\Sales\Api\CreditmemoRepositoryInterface;
 use Magento\Sales\Api\Data\CreditmemoInterface;
+use Magento\Sales\Api\Data\CreditmemoItemExtensionFactory;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
 use Magento\Sales\Api\Data\CreditmemoSearchResultInterface;
 use Vertex\Tax\Model\Config;
@@ -24,10 +25,20 @@ class CreditmemoRepositoryPlugin
     /** @var Config */
     private $config;
 
+    /** @var OrderItemExtensionFactory */
+    private $creditmemoItemExtensionFactory;
+
+    /**
+     * @param VertexTaxAttributeManager $attributeManager
+     * @param CreditmemoItemExtensionFactory $creditmemoItemExtensionFactory
+     * @param Config $config
+     */
     public function __construct(
         VertexTaxAttributeManager $attributeManager,
+        CreditmemoItemExtensionFactory $creditmemoItemExtensionFactory,
         Config $config
     ) {
+        $this->creditmemoItemExtensionFactory = $creditmemoItemExtensionFactory;
         $this->attributeManager = $attributeManager;
         $this->config = $config;
     }
@@ -157,9 +168,9 @@ class CreditmemoRepositoryPlugin
      */
     private function setInvoiceTextCodes(CreditmemoItemInterface $creditmemoItem, array $invoiceTextCodes)
     {
-        $creditmemoItemExtension = $creditmemoItem->getExtensionAttributes();
+        $extensionAttributes = $creditmemoItem->getExtensionAttributes();
 
-        if ($creditmemoItemExtension->getInvoiceTextCodes()) {
+        if ($extensionAttributes && $extensionAttributes->getInvoiceTextCodes()) {
             return;
         }
 
@@ -167,8 +178,9 @@ class CreditmemoRepositoryPlugin
                 $creditmemoItem->getOrderItemId(),
                 $invoiceTextCodes
             )) {
-
+            $creditmemoItemExtension = $extensionAttributes ?: $this->creditmemoItemExtensionFactory->create();
             $creditmemoItemExtension->setInvoiceTextCodes($invoiceTextCodes[$creditmemoItem->getOrderItemId()]);
+            $creditmemoItem->setExtensionAttributes($creditmemoItemExtension);
         }
     }
 
@@ -181,14 +193,16 @@ class CreditmemoRepositoryPlugin
      */
     private function setTaxCodes(CreditmemoItemInterface $creditmemoItem, array $taxCodes)
     {
-        $creditmemoItemExtension = $creditmemoItem->getExtensionAttributes();
+        $extensionAttributes = $creditmemoItem->getExtensionAttributes();
 
-        if ($creditmemoItemExtension->getTaxCodes()) {
+        if ($extensionAttributes && $extensionAttributes->getTaxCodes()) {
             return;
         }
 
         if ($taxCodes !== null && array_key_exists($creditmemoItem->getOrderItemId(), $taxCodes)) {
+            $creditmemoItemExtension = $extensionAttributes ?: $this->creditmemoItemExtensionFactory->create();
             $creditmemoItemExtension->setTaxCodes($taxCodes[$creditmemoItem->getOrderItemId()]);
+            $creditmemoItem->setExtensionAttributes($creditmemoItemExtension);
         }
     }
 
@@ -201,14 +215,16 @@ class CreditmemoRepositoryPlugin
      */
     private function setVertexTaxCodes(CreditmemoItemInterface $creditmemoItem, array $vertexTaxCodes)
     {
-        $creditmemoItemExtension = $creditmemoItem->getExtensionAttributes();
+        $extensionAttributes = $creditmemoItem->getExtensionAttributes();
 
-        if ($creditmemoItemExtension->getVertexTaxCodes()) {
+        if ($extensionAttributes && $extensionAttributes->getVertexTaxCodes()) {
             return;
         }
 
         if ($vertexTaxCodes !== null && array_key_exists($creditmemoItem->getOrderItemId(), $vertexTaxCodes)) {
+            $creditmemoItemExtension = $extensionAttributes ?: $this->creditmemoItemExtensionFactory->create();
             $creditmemoItemExtension->setVertexTaxCodes($vertexTaxCodes[$creditmemoItem->getOrderItemId()]);
+            $creditmemoItem->setExtensionAttributes($creditmemoItemExtension);
         }
     }
 }

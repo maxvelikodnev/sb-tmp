@@ -46,17 +46,17 @@ class Datafields implements \Magento\Framework\Option\ArrayInterface
         $fields = [];
         //default data option
         $fields[] = ['value' => '0', 'label' => '-- Please Select --'];
-        $websiteId = $this->helper->getWebsiteForSelectedScopeInAdmin()->getId();
-        $apiEnabled = $this->helper->isEnabled($websiteId);
+
+        $apiEnabled = $this->helper->isEnabled($this->helper->getWebsite());
         if ($apiEnabled) {
             $savedDatafields = $this->registry->registry('datafields');
 
-            //get saved datafields from registry
+            //get saved datafileds from registry
             if ($savedDatafields) {
                 $datafields = $savedDatafields;
             } else {
                 //grab the datafields request and save to register
-                $client = $this->helper->getWebsiteApiClient($websiteId);
+                $client = $this->helper->getWebsiteApiClient();
                 $datafields = $client->getDatafields();
                 $this->registry->unregister('datafields'); // additional measure
                 $this->registry->register('datafields', $datafields);

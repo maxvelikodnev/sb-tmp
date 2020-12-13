@@ -10,6 +10,10 @@
 
 namespace Klarna\Core\Model\Fpt;
 
+/**
+ * Class Rate
+ * @package Klarna\Core\Model\Fpt
+ */
 class Rate
 {
 
@@ -17,6 +21,8 @@ class Rate
     private $validation;
 
     /**
+     * Rate Constructor
+     *
      * @param Validation $validation
      */
     public function __construct(Validation $validation)
@@ -51,11 +57,9 @@ class Rate
             $totalTax += $item->getWeeeTaxAppliedRowAmount();
 
             $weee = json_decode($item->getWeeeTaxApplied(), true);
-            if ($weee !== null) {
-                foreach ($weee as $tax) {
-                    $name[] = $tax['title'];
-                    $reference[] = $tax['title'];
-                }
+            foreach ($weee as $tax) {
+                $name[] = $tax['title'];
+                $reference[] = $tax['title'];
             }
         }
 

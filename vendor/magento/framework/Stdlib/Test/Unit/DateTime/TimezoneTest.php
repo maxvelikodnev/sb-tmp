@@ -23,16 +23,6 @@ class TimezoneTest extends \PHPUnit\Framework\TestCase
     private $defaultTimeZone;
 
     /**
-     * @var string
-     */
-    private $scopeType;
-
-    /**
-     * @var string
-     */
-    private $defaultTimezonePath;
-
-    /**
      * @var ObjectManager
      */
     private $objectManager;
@@ -59,8 +49,6 @@ class TimezoneTest extends \PHPUnit\Framework\TestCase
     {
         $this->defaultTimeZone = date_default_timezone_get();
         date_default_timezone_set('UTC');
-        $this->scopeType = 'store';
-        $this->defaultTimezonePath = 'default/timezone/path';
 
         $this->objectManager = new ObjectManager($this);
         $this->scopeResolver = $this->getMockBuilder(ScopeResolverInterface::class)->getMock();
@@ -98,10 +86,9 @@ class TimezoneTest extends \PHPUnit\Framework\TestCase
 
     /**
      * DataProvider for testDateIncludeTime
-     *
      * @return array
      */
-    public function dateIncludeTimeDataProvider(): array
+    public function dateIncludeTimeDataProvider()
     {
         return [
             'Parse d/m/y date without time' => [
@@ -146,10 +133,9 @@ class TimezoneTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Data provider for testConvertConfigTimeToUtc
-     *
      * @return array
      */
-    public function getConvertConfigTimeToUtcFixtures(): array
+    public function getConvertConfigTimeToUtcFixtures()
     {
         return [
             'string' => [
@@ -195,10 +181,9 @@ class TimezoneTest extends \PHPUnit\Framework\TestCase
 
     /**
      * DataProvider for testDate
-     *
      * @return array
      */
-    private function getDateFixtures(): array
+    private function getDateFixtures()
     {
         return [
             'now_datetime_utc' => [
@@ -254,71 +239,18 @@ class TimezoneTest extends \PHPUnit\Framework\TestCase
         return new Timezone(
             $this->scopeResolver,
             $this->localeResolver,
-            $this->createMock(DateTime::class),
+            $this->getMockBuilder(DateTime::class)->getMock(),
             $this->scopeConfig,
-            $this->scopeType,
-            $this->defaultTimezonePath
+            '',
+            ''
         );
     }
 
     /**
      * @param string $configuredTimezone
-     * @param string|null $scope
      */
-    private function scopeConfigWillReturnConfiguredTimezone(string $configuredTimezone, string $scope = null)
+    private function scopeConfigWillReturnConfiguredTimezone($configuredTimezone)
     {
-        $this->scopeConfig->expects($this->atLeastOnce())
-            ->method('getValue')
-            ->with($this->defaultTimezonePath, $this->scopeType, $scope)
-            ->willReturn($configuredTimezone);
-    }
-
-    /**
-     * @dataProvider scopeDateDataProvider
-     * @param \DateTimeInterface|string|int $date
-     * @param string $timezone
-     * @param string $locale
-     * @param string $expectedDate
-     */
-    public function testScopeDate($date, string $timezone, string $locale, string $expectedDate)
-    {
-        $scopeCode = 'test';
-
-        $this->scopeConfigWillReturnConfiguredTimezone($timezone, $scopeCode);
-        $this->localeResolver->method('getLocale')
-            ->willReturn($locale);
-
-        $scopeDate = $this->getTimezone()->scopeDate($scopeCode, $date, true);
-        $this->assertEquals($expectedDate, $scopeDate->format('Y-m-d H:i:s'));
-        $this->assertEquals($timezone, $scopeDate->getTimezone()->getName());
-    }
-
-    /**
-     * @return array
-     */
-    public function scopeDateDataProvider(): array
-    {
-        $utcTz = new \DateTimeZone('UTC');
-
-        return [
-            ['2018-10-20 00:00:00', 'UTC', 'en_US', '2018-10-20 00:00:00'],
-            ['2018-10-20 00:00:00', 'America/Los_Angeles', 'en_US', '2018-10-20 00:00:00'],
-            ['2018-10-20 00:00:00', 'Asia/Qatar', 'en_US', '2018-10-20 00:00:00'],
-            ['10/20/18 00:00', 'UTC', 'en_US', '2018-10-20 00:00:00'],
-            ['10/20/18 00:00', 'America/Los_Angeles', 'en_US', '2018-10-20 00:00:00'],
-            ['10/20/18 00:00', 'Asia/Qatar', 'en_US', '2018-10-20 00:00:00'],
-            ['20/10/18 00:00', 'UTC', 'fr_FR', '2018-10-20 00:00:00'],
-            ['20/10/18 00:00', 'America/Los_Angeles', 'fr_FR', '2018-10-20 00:00:00'],
-            ['20/10/18 00:00', 'Asia/Qatar', 'fr_FR', '2018-10-20 00:00:00'],
-            [1539993600, 'UTC', 'en_US', '2018-10-20 00:00:00'],
-            [1539993600, 'America/Los_Angeles', 'en_US', '2018-10-19 17:00:00'],
-            [1539993600, 'Asia/Qatar', 'en_US', '2018-10-20 03:00:00'],
-            [new \DateTime('2018-10-20', $utcTz), 'UTC', 'en_US', '2018-10-20 00:00:00'],
-            [new \DateTime('2018-10-20', $utcTz), 'America/Los_Angeles', 'en_US', '2018-10-19 17:00:00'],
-            [new \DateTime('2018-10-20', $utcTz), 'Asia/Qatar', 'en_US', '2018-10-20 03:00:00'],
-            [new \DateTimeImmutable('2018-10-20', $utcTz), 'UTC', 'en_US', '2018-10-20 00:00:00'],
-            [new \DateTimeImmutable('2018-10-20', $utcTz), 'America/Los_Angeles', 'en_US', '2018-10-19 17:00:00'],
-            [new \DateTimeImmutable('2018-10-20', $utcTz), 'Asia/Qatar', 'en_US', '2018-10-20 03:00:00'],
-        ];
+        $this->scopeConfig->method('getValue')->with('', '', null)->willReturn($configuredTimezone);
     }
 }

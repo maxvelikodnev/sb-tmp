@@ -55,7 +55,7 @@ class Proxy extends \Magento\Framework\Mview\Config\Data implements
     }
 
     /**
-     * Remove links to objects.
+     * Sleep magic method.
      *
      * @return array
      */

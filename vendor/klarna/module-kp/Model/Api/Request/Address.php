@@ -12,6 +12,11 @@ namespace Klarna\Kp\Model\Api\Request;
 
 use Klarna\Kp\Api\Data\AddressInterface;
 
+/**
+ * Class Address
+ *
+ * @package Klarna\Kp\Model\Api\Request
+ */
 class Address implements AddressInterface
 {
     use \Klarna\Kp\Model\Api\Export;
@@ -72,11 +77,8 @@ class Address implements AddressInterface
     private $country;
 
     /**
-     * @var string
-     */
-    private $organization_name;
-
-    /**
+     * Constructor.
+     *
      * @param array $data
      */
     public function __construct($data = [])
@@ -90,7 +92,9 @@ class Address implements AddressInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Title. Possible values Mr or Mrs
+     *
+     * @param string $title
      */
     public function setTitle($title)
     {
@@ -98,23 +102,29 @@ class Address implements AddressInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Given name. [REQUIRED field]
+     *
+     * @param string $given_name
      */
-    public function setGivenName($givenName)
+    public function setGivenName($given_name)
     {
-        $this->given_name = $givenName;
+        $this->given_name = $given_name;
     }
 
     /**
-     * {@inheritDoc}
+     * Family name. [REQUIRED field]
+     *
+     * @param string $family_name
      */
-    public function setFamilyName($familyName)
+    public function setFamilyName($family_name)
     {
-        $this->family_name = $familyName;
+        $this->family_name = $family_name;
     }
 
     /**
-     * {@inheritDoc}
+     * E+mail address. [REQUIRED field]
+     *
+     * @param string $email
      */
     public function setEmail($email)
     {
@@ -122,7 +132,9 @@ class Address implements AddressInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Phone number.
+     *
+     * @param string $phone
      */
     public function setPhone($phone)
     {
@@ -130,23 +142,29 @@ class Address implements AddressInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Street address, first line. [REQUIRED field]
+     *
+     * @param string $street_address
      */
-    public function setStreetAddress($streetAddress)
+    public function setStreetAddress($street_address)
     {
-        $this->street_address = $streetAddress;
+        $this->street_address = $street_address;
     }
 
     /**
-     * {@inheritDoc}
+     * Street address, second line.
+     *
+     * @param string $street_address
      */
-    public function setStreetAddress2($streetAddress)
+    public function setStreetAddress2($street_address)
     {
-        $this->street_address2 = $streetAddress;
+        $this->street_address2 = $street_address;
     }
 
     /**
-     * {@inheritDoc}
+     * City. [REQUIRED field]
+     *
+     * @param string $city
      */
     public function setCity($city)
     {
@@ -154,7 +172,9 @@ class Address implements AddressInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Region
+     *
+     * @param string $region
      */
     public function setRegion($region)
     {
@@ -162,28 +182,22 @@ class Address implements AddressInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Postal/post code. [REQUIRED field]
+     *
+     * @param string $postal_code
      */
-    public function setPostalCode($postalCode)
+    public function setPostalCode($postal_code)
     {
-        $this->postal_code = $postalCode;
+        $this->postal_code = $postal_code;
     }
 
     /**
-     * {@inheritDoc}
+     * ISO 3166 alpha+2: Country. [REQUIRED field]
+     *
+     * @param string $country
      */
     public function setCountry($country)
     {
         $this->country = $country;
-    }
-
-    /**
-     * Set organization/Company name
-     *
-     * @param string $organizationName
-     */
-    public function setOrganizationName($organizationName)
-    {
-        $this->organization_name = $organizationName;
     }
 }

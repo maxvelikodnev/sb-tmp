@@ -2,7 +2,8 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel\Wishlist;
 
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class Collection extends
+ \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     /**
      * @var string
@@ -61,7 +62,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function getWishlistToImportByWebsite(\Magento\Store\Api\Data\WebsiteInterface $website, $limit = 100)
     {
-        $collection = $this->addFieldToFilter('wishlist_imported', 0)
+        $collection = $this->addFieldToFilter('wishlist_imported', ['null' => true])
             ->addFieldToFilter(
                 'store_id',
                 ['in' => $website->getStoreIds()]
@@ -83,7 +84,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         \Magento\Store\Api\Data\WebsiteInterface $website,
         $limit = 100
     ) {
-
+    
         $collection = $this->addFieldToFilter('wishlist_modified', 1)
             ->addFieldToFilter(
                 'store_id',

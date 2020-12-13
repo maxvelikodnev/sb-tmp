@@ -80,7 +80,7 @@ class IsCheckRequired implements IsCheckRequiredInterface
         $this->area = $area;
         $this->request = $request;
 
-        if (!in_array($this->area, [Area::AREA_FRONTEND, Area::AREA_ADMINHTML], true)) {
+        if (!in_array($this->area, [Area::AREA_FRONTEND, Area::AREA_ADMINHTML])) {
             throw new \InvalidArgumentException('Area parameter must be one of frontend or adminhtml');
         }
     }

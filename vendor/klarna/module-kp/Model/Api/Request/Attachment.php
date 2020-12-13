@@ -12,6 +12,11 @@ namespace Klarna\Kp\Model\Api\Request;
 
 use Klarna\Kp\Api\Data\AttachmentInterface;
 
+/**
+ * Class Attachment
+ *
+ * @package Klarna\Kp\Model\Api\Request
+ */
 class Attachment implements AttachmentInterface
 {
     use \Klarna\Kp\Model\Api\Export;
@@ -27,6 +32,8 @@ class Attachment implements AttachmentInterface
     private $body;
 
     /**
+     * Constructor.
+     *
      * @param array $data
      */
     public function __construct($data = [])

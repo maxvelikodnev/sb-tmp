@@ -42,37 +42,23 @@ mutation {
     input: {
       cart_id: "$maskedQuoteId"
       billing_address: {
-         address: {
+        address: {
           firstname: "test firstname"
           lastname: "test lastname"
           company: "test company"
           street: ["test street 1", "test street 2"]
           city: "test city"
-          region: "AL"
+          region: "test region"
           postcode: "887766"
           country_code: "US"
           telephone: "88776655"
-         }
-         same_as_shipping: true
+          save_in_address_book: false
+        }
       }
     }
   ) {
     cart {
       billing_address {
-        firstname
-        lastname
-        company
-        street
-        city
-        postcode
-        telephone
-        country {
-          code
-          label
-        }
-        __typename
-      }
-      shipping_addresses {
         firstname
         lastname
         company
@@ -97,15 +83,9 @@ QUERY;
         self::assertArrayHasKey('billing_address', $cartResponse);
         $billingAddressResponse = $cartResponse['billing_address'];
         $this->assertNewAddressFields($billingAddressResponse);
-        self::assertArrayHasKey('shipping_addresses', $cartResponse);
-        $shippingAddressResponse = current($cartResponse['shipping_addresses']);
-        $this->assertNewAddressFields($billingAddressResponse);
-        $this->assertNewAddressFields($shippingAddressResponse, 'ShippingCartAddress');
     }
 
     /**
-     * Test case for deprecated `use_for_shipping` param.
-     *
      * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
@@ -126,10 +106,11 @@ mutation {
           company: "test company"
           street: ["test street 1", "test street 2"]
           city: "test city"
-          region: "AL"
+          region: "test region"
           postcode: "887766"
           country_code: "US"
           telephone: "88776655"
+          save_in_address_book: false
          }
          use_for_shipping: true
       }
@@ -201,10 +182,11 @@ mutation {
           company: "test company"
           street: ["test street 1", "test street 2"]
           city: "test city"
-          region: "AL"
+          region: "test region"
           postcode: "887766"
           country_code: "US"
           telephone: "88776655"
+          save_in_address_book: false
         }
       }
     }
@@ -277,10 +259,11 @@ mutation {
           company: "test company"
           street: ["test street 1", "test street 2"]
           city: "test city"
-          region: "AL"
+          region: "test region"
           postcode: "887766"
           country_code: "US"
           telephone: "88776655"
+          save_in_address_book: false
         }
       }
     }
@@ -300,80 +283,52 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
+     *
+     * @dataProvider dataProviderSetWithoutRequiredParameters
+     * @param string $input
+     * @param string $message
+     * @throws \Exception
      */
-    public function testSetNewBillingAddressWithoutCustomerAddressIdAndAddress()
+    public function testSetBillingAddressWithoutRequiredParameters(string $input, string $message)
     {
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
+        $input = str_replace('cart_id_value', $maskedQuoteId, $input);
 
         $query = <<<QUERY
 mutation {
   setBillingAddressOnCart(
     input: {
-      cart_id: "$maskedQuoteId"
-      billing_address: {
-        same_as_shipping: true
-      }
+      {$input}
     }
   ) {
     cart {
-      billing_address {
-        city
-      }
+        billing_address {
+            city
+          }
     }
   }
 }
 QUERY;
-
-        self::expectExceptionMessage(
-            'The billing address must contain either "customer_address_id" or "address".'
-        );
+        $this->expectExceptionMessage($message);
         $this->graphQlMutation($query);
     }
 
     /**
-     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_multishipping_with_two_shipping_addresses.php
+     * @return array
      */
-    public function testSetNewBillingAddressWithSameAsShippingAndMultishipping()
+    public function dataProviderSetWithoutRequiredParameters(): array
     {
-        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
-        $query = <<<QUERY
-mutation {
-  setBillingAddressOnCart(
-    input: {
-      cart_id: "$maskedQuoteId"
-      billing_address: {
-        address: {
-          firstname: "test firstname"
-          lastname: "test lastname"
-          company: "test company"
-          street: ["test street 1", "test street 2"]
-          city: "test city"
-          region: "AL"
-          postcode: "887766"
-          country_code: "US"
-          telephone: "88776655"
-        }
-        same_as_shipping: true
-      }
-    }
-  ) {
-    cart {
-      billing_address {
-        city
-      }
-    }
-  }
-}
-QUERY;
-
-        self::expectExceptionMessage(
-            'Using the "same_as_shipping" option with multishipping is not possible.'
-        );
-        $this->graphQlMutation($query);
+        return [
+            'missed_billing_address' => [
+                'cart_id: "cart_id_value"',
+                'Field SetBillingAddressOnCartInput.billing_address of required type BillingAddressInput!'
+                . ' was not provided.',
+            ],
+            'missed_cart_id' => [
+                'billing_address: {}',
+                'Required parameter "cart_id" is missing'
+            ]
+        ];
     }
 
     /**
@@ -397,10 +352,11 @@ mutation {
           company: "test company"
           street: ["test street 1", "test street 2", "test street 3"]
           city: "test city"
-          region: "AL"
+          region: "test region"
           postcode: "887766"
           country_code: "US"
           telephone: "88776655"
+          save_in_address_book: false
         }
       }
     }
@@ -416,63 +372,6 @@ QUERY;
 
         self::expectExceptionMessage('"Street Address" cannot contain more than 2 lines.');
         $this->graphQlMutation($query);
-    }
-
-    /**
-     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
-     */
-    public function testSetBillingAddressWithLowerCaseCountry()
-    {
-        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
-        $query = <<<QUERY
-mutation {
-  setBillingAddressOnCart(
-    input: {
-      cart_id: "$maskedQuoteId"
-      billing_address: {
-        address: {
-          firstname: "test firstname"
-          lastname: "test lastname"
-          company: "test company"
-          street: ["test street 1", "test street 2"]
-          city: "test city"
-          region: "AL"
-          postcode: "887766"
-          country_code: "us"
-          telephone: "88776655"
-        }
-      }
-    }
-  ) {
-    cart {
-      billing_address {
-        firstname
-        lastname
-        company
-        street
-        city
-        postcode
-        telephone
-        country {
-          code
-          label
-        }
-        __typename
-      }
-    }
-  }
-}
-QUERY;
-        $response = $this->graphQlMutation($query);
-
-        self::assertArrayHasKey('cart', $response['setBillingAddressOnCart']);
-        $cartResponse = $response['setBillingAddressOnCart']['cart'];
-        self::assertArrayHasKey('billing_address', $cartResponse);
-        $billingAddressResponse = $cartResponse['billing_address'];
-        $this->assertNewAddressFields($billingAddressResponse);
     }
 
     /**

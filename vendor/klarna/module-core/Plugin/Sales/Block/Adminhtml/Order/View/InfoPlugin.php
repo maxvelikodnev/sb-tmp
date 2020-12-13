@@ -10,6 +10,11 @@
 
 namespace Klarna\Core\Plugin\Sales\Block\Adminhtml\Order\View;
 
+/**
+ * Class InfoPlugin
+ *
+ * @package Klarna\Core\Plugin\Sales\Block\Adminhtml\Order\View
+ */
 class InfoPlugin
 {
     /**

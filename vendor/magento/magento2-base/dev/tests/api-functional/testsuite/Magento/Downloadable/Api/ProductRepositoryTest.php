@@ -27,14 +27,7 @@ class ProductRepositoryTest extends WebapiAbstract
 
     protected function setUp()
     {
-        parent::setUp();
         $this->testImagePath = __DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'test_image.jpg';
-
-        $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
-
-        /** @var DomainManagerInterface $domainManager */
-        $domainManager = $objectManager->get(DomainManagerInterface::class);
-        $domainManager->addDomains(['www.example.com']);
     }
 
     /**
@@ -44,12 +37,6 @@ class ProductRepositoryTest extends WebapiAbstract
     {
         $this->deleteProductBySku(self::PRODUCT_SKU);
         parent::tearDown();
-
-        $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
-
-        /** @var DomainManagerInterface $domainManager */
-        $domainManager = $objectManager->get(DomainManagerInterface::class);
-        $domainManager->removeDomains(['www.example.com']);
     }
 
     protected function getLinkData()
@@ -240,9 +227,7 @@ class ProductRepositoryTest extends WebapiAbstract
             'price' => 5.0,
             'number_of_downloads' => 999,
             'link_type' => 'file',
-            'link_file' => $linkFile,
-            'sample_type' => 'file',
-            'sample_file' => $sampleFile,
+            'sample_type' => 'file'
         ];
         $linkData = $this->getLinkData();
 

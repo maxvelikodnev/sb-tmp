@@ -5,11 +5,6 @@
  */
 namespace Magento\Framework\View\Asset\PreProcessor;
 
-/**
- * Class FileNameResolver
- *
- * @package Magento\Framework\View\Asset\PreProcessor
- */
 class FileNameResolver
 {
     /**
@@ -43,7 +38,7 @@ class FileNameResolver
         $compiledFile = $fileName;
         $extension = pathinfo($fileName, PATHINFO_EXTENSION);
         foreach ($this->alternativeSources as $name => $alternative) {
-            if ($alternative->isExtensionSupported($extension)
+            if (in_array($extension, $alternative->getAlternativesExtensionsNames(), true)
                 && strpos(basename($fileName), '_') !== 0
             ) {
                 $compiledFile = substr($fileName, 0, strlen($fileName) - strlen($extension) - 1);

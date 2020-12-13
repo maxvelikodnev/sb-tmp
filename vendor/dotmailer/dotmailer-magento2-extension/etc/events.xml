@@ -16,25 +16,28 @@
         <observer name="ddg_wishlist_item_delete" instance="Dotdigitalgroup\Email\Observer\Customer\RemoveWishlistItem"/>
     </event>
     <event name="sales_order_place_after">
-        <observer name="ddg_sales_order_place_after" instance="Dotdigitalgroup\Email\Observer\Sales\OrderPlaceAfter"/>
+        <observer name="ddg_order_place_order" instance="Dotdigitalgroup\Email\Observer\Sales\PlaceCreateAutomationStatus"/>
     </event>
     <event name="sales_order_save_before">
-        <observer name="ddg_sales_order_save_before" instance="Dotdigitalgroup\Email\Observer\Sales\OrderSaveBefore"/>
+        <observer name="ddg_order_save_before" instance="Dotdigitalgroup\Email\Observer\Sales\SaveRegisterOrderStatusBefore"/>
     </event>
     <event name="sales_order_save_after">
-        <observer name="ddg_sales_order_save_after" instance="Dotdigitalgroup\Email\Observer\Sales\OrderSaveAfter"/>
+        <observer name="ddg_order_save_after" instance="Dotdigitalgroup\Email\Observer\Sales\SaveStatusSmsAutomation"/>
     </event>
     <event name="sales_order_creditmemo_save_after">
-        <observer name="ddg_sales_order_creditmemo_save_after" instance="Dotdigitalgroup\Email\Observer\Sales\OrderCreditmemoSaveAfter" />
+        <observer name="ddg_reset_contact" instance="Dotdigitalgroup\Email\Observer\Sales\RefundReimportOrder" />
     </event>
     <event name="order_cancel_after">
-        <observer name="ddg_order_cancel_after" instance="Dotdigitalgroup\Email\Observer\Order\CancelAfter"/>
+        <observer name="ddg_remove_trans_order" instance="Dotdigitalgroup\Email\Observer\Sales\CancelRegisterRemove"/>
+    </event>
+    <event name="core_config_data_save_before">
+        <observer name="ddg_config_save_before" instance="Dotdigitalgroup\Email\Observer\Catalog\RegisterCatalogValuesOrderStatuses"/>
+    </event>
+    <event name="core_config_data_save_after">
+        <observer name="ddg_config_save_after" instance="Dotdigitalgroup\Email\Observer\Catalog\ResetCatalogContactImport"/>
     </event>
     <event name="catalog_product_save_after">
         <observer name="ddg_catalog_product_save_after" instance="Dotdigitalgroup\Email\Observer\Catalog\ReimportProduct"/>
-    </event>
-    <event name="catalog_product_import_bunch_save_after">
-        <observer name="ddg_catalog_product_import_bunch_save_after" instance="Dotdigitalgroup\Email\Observer\Catalog\ReimportBunch"/>
     </event>
     <event name="catalog_product_delete_before">
         <observer name="ddg_catalog_product_delete_before" instance="Dotdigitalgroup\Email\Observer\Catalog\RemoveProduct"/>
@@ -43,7 +46,7 @@
         <observer name="dotdigitalgroup_change_contact_subscription" instance="Dotdigitalgroup\Email\Observer\Newsletter\ChangeContactSubscription"/>
     </event>
     <event name="newsletter_subscriber_delete_after">
-        <observer name="dotdigitalgroup_subscriber_delete" instance="Dotdigitalgroup\Email\Observer\Customer\RemoveContact"/>
+        <observer name="dotdigitalgroup_subscriber_delete" instance="Dotdigitalgroup\Email\Observer\Newsletter\RemoveContact"/>
     </event>
     <event name="customer_delete_after">
         <observer name="ddg_remove_contact" instance="Dotdigitalgroup\Email\Observer\Customer\RemoveContact"/>

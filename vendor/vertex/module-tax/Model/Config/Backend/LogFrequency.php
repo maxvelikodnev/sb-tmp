@@ -24,14 +24,23 @@ use Vertex\Tax\Model\ConfigFactory;
  */
 class LogFrequency extends Value
 {
-    private const ROTATION_FREQUENCY = 'rotation_frequency';
-
     /** @var Config */
     private $configReader;
 
     /** @var WriterInterface */
     private $configWriter;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param WriterInterface $configWriter
+     * @param ConfigFactory $vertexConfigFactory
+     * @param TypeListInterface $cacheTypeList
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -57,8 +66,8 @@ class LogFrequency extends Value
      */
     public function afterSave()
     {
-        $time = explode(',', $this->getValue());
-        $frequency = $this->getFieldsetDataValue(self::ROTATION_FREQUENCY);
+        $time = explode(',', $this->configReader->getCronRotationTime());
+        $frequency = $this->configReader->getCronRotationFrequency();
         $cronExprString = $this->createCronExpression($time, $frequency);
 
         try {

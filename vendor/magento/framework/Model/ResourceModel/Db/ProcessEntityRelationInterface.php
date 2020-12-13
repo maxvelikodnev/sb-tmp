@@ -12,8 +12,6 @@ namespace Magento\Framework\Model\ResourceModel\Db;
 interface ProcessEntityRelationInterface
 {
     /**
-     * Process entity relation.
-     *
      * @param string $entityType
      * @param object $entity
      * @return object

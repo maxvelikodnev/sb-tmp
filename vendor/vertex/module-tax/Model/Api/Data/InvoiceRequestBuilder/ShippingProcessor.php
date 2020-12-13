@@ -6,17 +6,14 @@
 
 namespace Vertex\Tax\Model\Api\Data\InvoiceRequestBuilder;
 
-use Magento\Framework\Stdlib\StringUtils;
 use Magento\Sales\Api\Data\OrderExtensionInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\ShippingAssignmentInterface;
 use Magento\Sales\Api\Data\ShippingInterface;
 use Magento\Sales\Api\Data\TotalInterface;
-use Magento\Sales\Api\OrderRepositoryInterfaceFactory;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Vertex\Data\LineItemInterface;
 use Vertex\Data\LineItemInterfaceFactory;
-use Vertex\Exception\ConfigurationException;
-use Vertex\Tax\Model\Api\Utility\MapperFactoryProxy;
 use Vertex\Tax\Model\Config;
 use Vertex\Tax\Model\Repository\TaxClassNameRepository;
 
@@ -34,37 +31,25 @@ class ShippingProcessor
     /** @var LineItemInterfaceFactory */
     private $lineItemFactory;
 
-    /** @var OrderRepositoryInterfaceFactory */
-    private $orderRepositoryFactory;
-
-    /** @var StringUtils */
-    private $stringUtilities;
-
-    /** @var MapperFactoryProxy */
-    private $mapperFactory;
+    /** @var OrderRepositoryInterface */
+    private $orderRepository;
 
     /**
-     * @param OrderRepositoryInterfaceFactory $orderRepository
+     * @param OrderRepositoryInterface $orderRepository
      * @param Config $config
      * @param TaxClassNameRepository $classNameRepository
      * @param LineItemInterfaceFactory $lineItemFactory
-     * @param StringUtils $stringUtils
-     * @param MapperFactoryProxy $mapperProxy
      */
     public function __construct(
-        OrderRepositoryInterfaceFactory $orderRepositoryFactory,
+        OrderRepositoryInterface $orderRepository,
         Config $config,
         TaxClassNameRepository $classNameRepository,
-        LineItemInterfaceFactory $lineItemFactory,
-        StringUtils $stringUtils,
-        MapperFactoryProxy $mapperProxy
+        LineItemInterfaceFactory $lineItemFactory
     ) {
-        $this->orderRepositoryFactory = $orderRepositoryFactory;
+        $this->orderRepository = $orderRepository;
         $this->config = $config;
         $this->classNameRepository = $classNameRepository;
         $this->lineItemFactory = $lineItemFactory;
-        $this->stringUtilities = $stringUtils;
-        $this->mapperFactory = $mapperProxy;
     }
 
     /**
@@ -87,12 +72,10 @@ class ShippingProcessor
      * @param int $orderId
      * @param float $totalShipmentCost
      * @return LineItemInterface[]
-     * @throws ConfigurationException
      */
     public function getShippingLineItems($orderId, $totalShipmentCost)
     {
-        // We use a factory here to bypass the registry so we can load stuff like shipping assignments on placement
-        $order = $this->orderRepositoryFactory->create()->get($orderId);
+        $order = $this->orderRepository->get($orderId);
         $extensionAttributes = $order->getExtensionAttributes();
 
         if ($extensionAttributes === null || !$extensionAttributes instanceof OrderExtensionInterface) {
@@ -141,12 +124,12 @@ class ShippingProcessor
      * @param float $orderAmount
      * @param OrderInterface $order
      * @return array
-     * @throws ConfigurationException
      */
     private function buildLineItems($totalShipmentCost, $shippingCosts, $orderAmount, $order)
     {
-        $storeCode = $order->getStoreId();
-        $lineItemMapper = $this->mapperFactory->getForClass(LineItemInterface::class, $storeCode);
+        if ($orderAmount == 0) {
+            return [];
+        }
 
         // Pre-fetch the shipping tax class since all shipment types have the same one
         $taxClassId = $this->config->getShippingTaxClassId($order->getStoreId());
@@ -155,17 +138,17 @@ class ShippingProcessor
         $lineItems = [];
 
         foreach ($shippingCosts as $method => $cost) {
-            $percentage = (float)$orderAmount === 0.0 ? 0 : $cost / $orderAmount; // as a decimal
+            $percentage = $cost / $orderAmount; // as a decimal
             $invoicedCost = round($totalShipmentCost * $percentage, 2);
+
+            if ($invoicedCost == 0) {
+                continue;
+            }
 
             /** @var LineItemInterface $lineItem */
             $lineItem = $this->lineItemFactory->create();
-            $lineItem->setProductCode(
-                $this->stringUtilities->substr($method, 0, $lineItemMapper->getProductCodeMaxLength())
-            );
-            $lineItem->setProductClass(
-                $this->stringUtilities->substr($productClass, 0, $lineItemMapper->getProductTaxClassNameMaxLength())
-            );
+            $lineItem->setProductCode($method);
+            $lineItem->setProductClass($productClass);
             $lineItem->setUnitPrice($invoicedCost);
             $lineItem->setQuantity(1);
             $lineItem->setExtendedPrice($invoicedCost);

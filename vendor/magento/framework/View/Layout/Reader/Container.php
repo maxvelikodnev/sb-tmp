@@ -52,7 +52,7 @@ class Container implements Layout\ReaderInterface
     }
 
     /**
-     * @inheritdoc
+     * @return string[]
      */
     public function getSupportedNodes()
     {
@@ -60,7 +60,12 @@ class Container implements Layout\ReaderInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
+     * @param Context $readerContext
+     * @param Layout\Element $currentElement
+     * @param Layout\Element $parentElement
+     * @return $this
      */
     public function interpret(Context $readerContext, Layout\Element $currentElement)
     {

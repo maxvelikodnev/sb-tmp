@@ -53,11 +53,10 @@ class Zip extends AbstractArchive implements ArchiveInterface
     {
         $zip = new \ZipArchive();
         if ($zip->open($source) === true) {
-            $baseName = basename($destination);
-            $filename = $this->getFilenameFromZip($zip, $baseName);
-
+            $filename = $this->filterRelativePaths($zip->getNameIndex(0) ?: '');
             if ($filename) {
                 $zip->extractTo(dirname($destination), $filename);
+                rename(dirname($destination).'/'.$filename, $destination);
             } else {
                 $destination = '';
             }
@@ -70,23 +69,17 @@ class Zip extends AbstractArchive implements ArchiveInterface
     }
 
     /**
-     * Retrieve filename for import from zip archive.
+     * Filter file names with relative paths.
      *
-     * @param \ZipArchive $zip
-     * @param string $baseName
-     *
+     * @param string $path
      * @return string
      */
-    private function getFilenameFromZip(\ZipArchive $zip, string $baseName): string
+    private function filterRelativePaths(string $path): string
     {
-        $index = 0;
+        if ($path && preg_match('#^\s*(../)|(/../)#i', $path)) {
+            $path = '';
+        }
 
-        do {
-            $zip->renameIndex($index, $baseName);
-            $filename = $zip->getNameIndex($index);
-            $index++;
-        } while ($baseName !== $filename && $filename !== false);
-
-        return $filename === $baseName ? $filename : '';
+        return $path;
     }
 }

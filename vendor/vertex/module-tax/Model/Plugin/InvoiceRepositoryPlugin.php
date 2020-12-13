@@ -7,6 +7,7 @@
 namespace Vertex\Tax\Model\Plugin;
 
 use Magento\Sales\Api\Data\InvoiceInterface;
+use Magento\Sales\Api\Data\InvoiceItemExtensionFactory;
 use Magento\Sales\Api\Data\InvoiceItemInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Vertex\Tax\Model\Config;
@@ -23,11 +24,21 @@ class InvoiceRepositoryPlugin
     /** @var Config */
     private $config;
 
+    /** @var InvoiceItemExtensionFactory */
+    private $invoiceItemExtensionFactory;
+
+    /**
+     * @param VertexTaxAttributeManager $attributeManager
+     * @param InvoiceItemExtensionFactory $invoiceItemExtensionFactory
+     * @param Config $config
+     */
     public function __construct(
         VertexTaxAttributeManager $attributeManager,
+        InvoiceItemExtensionFactory $invoiceItemExtensionFactory,
         Config $config
     ) {
         $this->attributeManager = $attributeManager;
+        $this->invoiceItemExtensionFactory = $invoiceItemExtensionFactory;
         $this->config = $config;
     }
 
@@ -113,12 +124,14 @@ class InvoiceRepositoryPlugin
     private function setInvoiceTextCodes(InvoiceItemInterface $invoiceItem, array $invoiceTextCodes)
     {
         $extensionAttributes = $invoiceItem->getExtensionAttributes();
-        if ($extensionAttributes->getInvoiceTextCodes()) {
+        if ($extensionAttributes && $extensionAttributes->getInvoiceTextCodes()) {
             return;
         }
 
         if ($invoiceTextCodes !== null && array_key_exists($invoiceItem->getOrderItemId(), $invoiceTextCodes)) {
+            $extensionAttributes = $extensionAttributes ?: $this->invoiceItemExtensionFactory->create();
             $extensionAttributes->setInvoiceTextCodes($invoiceTextCodes[$invoiceItem->getOrderItemId()]);
+            $invoiceItem->setExtensionAttributes($extensionAttributes);
         }
     }
 
@@ -132,12 +145,14 @@ class InvoiceRepositoryPlugin
     private function setTaxCodes(InvoiceItemInterface $invoiceItem, array $taxCodes)
     {
         $extensionAttributes = $invoiceItem->getExtensionAttributes();
-        if ($extensionAttributes->getTaxCodes()) {
+        if ($extensionAttributes && $extensionAttributes->getTaxCodes()) {
             return;
         }
 
         if ($taxCodes !== null && array_key_exists($invoiceItem->getOrderItemId(), $taxCodes)) {
+            $extensionAttributes = $extensionAttributes ?: $this->invoiceItemExtensionFactory->create();
             $extensionAttributes->setTaxCodes($taxCodes[$invoiceItem->getOrderItemId()]);
+            $invoiceItem->setExtensionAttributes($extensionAttributes);
         }
     }
 
@@ -151,12 +166,14 @@ class InvoiceRepositoryPlugin
     private function setVertexTaxCodes(InvoiceItemInterface $invoiceItem, array $vertexTaxCodes)
     {
         $extensionAttributes = $invoiceItem->getExtensionAttributes();
-        if ($extensionAttributes->getVertexTaxCodes()) {
+        if ($extensionAttributes && $extensionAttributes->getVertexTaxCodes()) {
             return;
         }
 
         if ($vertexTaxCodes !== null && array_key_exists($invoiceItem->getOrderItemId(), $vertexTaxCodes)) {
+            $extensionAttributes = $extensionAttributes ?: $this->invoiceItemExtensionFactory->create();
             $extensionAttributes->setVertexTaxCodes($vertexTaxCodes[$invoiceItem->getOrderItemId()]);
+            $invoiceItem->setExtensionAttributes($extensionAttributes);
         }
     }
 }

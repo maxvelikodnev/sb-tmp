@@ -73,6 +73,7 @@ class ProductAttributes extends AbstractRepository implements OptionSourceInterf
                 ];
             }
         }
+        $options[] = ['value' => 'salableQty', 'label' => __('Salable Qty')];
         return $options;
     }
 

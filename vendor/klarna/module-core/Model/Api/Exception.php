@@ -10,6 +10,11 @@
 
 namespace Klarna\Core\Model\Api;
 
+/**
+ * Class Exception
+ *
+ * @package Klarna\Core\Model\Api
+ */
 class Exception extends \Klarna\Core\Exception
 {
 

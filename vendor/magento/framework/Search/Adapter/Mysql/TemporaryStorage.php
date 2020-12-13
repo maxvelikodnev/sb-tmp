@@ -153,7 +153,7 @@ class TemporaryStorage
             self::FIELD_SCORE,
             Table::TYPE_DECIMAL,
             [32, 16],
-            ['unsigned' => true, 'nullable' => true],
+            ['unsigned' => true, 'nullable' => false],
             'Score'
         );
         $table->setOption('type', 'memory');

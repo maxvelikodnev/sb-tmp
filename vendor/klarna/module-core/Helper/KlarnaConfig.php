@@ -23,6 +23,9 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 
 /**
+ * Class KlarnaConfig
+ *
+ * @package Klarna\Core\Helper
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class KlarnaConfig extends AbstractHelper
@@ -53,6 +56,8 @@ class KlarnaConfig extends AbstractHelper
     private $dataObjectFactory;
 
     /**
+     * ConfigHelper constructor.
+     *
      * @param Context                 $context
      * @param DataInterface           $config
      * @param VersionInterfaceFactory $versionFactory

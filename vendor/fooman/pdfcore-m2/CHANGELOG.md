@@ -1,5 +1,9 @@
 # Change Log
 
+## [19.5.0] - 2020-12-08
+### Added
+- New column to display salable quantity from Magento inventory
+
 ## [19.4.2] - 2020-10-02
 ### Added
 - Support for double sided printing

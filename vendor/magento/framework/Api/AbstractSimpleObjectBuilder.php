@@ -3,14 +3,10 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Framework\Api;
 
 /**
  * Base Builder Class for simple data Objects
- *
- * @deprecated Every builder should have their own implementation of \Magento\Framework\Api\SimpleBuilderInterface
  * @SuppressWarnings(PHPMD.NumberOfChildren)
  */
 abstract class AbstractSimpleObjectBuilder implements SimpleBuilderInterface
@@ -48,8 +44,6 @@ abstract class AbstractSimpleObjectBuilder implements SimpleBuilderInterface
     }
 
     /**
-     * Overwrite data in Object.
-     *
      * @param string $key
      * @param mixed $value
      *
@@ -68,12 +62,9 @@ abstract class AbstractSimpleObjectBuilder implements SimpleBuilderInterface
      */
     protected function _getDataObjectType()
     {
-        $dataObjectType = '';
-        $pattern = '/(?<data_object>.*?)Builder(\\Interceptor)?/';
-        if (preg_match($pattern, get_class($this), $match)) {
-            $dataObjectType = $match['data_object'];
-        }
-
+        $currentClass = get_class($this);
+        $builderSuffix = 'Builder';
+        $dataObjectType = substr($currentClass, 0, -strlen($builderSuffix));
         return $dataObjectType;
     }
 

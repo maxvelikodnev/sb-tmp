@@ -59,13 +59,13 @@ class ResetContactImport implements \Magento\Framework\Event\ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $numImported = $this->contactFactory->create()
-            ->getNumberOfImportedContacts();
+            ->getNumberOfImportedContacs();
 
         $updated = $this->contactResource->resetAllContacts();
 
         $this->helper->log(
             '-- Imported contacts: ' . $numImported
-            . ' reset :  ' . $updated . ' --'
+            . ' reseted :  ' . $updated . ' --'
         );
 
         return $this;

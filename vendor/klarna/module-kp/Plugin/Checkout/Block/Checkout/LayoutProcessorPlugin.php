@@ -17,6 +17,11 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * Class LayoutProcessorPlugin
+ *
+ * @package Klarna\Kp\Plugin\Checkout\Block\Checkout
+ */
 class LayoutProcessorPlugin
 {
     /**
@@ -33,6 +38,8 @@ class LayoutProcessorPlugin
     private $config;
 
     /**
+     * LayoutProcessorPlugin constructor.
+     *
      * @param Session                  $session
      * @param ScopeConfigInterface     $config
      * @param QuoteRepositoryInterface $quoteRepository

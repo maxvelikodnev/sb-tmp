@@ -8,7 +8,6 @@ namespace Magento\Framework\MessageQueue;
 
 use Magento\Framework\MessageQueue\PoisonPill\PoisonPillCompareInterface;
 use Magento\Framework\MessageQueue\PoisonPill\PoisonPillReadInterface;
-use Magento\Framework\App\DeploymentConfig;
 
 /**
  * Class CallbackInvoker to invoke callbacks for consumer classes
@@ -31,23 +30,15 @@ class CallbackInvoker implements CallbackInvokerInterface
     private $poisonPillCompare;
 
     /**
-     * @var DeploymentConfig
-     */
-    private $deploymentConfig;
-
-    /**
      * @param PoisonPillReadInterface $poisonPillRead
      * @param PoisonPillCompareInterface $poisonPillCompare
-     * @param DeploymentConfig $deploymentConfig
      */
     public function __construct(
         PoisonPillReadInterface $poisonPillRead,
-        PoisonPillCompareInterface $poisonPillCompare,
-        DeploymentConfig $deploymentConfig
+        PoisonPillCompareInterface $poisonPillCompare
     ) {
         $this->poisonPillRead = $poisonPillRead;
         $this->poisonPillCompare = $poisonPillCompare;
-        $this->deploymentConfig = $deploymentConfig;
     }
 
     /**
@@ -65,29 +56,13 @@ class CallbackInvoker implements CallbackInvokerInterface
             do {
                 $message = $queue->dequeue();
                 // phpcs:ignore Magento2.Functions.DiscouragedFunction
-            } while ($message === null && $this->isWaitingNextMessage() && (sleep(1) === 0));
-
-            if ($message === null) {
-                break;
-            }
-
+            } while ($message === null && (sleep(1) === 0));
             if (false === $this->poisonPillCompare->isLatestVersion($this->poisonPillVersion)) {
                 $queue->reject($message);
                 // phpcs:ignore Magento2.Security.LanguageConstruct.ExitUsage
                 exit(0);
             }
-
             $callback($message);
         }
-    }
-
-    /**
-     * Checks if consumers should wait for message from the queue
-     *
-     * @return bool
-     */
-    private function isWaitingNextMessage(): bool
-    {
-        return $this->deploymentConfig->get('queue/consumers_wait_for_messages', 1) === 1;
     }
 }

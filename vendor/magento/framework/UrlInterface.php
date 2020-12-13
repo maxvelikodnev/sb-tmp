@@ -29,10 +29,19 @@ interface UrlInterface
      */
     const DEFAULT_URL_TYPE = 'link';
 
+    /**
+     * Default controller name
+     */
     const DEFAULT_CONTROLLER_NAME = 'index';
 
+    /**
+     * Default action name
+     */
     const DEFAULT_ACTION_NAME = 'index';
 
+    /**
+     * Rewrite request path alias
+     */
     const REWRITE_REQUEST_PATH_ALIAS = 'rewrite_request_path';
 
     /**
@@ -44,7 +53,6 @@ interface UrlInterface
      * Retrieve use session rule
      *
      * @return bool
-     * @deprecated 102.0.5 SID is not being passed in URLs anymore.
      * @SuppressWarnings(PHPMD.BooleanGetMethodName)
      */
     public function getUseSession();
@@ -77,7 +85,6 @@ interface UrlInterface
      * Add session param
      *
      * @return \Magento\Framework\UrlInterface
-     * @deprecated 102.0.5 SID is not being passed in URLs anymore.
      */
     public function addSessionParam();
 

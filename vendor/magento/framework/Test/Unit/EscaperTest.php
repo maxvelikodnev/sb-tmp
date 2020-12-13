@@ -7,7 +7,6 @@ namespace Magento\Framework\Test\Unit;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\Escaper;
-use Magento\Framework\Translate\Inline;
 
 /**
  * \Magento\Framework\Escaper test case
@@ -17,7 +16,7 @@ class EscaperTest extends \PHPUnit\Framework\TestCase
     /**
      * @var \Magento\Framework\Escaper
      */
-    protected $escaper;
+    protected $escaper = null;
 
     /**
      * @var \Magento\Framework\ZendEscaper
@@ -25,32 +24,18 @@ class EscaperTest extends \PHPUnit\Framework\TestCase
     private $zendEscaper;
 
     /**
-     * @var Inline
-     */
-    private $translateInline;
-
-    /**
      * @var \Psr\Log\LoggerInterface
      */
     private $loggerMock;
 
-    /**
-     * @inheritdoc
-     */
     protected function setUp()
     {
-        $objectManagerHelper = new ObjectManager($this);
         $this->escaper = new Escaper();
         $this->zendEscaper = new \Magento\Framework\ZendEscaper();
-        $this->translateInline = $objectManagerHelper->getObject(Inline::class);
         $this->loggerMock = $this->getMockForAbstractClass(\Psr\Log\LoggerInterface::class);
+        $objectManagerHelper = new ObjectManager($this);
         $objectManagerHelper->setBackwardCompatibleProperty($this->escaper, 'escaper', $this->zendEscaper);
         $objectManagerHelper->setBackwardCompatibleProperty($this->escaper, 'logger', $this->loggerMock);
-        $objectManagerHelper->setBackwardCompatibleProperty(
-            $this->escaper,
-            'translateInline',
-            $this->translateInline
-        );
     }
 
     /**
@@ -230,23 +215,16 @@ class EscaperTest extends \PHPUnit\Framework\TestCase
                 'allowedTags' => ['a'],
             ],
             'text with allowed and not allowed tags, with allowed and not allowed attributes' => [
-                'data' => 'Some test <span style="fine">text in span tag</span> <strong>text in strong tag</strong> '
-                    . '<a type="some-type" href="http://domain.com/" style="bad" onclick="alert(1)">'
-                    . 'Click here</a><script>alert(1)'
+                'data' => 'Some test <span>text in span tag</span> <strong>text in strong tag</strong> '
+                    . '<a type="some-type" href="http://domain.com/" onclick="alert(1)">Click here</a><script>alert(1)'
                     . '</script>',
-                'expected' => 'Some test <span style="fine">text in span tag</span> text in strong tag '
-                    . '<a href="http://domain.com/">'
+                'expected' => 'Some test <span>text in span tag</span> text in strong tag <a href="http://domain.com/">'
                     . 'Click here</a>alert(1)',
                 'allowedTags' => ['a', 'span'],
             ],
             'text with html comment' => [
                 'data' => 'Only <span><b>2</b></span> in stock <!-- HTML COMMENT -->',
-                'expected' => 'Only <span><b>2</b></span> in stock ',
-                'allowedTags' => ['span', 'b'],
-            ],
-            'text with multi-line html comment' => [
-                'data' => "Only <span><b>2</b></span> in stock <!-- --!\n\n><img src=#>-->",
-                'expected' => 'Only <span><b>2</b></span> in stock ',
+                'expected' => 'Only <span><b>2</b></span> in stock <!-- HTML COMMENT -->',
                 'allowedTags' => ['span', 'b'],
             ],
             'text with non ascii characters' => [
@@ -315,10 +293,6 @@ class EscaperTest extends \PHPUnit\Framework\TestCase
                 'data' => "http://exam\r\nple.com/search?term=this+%26+that&view=list",
                 'expected' => "http://example.com/search?term=this+%26+that&amp;view=list",
             ],
-            [
-                'data' => "http://&#x65;&#x78;&#x61;&#x6d;&#x70;&#x6c;&#x65;&#x2e;&#x63;&#x6f;&#x6d;/",
-                'expected' => "http://example.com/",
-            ],
         ];
     }
 
@@ -366,10 +340,6 @@ class EscaperTest extends \PHPUnit\Framework\TestCase
     {
         return [
             [
-                '0',
-                '0',
-            ],
-            [
                 'javascript%3Aalert%28String.fromCharCode%280x78%29%2BString.'
                 . 'fromCharCode%280x73%29%2BString.fromCharCode%280x73%29%29',
                 ':alert%28String.fromCharCode%280x78%29%2BString.'
@@ -414,10 +384,6 @@ class EscaperTest extends \PHPUnit\Framework\TestCase
             [
                 'http://test.com/?redirect=\x64\x61\x74\x61\x3a\x74\x65\x78\x74x2cCPHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg',
                 'http://test.com/?redirect=:\x74\x65\x78\x74x2cCPHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg',
-            ],
-            [
-                'http://test.com/?{{{test}}{{test_translated}}{{tes_origin}}{{theme}}}',
-                'http://test.com/?test',
             ],
         ];
     }

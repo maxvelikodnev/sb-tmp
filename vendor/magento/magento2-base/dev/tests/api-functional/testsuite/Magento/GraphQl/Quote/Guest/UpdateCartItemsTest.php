@@ -70,17 +70,6 @@ class UpdateCartItemsTest extends GraphQlAbstract
 
         $this->assertEquals($itemId, $item['id']);
         $this->assertEquals($quantity, $item['quantity']);
-
-        //Check that update is correctly reflected in cart
-        $cartQuery = $this->getCartQuery($maskedQuoteId);
-        $response = $this->graphQlQuery($cartQuery);
-
-        $this->assertArrayHasKey('cart', $response);
-
-        $responseCart = $response['cart'];
-        $item = current($responseCart['items']);
-
-        $this->assertEquals($quantity, $item['quantity']);
     }
 
     /**
@@ -101,15 +90,6 @@ class UpdateCartItemsTest extends GraphQlAbstract
         $this->assertArrayHasKey('cart', $response['updateCartItems']);
 
         $responseCart = $response['updateCartItems']['cart'];
-        $this->assertCount(0, $responseCart['items']);
-
-        //Check that update is correctly reflected in cart
-        $cartQuery = $this->getCartQuery($maskedQuoteId);
-        $response = $this->graphQlQuery($cartQuery);
-
-        $this->assertArrayHasKey('cart', $response);
-
-        $responseCart = $response['cart'];
         $this->assertCount(0, $responseCart['items']);
     }
 
@@ -182,6 +162,34 @@ class UpdateCartItemsTest extends GraphQlAbstract
     }
 
     /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage Required parameter "cart_id" is missing.
+     */
+    public function testUpdateWithMissedCartItemId()
+    {
+        $query = <<<QUERY
+mutation {
+  updateCartItems(input: {
+    cart_items: [
+      {
+        cart_item_id: 1
+        quantity: 2
+      }
+    ]  
+  }) {
+    cart {
+      items {
+        id
+        quantity
+      }
+    }
+  }
+}
+QUERY;
+        $this->graphQlMutation($query);
+    }
+
+    /**
      * @param string $input
      * @param string $message
      * @dataProvider dataProviderUpdateWithMissedRequiredParameters
@@ -218,9 +226,17 @@ QUERY;
     public function dataProviderUpdateWithMissedRequiredParameters(): array
     {
         return [
+            'missed_cart_items' => [
+                '',
+                'Required parameter "cart_items" is missing.'
+            ],
+            'missed_cart_item_id' => [
+                'cart_items: [{ quantity: 2 }]',
+                'Required parameter "cart_item_id" for "cart_items" is missing.'
+            ],
             'missed_cart_item_qty' => [
                 'cart_items: [{ cart_item_id: 1 }]',
-                'Required parameter "quantity" for "cart_items" is missing.'
+                'Field CartItemUpdateInput.quantity of required type Float! was not provided.'
             ],
         ];
     }
@@ -249,26 +265,6 @@ mutation {
         id
         quantity
       }
-    }
-  }
-}
-QUERY;
-    }
-
-    /**
-     * @param string $maskedQuoteId
-     * @return string
-     */
-    private function getCartQuery(string $maskedQuoteId)
-    {
-        return <<<QUERY
-query {
-  cart(cart_id: "{$maskedQuoteId}"){
-    items{
-      product{
-        name
-      }
-      quantity
     }
   }
 }

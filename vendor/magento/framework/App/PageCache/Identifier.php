@@ -56,7 +56,6 @@ class Identifier
             $this->request->get(\Magento\Framework\App\Response\Http::COOKIE_VARY_STRING)
                 ?: $this->context->getVaryString()
         ];
-
         return sha1($this->serializer->serialize($data));
     }
 }

@@ -7,7 +7,6 @@ namespace Magento\Framework\View\Test\Unit\Asset\PreProcessor;
 
 use Magento\Framework\View\Asset\Minification;
 use Magento\Framework\View\Asset\PreProcessor\MinificationFilenameResolver;
-use Magento\Framework\View\Asset\PreProcessor\MinificationConfigProvider;
 
 /**
  * Class MinificationFilenameResolverTest
@@ -30,15 +29,13 @@ class MinificationFilenameResolverTest extends \PHPUnit\Framework\TestCase
         $minificationMock = $this->getMockBuilder(Minification::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $minificationConfigMock = $this->getMockBuilder(MinificationConfigProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $minificationConfigMock->expects(self::once())
-            ->method('isMinificationEnabled')
-            ->with($input)
+
+        $minificationMock->expects(self::once())
+            ->method('isEnabled')
+            ->with('ext')
             ->willReturn($isMin);
 
-        $resolver = new MinificationFilenameResolver($minificationMock, $minificationConfigMock);
+        $resolver = new MinificationFilenameResolver($minificationMock);
 
         self::assertEquals($expected, $resolver->resolve($input));
     }

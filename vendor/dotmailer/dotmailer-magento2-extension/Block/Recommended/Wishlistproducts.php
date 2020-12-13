@@ -7,7 +7,7 @@ namespace Dotdigitalgroup\Email\Block\Recommended;
  *
  * @api
  */
-class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
+class Wishlistproducts extends \Magento\Catalog\Block\Product\AbstractProduct
 {
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data
@@ -22,7 +22,7 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
     /**
      * @var \Dotdigitalgroup\Email\Helper\Recommended
      */
-    public $recommendedHelper;
+    public $recommnededHelper;
 
     /**
      * @var \Magento\Customer\Model\CustomerFactory
@@ -48,8 +48,6 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
      * Wishlistproducts constructor.
      *
      * @param \Magento\Catalog\Block\Product\Context $context
-     * @param \Dotdigitalgroup\Email\Block\Helper\Font $font
-     * @param \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder
      * @param \Magento\Customer\Model\ResourceModel\Customer $customerResource
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Catalog $catalog
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Wishlist $wishlist
@@ -61,8 +59,6 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
      */
     public function __construct(
         \Magento\Catalog\Block\Product\Context $context,
-        \Dotdigitalgroup\Email\Block\Helper\Font $font,
-        \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder,
         \Magento\Customer\Model\ResourceModel\Customer $customerResource,
         \Dotdigitalgroup\Email\Model\ResourceModel\Catalog $catalog,
         \Dotdigitalgroup\Email\Model\ResourceModel\Wishlist $wishlist,
@@ -72,15 +68,14 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
         \Dotdigitalgroup\Email\Helper\Recommended $recommended,
         array $data = []
     ) {
+        parent::__construct($context, $data);
         $this->helper            = $helper;
         $this->customerFactory   = $customerFactory;
-        $this->recommendedHelper = $recommended;
+        $this->recommnededHelper = $recommended;
         $this->priceHelper       = $priceHelper;
-        $this->wishlist          = $wishlist;
-        $this->catalog           = $catalog;
-        $this->customerResource  = $customerResource;
-
-        parent::__construct($context, $font, $urlFinder, $data);
+        $this->wishlist   = $wishlist;
+        $this->catalog    = $catalog;
+        $this->customerResource = $customerResource;
     }
 
     /**
@@ -91,7 +86,7 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
     public function _getWishlistItems()
     {
         $wishlist = $this->_getWishlist();
-        if ($wishlist && $wishlist->getItemCollection()->getSize()) {
+        if ($wishlist && ! empty($wishlist->getItemCollection())) {
             return $wishlist->getItemCollection();
         } else {
             return [];
@@ -140,7 +135,7 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
         //display mode based on the action name
         $mode = $this->getRequest()->getActionName();
         //number of product items to be displayed
-        $limit = (int) $this->recommendedHelper->getDisplayLimitByMode($mode);
+        $limit = (int) $this->recommnededHelper->getDisplayLimitByMode($mode);
         $items = $this->_getWishlistItems();
         $numItems = count($items);
 
@@ -267,7 +262,7 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
      */
     private function fillProductsToDisplay($productsToDisplay, &$productsToDisplayCounter, $limit)
     {
-        $fallbackIds = $this->recommendedHelper->getFallbackIds();
+        $fallbackIds = $this->recommnededHelper->getFallbackIds();
         $productCollection = $this->catalog->getProductCollectionFromIds($fallbackIds);
 
         foreach ($productCollection as $product) {
@@ -312,13 +307,13 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
     }
 
     /**
-     * Display mode type.
+     * Diplay mode type.
      *
      * @return string|boolean
      */
     public function getMode()
     {
-        return $this->recommendedHelper->getDisplayType();
+        return $this->recommnededHelper->getDisplayType();
     }
 
     /**
@@ -328,7 +323,7 @@ class Wishlistproducts extends \Dotdigitalgroup\Email\Block\Recommended
      */
     public function getColumnCount()
     {
-        return $this->recommendedHelper->getDisplayLimitByMode(
+        return $this->recommnededHelper->getDisplayLimitByMode(
             $this->getRequest()->getActionName()
         );
     }

@@ -7,7 +7,6 @@
 namespace Magento\Framework\View\Test\Unit\Asset\PreProcessor;
 
 use Magento\Framework\View\Asset\PreProcessor\Minify;
-use Magento\Framework\View\Asset\PreProcessor\MinificationConfigProvider;
 
 /**
  * Unit test for Magento\Framework\View\Asset\PreProcessor\Minify
@@ -30,11 +29,6 @@ class MinifyTest extends \PHPUnit\Framework\TestCase
     protected $minificationMock;
 
     /**
-     * @var MinificationConfigProvider|\PHPUnit_Framework_MockObject_MockObject
-     */
-    private $minificationConfigMock;
-
-    /**
      * {@inheritDoc}
      */
     protected function setUp()
@@ -46,14 +40,10 @@ class MinifyTest extends \PHPUnit\Framework\TestCase
         $this->minificationMock = $this->getMockBuilder(\Magento\Framework\View\Asset\Minification::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->minificationConfigMock = $this->getMockBuilder(MinificationConfigProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
 
         $this->minify = new Minify(
             $this->adapterMock,
-            $this->minificationMock,
-            $this->minificationConfigMock
+            $this->minificationMock
         );
     }
 
@@ -94,10 +84,10 @@ class MinifyTest extends \PHPUnit\Framework\TestCase
             ->with('original content')
             ->willReturn('minified content');
 
-        $this->minificationConfigMock
+        $this->minificationMock
             ->expects($this->any())
-            ->method('isMinificationEnabled')
-            ->willReturnMap([[$targetPath, $isEnabled]]);
+            ->method('isEnabled')
+            ->willReturnMap([['css', $isEnabled]]);
 
         $this->minificationMock
             ->expects($this->any())

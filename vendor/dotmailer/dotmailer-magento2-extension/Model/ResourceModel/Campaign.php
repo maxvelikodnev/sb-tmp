@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel;
 
-use Dotdigitalgroup\Email\Setup\SchemaInterface as Schema;
+use Dotdigitalgroup\Email\Setup\Schema;
 
 class Campaign extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
@@ -82,21 +82,17 @@ class Campaign extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * Set a campaign as sent.
-     * The sent_at date is set via the response data from Engagement Cloud.
+     * Set sent.
      *
      * @param int $sendId
-     * @param string $sendDate
      *
      * @return null
      */
-    public function setSent($sendId, $sendDate)
+    public function setSent($sendId)
     {
-        $sendDateObject = new \DateTime($sendDate, new \DateTimeZone('UTC'));
-        $sentAt = $sendDateObject->format('Y-m-d H:i:s');
         $bind = [
             'send_status' => \Dotdigitalgroup\Email\Model\Campaign::SENT,
-            'sent_at' => $sentAt
+            'sent_at' => $this->datetime->gmtDate()
         ];
         $conn = $this->getConnection();
         $conn->update(
@@ -137,25 +133,5 @@ class Campaign extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     public function saveItem($item)
     {
         return parent::save($item);
-    }
-
-    /**
-     * @param array $ids
-     *
-     * @return null
-     */
-    public function expireCampaigns($ids)
-    {
-        $bind = [
-            'send_status' => \Dotdigitalgroup\Email\Model\Campaign::SENT,
-            'message' => 'Check sending status in Engagement Cloud',
-            'updated_at' => $this->datetime->gmtDate()
-        ];
-        $this->getConnection()
-            ->update(
-                $this->getMainTable(),
-                $bind,
-                ["id in (?)" => $ids]
-            );
     }
 }

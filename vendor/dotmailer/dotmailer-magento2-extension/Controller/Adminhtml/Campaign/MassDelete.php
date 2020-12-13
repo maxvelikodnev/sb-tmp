@@ -2,11 +2,10 @@
 
 namespace Dotdigitalgroup\Email\Controller\Adminhtml\Campaign;
 
-use Dotdigitalgroup\Email\Helper\MassDeleteCsrf;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Ui\Component\MassAction\Filter;
 
-class MassDelete extends MassDeleteCsrf
+class MassDelete extends \Magento\Backend\App\Action
 {
     /**
      * Authorization level of a basic admin session
@@ -18,7 +17,7 @@ class MassDelete extends MassDeleteCsrf
     /**
      * @var \Dotdigitalgroup\Email\Model\ResourceModel\Campaign\CollectionFactory
      */
-    protected $collectionFactory;
+    private $collectionFactory;
 
     /**
      * @var object
@@ -28,30 +27,50 @@ class MassDelete extends MassDeleteCsrf
     /**
      * @var Filter
      */
-    protected $filter;
+    private $filter;
 
     /**
      * @var \Dotdigitalgroup\Email\Model\ResourceModel\Campaign
      */
-    protected $collectionResource;
+    private $campaignResource;
 
     /**
      * MassDelete constructor.
      *
-     * @param \Dotdigitalgroup\Email\Model\ResourceModel\Campaign $collectionResource
+     * @param \Dotdigitalgroup\Email\Model\ResourceModel\Campaign $campaignResource
      * @param \Magento\Backend\App\Action\Context $context
      * @param Filter $filter
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Campaign\CollectionFactory $collectionFactory
      */
     public function __construct(
-        \Dotdigitalgroup\Email\Model\ResourceModel\Campaign $collectionResource,
+        \Dotdigitalgroup\Email\Model\ResourceModel\Campaign $campaignResource,
         \Magento\Backend\App\Action\Context $context,
         Filter $filter,
         \Dotdigitalgroup\Email\Model\ResourceModel\Campaign\CollectionFactory $collectionFactory
     ) {
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
-        $this->collectionResource = $collectionResource;
+        $this->campaignResource = $campaignResource;
         parent::__construct($context);
+    }
+
+    /**
+     * @return \Magento\Backend\Model\View\Result\Redirect
+     */
+    public function execute()
+    {
+        $collection = $this->filter->getCollection($this->collectionFactory->create());
+        $collectionSize = $collection->getSize();
+
+        foreach ($collection as $item) {
+            $this->campaignResource->delete($item);
+        }
+
+        $this->messageManager->addSuccess(__('A total of %1 record(s) have been deleted.', $collectionSize));
+
+        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+
+        return $resultRedirect->setPath('*/*/');
     }
 }

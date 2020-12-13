@@ -2,7 +2,8 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel\Contact;
 
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class Collection extends
+ \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     /**
      * @var string
@@ -86,7 +87,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function getContactsToImportForWebsite($websiteId, $pageSize = 100)
     {
         $collection = $this->addFieldToFilter('website_id', $websiteId)
-            ->addFieldToFilter('email_imported', 0)
+            ->addFieldToFilter('email_imported', ['null' => true])
             ->addFieldToFilter('customer_id', ['neq' => '0']);
 
         $collection->getSelect()->limit($pageSize);
@@ -135,22 +136,23 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Contact subscribers to import for store.
+     * Contact subscribers to import for website.
      *
-     * @param int $storeId
+     * @param \Magento\Store\Model\Website $website
      * @param int $limit
      * @param bool $isCustomerCheck
      * @return $this
      */
     public function getSubscribersToImport(
-        $storeId,
+        \Magento\Store\Model\Website $website,
         $limit = 1000,
         $isCustomerCheck = true
     ) {
+        $storeIds = $website->getStoreIds();
         $collection = $this->addFieldToFilter('is_subscriber', ['notnull' => true])
             ->addFieldToFilter('subscriber_status', '1')
-            ->addFieldToFilter('subscriber_imported', 0)
-            ->addFieldToFilter('store_id', ['eq' => $storeId]);
+            ->addFieldToFilter('subscriber_imported', ['null' => true])
+            ->addFieldToFilter('store_id', ['in' => $storeIds]);
 
         if ($isCustomerCheck) {
             $collection->addFieldToFilter('customer_id', ['neq' => 0]);
@@ -186,7 +188,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function getGuests($websiteId, $onlySubscriber = false)
     {
         $guestCollection = $this->addFieldToFilter('is_guest', ['notnull' => true])
-            ->addFieldToFilter('email_imported', 0)
+            ->addFieldToFilter('email_imported', ['null' => true])
             ->addFieldToFilter('website_id', $websiteId);
 
         if ($onlySubscriber) {
@@ -207,7 +209,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function getNumberOfImportedContacts()
     {
-        $this->addFieldToFilter('email_imported', 1);
+        $this->addFieldToFilter('email_imported', ['notnull' => true]);
 
         return $this->getSize();
     }
@@ -252,7 +254,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         return $this->addFieldToFilter('customer_id', ['gt' => 0])
             ->addFieldToFilter('website_id', $websiteId)
-            ->addFieldToFilter('email_imported', 1)
+            ->addFieldToFilter('email_imported', '1')
             ->getSize();
     }
 
@@ -269,7 +271,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             'subscriber_status',
             \Dotdigitalgroup\Email\Model\Newsletter\Subscriber::STATUS_SUBSCRIBED
         )
-            ->addFieldToFilter('subscriber_imported', 1)
+            ->addFieldToFilter('subscriber_imported', '1')
             ->addFieldToFilter('website_id', $websiteId)
             ->getSize();
     }
@@ -322,7 +324,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $collection = $this->addFieldToSelect('*')
             ->addFieldToFilter('customer_id', ['neq' => '0'])
-            ->addFieldToFilter('email_imported', 0)
+            ->addFieldToFilter('email_imported', ['null' => true])
             ->addFieldToFilter('website_id', $websiteId)
             ->setPageSize($syncLimit);
 

@@ -2,7 +2,8 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel\Review;
 
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class Collection extends
+ \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     /**
      * @var string
@@ -32,7 +33,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function getReviewsToExportByWebsite(\Magento\Store\Model\Website $website, $limit = 100)
     {
-        return $this->addFieldToFilter('review_imported', 0)
+        return $this->addFieldToFilter('review_imported', ['null' => 'true'])
             ->addFieldToFilter(
                 'store_id',
                 ['in' => $website->getStoreIds()]

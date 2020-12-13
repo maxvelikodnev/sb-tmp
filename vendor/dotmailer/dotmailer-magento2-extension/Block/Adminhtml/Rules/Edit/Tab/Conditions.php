@@ -56,6 +56,8 @@ class Conditions extends \Magento\Backend\Block\Widget\Form\Generic implements
     }
 
     /**
+     * Returns status flag about this tab can be showen or not.
+     *
      * @return true
      */
     public function canShowTab()

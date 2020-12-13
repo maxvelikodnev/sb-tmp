@@ -57,7 +57,7 @@ class Proxy extends \Magento\Framework\View\Layout implements \Magento\Framework
     }
 
     /**
-     * Remove links to objects.
+     * Sleep magic method.
      *
      * @return array
      */

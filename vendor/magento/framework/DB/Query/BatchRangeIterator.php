@@ -122,7 +122,7 @@ class BatchRangeIterator implements BatchIteratorInterface
     /**
      * Return the key of the current element
      *
-     * Can return the number of the current sub-select in the iteration.
+     * Сan return the number of the current sub-select in the iteration.
      *
      * @return int
      */

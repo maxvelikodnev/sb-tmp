@@ -6,12 +6,10 @@
 
 namespace Vertex\Tax\Model\Plugin;
 
-use Closure;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Api\Data\QuoteDetailsInterface;
 use Magento\Tax\Api\TaxCalculationInterface;
 use Vertex\Tax\Model\Calculator;
-use Vertex\Tax\Model\QuoteIsVirtualDeterminer;
 use Vertex\Tax\Model\VertexUsageDeterminer;
 
 /**
@@ -22,9 +20,6 @@ class TaxCalculationPlugin
     /** @var Calculator */
     private $calculator;
 
-    /** @var QuoteIsVirtualDeterminer */
-    private $isVirtualDeterminer;
-
     /** @var StoreManagerInterface */
     private $storeManager;
 
@@ -34,19 +29,16 @@ class TaxCalculationPlugin
     /**
      * @param StoreManagerInterface $storeManager
      * @param Calculator $calculator
-     * @param QuoteIsVirtualDeterminer $isVirtualDeterminer
      * @param VertexUsageDeterminer $usageDeterminer
      */
     public function __construct(
         StoreManagerInterface $storeManager,
         Calculator $calculator,
-        QuoteIsVirtualDeterminer $isVirtualDeterminer,
         VertexUsageDeterminer $usageDeterminer
     ) {
         $this->storeManager = $storeManager;
         $this->calculator = $calculator;
         $this->usageDeterminer = $usageDeterminer;
-        $this->isVirtualDeterminer = $isVirtualDeterminer;
     }
 
     /**
@@ -54,7 +46,7 @@ class TaxCalculationPlugin
      *
      * @see TaxCalculationInterface::calculateTax()
      * @param TaxCalculationInterface $subject
-     * @param Closure $super
+     * @param callable $super
      * @param QuoteDetailsInterface $quoteDetails
      * @param string|null $storeId
      * @param bool $round
@@ -64,17 +56,20 @@ class TaxCalculationPlugin
      */
     public function aroundCalculateTax(
         TaxCalculationInterface $subject,
-        Closure $super,
+        callable $super,
         QuoteDetailsInterface $quoteDetails,
         $storeId = null,
         $round = true
     ) {
         $storeId = $this->getStoreId($storeId);
-        if (!$this->useVertex($quoteDetails, $storeId, $this->isVirtualDeterminer->isVirtual($quoteDetails), true)) {
-            return $super($quoteDetails, $storeId, $round);
+        if (!$this->useVertex($quoteDetails, $storeId, $this->isVirtual($quoteDetails), true)) {
+            // Allows forward compatibility with argument additions
+            $arguments = func_get_args();
+            array_splice($arguments, 0, 2);
+            return call_user_func_array($super, $arguments);
         }
 
-        return $this->calculator->calculateTax($quoteDetails, $storeId, (bool)$round);
+        return $this->calculator->calculateTax($quoteDetails, $storeId, $round);
     }
 
     /**
@@ -87,6 +82,26 @@ class TaxCalculationPlugin
     private function getStoreId($storeId)
     {
         return $storeId ?: $this->storeManager->getStore()->getStoreId();
+    }
+
+    /**
+     * Determine whether a quote is virtual or not
+     *
+     * This determination is made by whether or not the quote has a shipping
+     * item
+     *
+     * @param QuoteDetailsInterface $quoteDetails
+     * @return bool
+     */
+    private function isVirtual(QuoteDetailsInterface $quoteDetails)
+    {
+        $items = $quoteDetails->getItems();
+        foreach ($items as $item) {
+            if ($item->getType() === 'shipping') {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -103,12 +118,19 @@ class TaxCalculationPlugin
      */
     private function useVertex(QuoteDetailsInterface $quoteDetails, $storeId, $isVirtual, $checkCalculation = false)
     {
-        return $this->usageDeterminer->shouldUseVertex(
-            $storeId,
-            $quoteDetails->getShippingAddress(),
-            $quoteDetails->getCustomerId() === null ? null : (int)$quoteDetails->getCustomerId(),
-            $isVirtual,
-            $checkCalculation
-        );
+        $anItemHasPrice = false;
+        foreach ($quoteDetails->getItems() as $item) {
+            if ($item->getUnitPrice()) {
+                $anItemHasPrice = true;
+            }
+        }
+        return $anItemHasPrice
+            && $this->usageDeterminer->shouldUseVertex(
+                $storeId,
+                $quoteDetails->getShippingAddress(),
+                $quoteDetails->getCustomerId(),
+                $isVirtual,
+                $checkCalculation
+            );
     }
 }

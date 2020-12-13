@@ -6,7 +6,6 @@
 
 namespace Vertex\Tax\Model;
 
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -134,18 +133,14 @@ class ApiClient implements ClientInterface
      */
     private function createStreamContext()
     {
-        try {
-            return stream_context_create(
-                [
-                    'ssl' => [
-                        'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
-                        'ciphers' => 'SHA2',
-                    ]
+        return stream_context_create(
+            [
+                'ssl' => [
+                    'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+                    'ciphers' => 'SHA2',
                 ]
-            );
-        } catch (LocalizedException $exception) {
-            $this->logger->critical($exception);
-        }
+            ]
+        );
     }
 
     /**
@@ -224,7 +219,7 @@ class ApiClient implements ClientInterface
             );
         } catch (\Exception $originalException) {
             // Logging Exception
-            $exception = new LocalizedException(__('Failed to log Vertex Request'), $originalException, 0);
+            $exception = new \Exception('Failed to log Vertex Request', 0, $originalException);
             $this->logger->critical($exception);
         }
     }
@@ -253,7 +248,7 @@ class ApiClient implements ClientInterface
         } elseif (in_array($type, ['quote', 'invoice', 'invoice_refund'])) {
             $taxResponse = $client->CalculateTax60($request);
         } else {
-            throw new LocalizedException(__('Invalid request type'));
+            throw new \Exception('Invalid request type');
         }
         if ($taxResponse instanceof \SoapFault) {
             throw $taxResponse;

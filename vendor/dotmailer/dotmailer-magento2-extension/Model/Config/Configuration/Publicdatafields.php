@@ -49,7 +49,9 @@ class Publicdatafields implements \Magento\Framework\Data\OptionSourceInterface
         ];
         $apiEnabled = $this->helper->isEnabled($this->helper->getWebsite());
         //get datafields options
-        if ($apiEnabled && $datafields = $this->getDataFields()) {
+        if ($apiEnabled) {
+            $datafields = $this->getDataFields();
+
             //set the api error message for the first option
             if (isset($datafields->message)) {
                 //message

@@ -104,16 +104,4 @@ class ReCaptcha extends Template
 
         return Json::encode($layout);
     }
-    
-    /**
-     * @return string
-     */
-    public function toHtml()
-    {
-        if (!$this->config->isEnabledFrontend()) {
-            return '';
-        }
-
-        return parent::toHtml();
-    }
 }

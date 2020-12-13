@@ -3,8 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Framework\View;
 
 use Magento\Framework\App\ObjectManager;
@@ -225,8 +223,6 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
     }
 
     /**
-     * Set generator pool.
-     *
      * @param Layout\GeneratorPool $generatorPool
      * @return $this
      */
@@ -237,8 +233,6 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
     }
 
     /**
-     * Set builder.
-     *
      * @param Layout\BuilderInterface $builder
      * @return $this
      */
@@ -261,10 +255,7 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
     }
 
     /**
-     * Public build.
-     *
-     * @todo Will be eliminated in MAGETWO-28359
-     *
+     * TODO Will be eliminated in MAGETWO-28359
      * @return void
      */
     public function publicBuild()
@@ -1001,8 +992,6 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
     }
 
     /**
-     * Add adjustable renderer.
-     *
      * @param string $namespace
      * @param string $staticType
      * @param string $dynamicType
@@ -1022,8 +1011,6 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
     }
 
     /**
-     * Get renderer options.
-     *
      * @param string $namespace
      * @param string $staticType
      * @param string $dynamicType
@@ -1044,8 +1031,6 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
     }
 
     /**
-     * Execute renderer.
-     *
      * @param string $namespace
      * @param string $staticType
      * @param string $dynamicType
@@ -1064,7 +1049,6 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
                 ->setTemplate($options['template'])
                 ->assign($data);
 
-            // phpcs:ignore Magento2.Security.LanguageConstruct
             echo $this->_renderBlock($block->getNameInLayout());
         }
     }
@@ -1110,17 +1094,8 @@ class Layout extends \Magento\Framework\Simplexml\Config implements \Magento\Fra
     public function isCacheable()
     {
         $this->build();
-        $elements = $this->getXml()->xpath('//' . Element::TYPE_BLOCK . '[@cacheable="false"]');
-        $cacheable = $this->cacheable;
-        foreach ($elements as $element) {
-            $blockName = $element->getBlockName();
-            if ($blockName !== false && $this->structure->hasElement($blockName)) {
-                $cacheable = false;
-                break;
-            }
-        }
-
-        return $cacheable;
+        $cacheableXml = !(bool)count($this->getXml()->xpath('//' . Element::TYPE_BLOCK . '[@cacheable="false"]'));
+        return $this->cacheable && $cacheableXml;
     }
 
     /**

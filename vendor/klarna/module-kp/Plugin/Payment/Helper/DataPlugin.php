@@ -14,7 +14,6 @@ use Klarna\Kp\Api\PaymentMethodListInterface;
 use Klarna\Kp\Model\Payment\Kp;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -24,12 +23,11 @@ use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\ScopeInterface;
-use Klarna\Kp\Api\QuoteRepositoryInterface;
-use Klarna\Kp\Model\Session as KlarnaSession;
-use Klarna\Core\Exception as KlarnaException;
-use Psr\Log\LoggerInterface;
 
 /**
+ * Class DataPlugin
+ *
+ * @package Klarna\Kp\Plugin\Payment\Helper
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class DataPlugin
@@ -73,31 +71,16 @@ class DataPlugin
      * @var StoreManagerInterface $storeManager
      */
     private $storeManager;
-    /**
-     * @var QuoteRepositoryInterface
-     */
-    private $quoteRepository;
-    /**
-     * @var KlarnaSession
-     */
-    private $klarnaSession;
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
 
     /**
+     * DataPlugin constructor.
+     *
      * @param RequestInterface           $request
      * @param OrderRepositoryInterface   $orderRepository
      * @param CartRepositoryInterface    $mageQuoteRepository
      * @param Session                    $session
      * @param ScopeConfigInterface       $config
      * @param PaymentMethodListInterface $paymentMethodList
-     * @param StoreManagerInterface      $storeManager
-     * @param QuoteRepositoryInterface   $quoteRepository
-     * @param KlarnaSession              $klarnaSession
-     * @param LoggerInterface            $logger
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         RequestInterface $request,
@@ -106,10 +89,7 @@ class DataPlugin
         Session $session,
         ScopeConfigInterface $config,
         PaymentMethodListInterface $paymentMethodList,
-        StoreManagerInterface $storeManager,
-        QuoteRepositoryInterface $quoteRepository = null,
-        KlarnaSession $klarnaSession = null,
-        LoggerInterface $logger = null
+        StoreManagerInterface $storeManager
     ) {
         $this->request = $request;
         $this->orderRepository = $orderRepository;
@@ -118,13 +98,6 @@ class DataPlugin
         $this->config = $config;
         $this->paymentMethodList = $paymentMethodList;
         $this->storeManager = $storeManager;
-
-        $this->quoteRepository = ($quoteRepository !== null ? $quoteRepository :
-            ObjectManager::getInstance()->get(QuoteRepositoryInterface::class));
-        $this->klarnaSession = ($klarnaSession !== null ? $klarnaSession :
-            ObjectManager::getInstance()->get(KlarnaSession::class));
-        $this->logger = ($logger !== null ? $logger :
-            ObjectManager::getInstance()->get(LoggerInterface::class));
     }
 
     /**
@@ -145,14 +118,9 @@ class DataPlugin
             return $result;
         }
         $quote = $this->getQuote();
-        if (!$quote || !$quote->getIsActive()) {
+        if (!$quote) {
             return $result;
         }
-
-        if (!$this->isKlarnaOrderUpdateSuccessful($quote)) {
-            return $result;
-        }
-
         $methods = $this->paymentMethodList->getKlarnaMethodInfo($quote);
         if (empty($methods)) {
             return $result;
@@ -163,31 +131,6 @@ class DataPlugin
             $result[$code]['title'] = $method->name;
         }
         return $result;
-    }
-
-    /**
-     * Returns true if the Klarna update order request is successful
-     *
-     * @param CartInterface $quote
-     * @return bool
-     */
-    private function isKlarnaOrderUpdateSuccessful(CartInterface $quote): bool
-    {
-        try {
-            $sessionId = $this->quoteRepository->getActiveByQuote($quote)->getSessionId();
-            $response = $this->klarnaSession->init($sessionId);
-            if (!$response->isSuccessfull()) {
-                return false;
-            }
-        } catch (NoSuchEntityException $e) {
-            $this->logger->error($e);
-            return false;
-        } catch (KlarnaException $e) {
-            $this->logger->error($e);
-            return false;
-        }
-
-        return true;
     }
 
     /**

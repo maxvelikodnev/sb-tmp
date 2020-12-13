@@ -9,15 +9,10 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 
-/**
- * Test for
- *
- * @see RemoteAddress
- */
 class RemoteAddressTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|HttpRequest
+     * @var \PHPUnit_Framework_MockObject_MockObject|\HttpRequest
      */
     protected $_request;
 

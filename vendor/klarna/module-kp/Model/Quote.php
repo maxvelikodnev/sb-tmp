@@ -15,6 +15,9 @@ use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\Model\AbstractModel;
 
 /**
+ * Class Quote
+ *
+ * @package Klarna\Core\Model
  * @method getId():int
  * @method getKlarnaCheckoutId():int
  */
@@ -172,6 +175,8 @@ class Quote extends AbstractModel implements QuoteInterface, IdentityInterface
     }
 
     /**
+     * Constructor
+     *
      * @codeCoverageIgnore
      * @codingStandardsIgnoreLine
      */

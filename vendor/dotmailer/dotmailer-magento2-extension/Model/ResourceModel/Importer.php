@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel;
 
-use Dotdigitalgroup\Email\Setup\SchemaInterface as Schema;
+use Dotdigitalgroup\Email\Setup\Schema;
 
 class Importer extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {

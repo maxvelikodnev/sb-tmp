@@ -3,11 +3,12 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-namespace Magento\Framework\Data\Test\Unit\Form\Element;
 
 /**
  * Tests for \Magento\Framework\Data\Form\Element\AbstractElement
  */
+namespace Magento\Framework\Data\Test\Unit\Form\Element;
+
 class AbstractElementTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -241,9 +242,9 @@ class AbstractElementTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetEscapedValueWithoutFilter()
     {
-        $this->_model->setValue('<a href="#hash_tag">my &#039;quoted&#039; string</a>');
+        $this->_model->setValue('<a href="#hash_tag">my \'quoted\' string</a>');
         $this->assertEquals(
-            '&lt;a href=&quot;#hash_tag&quot;&gt;my &#039;quoted&#039; string&lt;/a&gt;',
+            '&lt;a href=&quot;#hash_tag&quot;&gt;my \'quoted\' string&lt;/a&gt;',
             $this->_model->getEscapedValue()
         );
     }
@@ -253,8 +254,8 @@ class AbstractElementTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetEscapedValueWithFilter()
     {
-        $value = '<a href="#hash_tag">my &#039;quoted&#039; string</a>';
-        $expectedValue = '&lt;a href=&quot;#hash_tag&quot;&gt;my &#039;quoted&#039; string&lt;/a&gt;';
+        $value = '<a href="#hash_tag">my \'quoted\' string</a>';
+        $expectedValue = '&lt;a href=&quot;#hash_tag&quot;&gt;my \'quoted\' string&lt;/a&gt;';
 
         $filterMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['filter']);
         $filterMock->expects($this->once())

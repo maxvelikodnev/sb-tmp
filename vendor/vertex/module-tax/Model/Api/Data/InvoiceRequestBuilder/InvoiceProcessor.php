@@ -2,19 +2,17 @@
 
 namespace Vertex\Tax\Model\Api\Data\InvoiceRequestBuilder;
 
-use Magento\Framework\Stdlib\StringUtils;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderAddressRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\ScopeInterface;
-use Vertex\Exception\ConfigurationException;
 use Vertex\Services\Invoice\RequestInterface;
 use Vertex\Services\Invoice\RequestInterfaceFactory;
 use Vertex\Tax\Model\Api\Data\CustomerBuilder;
 use Vertex\Tax\Model\Api\Data\SellerBuilder;
-use Vertex\Tax\Model\Api\Utility\MapperFactoryProxy;
+use Vertex\Tax\Model\Api\Utility\DeliveryTerm;
 use Vertex\Tax\Model\Config;
 use Vertex\Tax\Model\DateTimeImmutableFactory;
 
@@ -32,6 +30,9 @@ class InvoiceProcessor
     /** @var DateTimeImmutableFactory */
     private $dateTimeFactory;
 
+    /** @var DeliveryTerm */
+    private $deliveryTerm;
+
     /** @var InvoiceProcessorInterface */
     private $processorPool;
 
@@ -41,40 +42,31 @@ class InvoiceProcessor
     /** @var SellerBuilder */
     private $sellerBuilder;
 
-    /** @var StringUtils */
-    private $stringUtilities;
-
-    /** @var MapperFactoryProxy */
-    private $mapperFactory;
-
     /**
      * @param RequestInterfaceFactory $requestFactory
      * @param DateTimeImmutableFactory $dateTimeFactory
      * @param SellerBuilder $sellerBuilder
      * @param CustomerBuilder $customerBuilder
+     * @param DeliveryTerm $deliveryTerm
      * @param Config $config
      * @param InvoiceProcessorInterface $processorPool
-     * @param StringUtils $stringUtils
-     * @param MapperFactoryProxy $mapperFactory
      */
     public function __construct(
         RequestInterfaceFactory $requestFactory,
         DateTimeImmutableFactory $dateTimeFactory,
         SellerBuilder $sellerBuilder,
         CustomerBuilder $customerBuilder,
+        DeliveryTerm $deliveryTerm,
         Config $config,
-        InvoiceProcessorInterface $processorPool,
-        StringUtils $stringUtils,
-        MapperFactoryProxy $mapperFactory
+        InvoiceProcessorInterface $processorPool
     ) {
         $this->requestFactory = $requestFactory;
         $this->dateTimeFactory = $dateTimeFactory;
         $this->sellerBuilder = $sellerBuilder;
         $this->customerBuilder = $customerBuilder;
+        $this->deliveryTerm = $deliveryTerm;
         $this->config = $config;
         $this->processorPool = $processorPool;
-        $this->stringUtilities = $stringUtils;
-        $this->mapperFactory = $mapperFactory;
     }
 
     /**
@@ -82,7 +74,6 @@ class InvoiceProcessor
      *
      * @param InvoiceInterface $invoice
      * @return RequestInterface
-     * @throws ConfigurationException
      */
     public function process(InvoiceInterface $invoice)
     {
@@ -108,8 +99,6 @@ class InvoiceProcessor
             $scopeCode
         );
 
-        $invoiceMapper = $this->mapperFactory->getForClass(RequestInterface::class, $scopeCode);
-
         /** @var RequestInterface $request */
         $request = $this->requestFactory->create();
         $request->setShouldReturnAssistedParameters(true);
@@ -119,12 +108,10 @@ class InvoiceProcessor
         $request->setSeller($seller);
         $request->setCustomer($customer);
         $request->setCurrencyCode($invoice->getBaseCurrencyCode());
+        $this->deliveryTerm->addIfApplicable($request);
 
-        $configLocationCode = $this->config->getLocationCode($scopeCode);
-
-        if ($configLocationCode) {
-            $locationCode = $this->stringUtilities->substr($configLocationCode, 0, $invoiceMapper->getLocationCodeMaxLength());
-            $request->setLocationCode($locationCode);
+        if ($this->config->getLocationCode($scopeCode)) {
+            $request->setLocationCode($this->config->getLocationCode($scopeCode));
         }
 
         $request = $this->processorPool->process($request, $invoice);

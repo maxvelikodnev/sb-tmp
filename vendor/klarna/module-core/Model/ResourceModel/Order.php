@@ -13,6 +13,11 @@ namespace Klarna\Core\Model\ResourceModel;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Sales\Api\Data\OrderInterface as MageOrder;
 
+/**
+ * Class Order
+ *
+ * @package Klarna\Core\Model\ResourceModel
+ */
 class Order extends AbstractDb
 {
     /**
@@ -88,6 +93,8 @@ class Order extends AbstractDb
     }
 
     /**
+     * Constructor
+     *
      * @codeCoverageIgnore
      * @codingStandardsIgnoreLine
      */

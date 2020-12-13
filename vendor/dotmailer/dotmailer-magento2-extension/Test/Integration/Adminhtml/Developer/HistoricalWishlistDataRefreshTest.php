@@ -4,9 +4,6 @@ namespace Dotdigitalgroup\Email\Tests\Integration\Adminhtml\Developer;
 
 include __DIR__ . '/../../_files/wishlist.php';
 
-/**
- * @magentoAppArea adminhtml
- */
 class HistoricalWishlistDataRefreshTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
     /**
@@ -17,21 +14,31 @@ class HistoricalWishlistDataRefreshTest extends \Magento\TestFramework\TestCase\
     /**
      * @var string
      */
-    protected $uri = 'backend/dotdigitalgroup_email/run/wishlistsreset';
+    public $uri = 'backend/dotdigitalgroup_email/run/wishlistsreset';
+
+    /**
+     * @var array
+     */
+    private $data = [];
 
     /**
      * @var string
      */
-    protected $resource = 'Dotdigitalgroup_Email::config';
+    public $resource = 'Dotdigitalgroup_Email::config';
 
+    /**
+     * @return void
+     */
     public function setUp()
     {
         parent::setUp();
 
-        $this->getRequest()->setParams([
+        $params = [
             'from' => '',
-            'to' => '',
-        ]);
+            'to' => ''
+        ];
+        $this->getRequest()->setParams($params);
+        $this->data = $this->getWishlistData();
     }
 
     /**
@@ -71,7 +78,7 @@ class HistoricalWishlistDataRefreshTest extends \Magento\TestFramework\TestCase\
         $this->runReset('2017-02-09', '2017-01-10');
 
         $this->assertSessionMessages(
-            $this->equalTo(['To date cannot be earlier than from date.']),
+            $this->equalTo(['To Date cannot be earlier then From Date.']),
             \Magento\Framework\Message\MessageInterface::TYPE_ERROR
         );
 
@@ -88,7 +95,7 @@ class HistoricalWishlistDataRefreshTest extends \Magento\TestFramework\TestCase\
         $this->runReset('2017-02-09', 'not valid');
 
         $this->assertSessionMessages(
-            $this->equalTo(['From date or to date is not valid.']),
+            $this->equalTo(['From or To date is not a valid date.']),
             \Magento\Framework\Message\MessageInterface::TYPE_ERROR
         );
 
@@ -180,11 +187,11 @@ class HistoricalWishlistDataRefreshTest extends \Magento\TestFramework\TestCase\
     private function createWishlistDataAndGetCollection()
     {
         $this->emptyTable();
-        $this->createEmailData($this->getWishlistData());
+        $this->createEmailData($this->data);
 
         $collection = $this->_objectManager->create($this->model)
             ->getCollection();
-        $collection->addFieldToFilter('wishlist_imported', 0);
+        $collection->addFieldToFilter('wishlist_imported', ['null' => true]);
         return $collection;
     }
 }

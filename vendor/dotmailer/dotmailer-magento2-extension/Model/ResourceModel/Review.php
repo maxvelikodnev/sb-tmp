@@ -2,9 +2,15 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel;
 
-use Dotdigitalgroup\Email\Setup\SchemaInterface as Schema;
+use Dotdigitalgroup\Email\Setup\Schema;
 use Magento\Review\Model\ResourceModel\Rating\Option;
 
+/**
+ * Class Review
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+ */
 class Review extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
@@ -112,14 +118,17 @@ class Review extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             $where = [
                 'created_at >= ?' => $from . ' 00:00:00',
                 'created_at <= ?' => $to . ' 23:59:59',
-                'review_imported' => 1
+                'review_imported is ?' => new \Zend_Db_Expr('not null')
             ];
         } else {
-            $where = ['review_imported' => 1];
+            $where = $conn->quoteInto(
+                'review_imported is ?',
+                new \Zend_Db_Expr('not null')
+            );
         }
         $num = $conn->update(
             $this->getTable(Schema::EMAIL_REVIEW_TABLE),
-            ['review_imported' => 0],
+            ['review_imported' => new \Zend_Db_Expr('null')],
             $where
         );
 
@@ -172,7 +181,7 @@ class Review extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             $productIds[] = $item->getProductId();
         }
 
-        if (!empty($productIds)) {
+        if (! empty($productIds)) {
             $products = $this->productCollection->create()
                 ->addAttributeToSelect('*')
                 ->addFieldToFilter('entity_id', ['in' => $productIds]);
@@ -271,28 +280,5 @@ class Review extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         );
 
         return $votesCollection;
-    }
-
-    /**
-     * Get store id from review.
-     * @param string $reviewId
-     * @return string
-     */
-    public function getStoreIdFromReview($reviewId)
-    {
-        $storeId = '0';
-
-        $collection = $this->mageReviewCollection->create()
-            ->addStoreData()
-            ->addFieldToFilter('main_table.review_id', $reviewId)
-            ->getFirstItem();
-
-        foreach ($collection->getStores() as $store) {
-            if ($store !== '0') {
-                return $store;
-            }
-        }
-
-        return $storeId;
     }
 }

@@ -8,6 +8,7 @@ namespace Vertex\Tax\Model\Plugin;
 
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerExtensionInterface;
+use Magento\Customer\Api\Data\CustomerExtensionInterfaceFactory;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Api\Data\CustomerSearchResultsInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -30,6 +31,9 @@ class CustomerRepositoryPlugin
     /** @var Config */
     private $config;
 
+    /** @var CustomerExtensionInterfaceFactory */
+    private $extensionFactory;
+
     /** @var CustomerCodeRepository */
     private $repository;
 
@@ -39,13 +43,22 @@ class CustomerRepositoryPlugin
     /** @var bool[] */
     private $currentlySaving = [];
 
+    /**
+     * @param CustomerCodeRepository $repository
+     * @param CustomerExtensionInterfaceFactory $extensionFactory
+     * @param CustomerCodeFactory $codeFactory
+     * @param ExceptionLogger $logger
+     * @param Config $config
+     */
     public function __construct(
         CustomerCodeRepository $repository,
+        CustomerExtensionInterfaceFactory $extensionFactory,
         CustomerCodeFactory $codeFactory,
         ExceptionLogger $logger,
         Config $config
     ) {
         $this->repository = $repository;
+        $this->extensionFactory = $extensionFactory;
         $this->codeFactory = $codeFactory;
         $this->logger = $logger;
         $this->config = $config;
@@ -80,7 +93,7 @@ class CustomerRepositoryPlugin
                 continue;
             }
 
-            $extensionAttributes = $customer->getExtensionAttributes();
+            $extensionAttributes = $this->getExtensionAttributes($customer);
             $extensionAttributes->setVertexCustomerCode($customerCodes[$customer->getId()]->getCustomerCode());
         }
 
@@ -103,7 +116,7 @@ class CustomerRepositoryPlugin
             return $result;
         }
 
-        $extensionAttributes = $result->getExtensionAttributes();
+        $extensionAttributes = $this->getExtensionAttributes($result);
 
         try {
             $customerCode = $this->repository->getByCustomerId($result->getId());
@@ -171,7 +184,7 @@ class CustomerRepositoryPlugin
             } else {
                 $this->deleteByCustomerId($result->getId());
             }
-            $extensionAttributes = $result->getExtensionAttributes();
+            $extensionAttributes = $this->getExtensionAttributes($result);
             $extensionAttributes->setVertexCustomerCode($customerCode);
         } else {
             $result = $proceed($customer, $passwordHash);
@@ -258,6 +271,23 @@ class CustomerRepositoryPlugin
         } catch (\Exception $exception) {
             $this->logger->critical($exception);
         }
+    }
+
+    /**
+     * Get a CustomerExtensionInterface object, creating it if it is not yet created
+     *
+     * @param CustomerInterface $customer
+     * @return CustomerExtensionInterface
+     */
+    private function getExtensionAttributes(CustomerInterface $customer)
+    {
+        $extensionAttributes = $customer->getExtensionAttributes();
+        if (!$extensionAttributes) {
+            $extensionAttributes = $this->extensionFactory->create();
+            $customer->setExtensionAttributes($extensionAttributes);
+        }
+
+        return $extensionAttributes;
     }
 
     /**

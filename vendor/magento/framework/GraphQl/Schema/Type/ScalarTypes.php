@@ -13,29 +13,25 @@ namespace Magento\Framework\GraphQl\Schema\Type;
 class ScalarTypes
 {
     /**
-     * Check if type is scalar
-     *
      * @param string $typeName
      * @return bool
      */
     public function isScalarType(string $typeName) : bool
     {
-        $standardTypes = \GraphQL\Type\Definition\Type::getStandardTypes();
-        return isset($standardTypes[$typeName]);
+        $internalTypes = \GraphQL\Type\Definition\Type::getInternalTypes();
+        return isset($internalTypes[$typeName]) ? true : false;
     }
 
     /**
-     * Get instance of scalar type
-     *
      * @param string $typeName
      * @return \GraphQL\Type\Definition\ScalarType|\GraphQL\Type\Definition\Type
      * @throws \LogicException
      */
     public function getScalarTypeInstance(string $typeName) : \GraphQL\Type\Definition\Type
     {
-        $standardTypes = \GraphQL\Type\Definition\Type::getStandardTypes();
+        $internalTypes = \GraphQL\Type\Definition\Type::getInternalTypes();
         if ($this->isScalarType($typeName)) {
-            return $standardTypes[$typeName];
+            return $internalTypes[$typeName];
         } else {
             throw new \LogicException(sprintf('Scalar type %s doesn\'t exist', $typeName));
         }

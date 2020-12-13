@@ -2,6 +2,11 @@
 
 namespace Dotdigitalgroup\Email\Plugin;
 
+/**
+ * Class MinificationPlugin
+ *
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ */
 class MinificationPlugin
 {
     /**

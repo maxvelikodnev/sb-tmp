@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Block\Adminhtml\Config\Automation\Feefo;
 
-class Score extends \Dotdigitalgroup\Email\Block\Adminhtml\Config\Dynamic\ReadonlyFormField
+class Score extends \Magento\Config\Block\System\Config\Form\Field
 {
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data

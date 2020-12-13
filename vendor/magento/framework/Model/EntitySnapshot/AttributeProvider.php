@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Framework\Model\EntitySnapshot;
 
@@ -54,29 +53,31 @@ class AttributeProvider implements AttributeProviderInterface
      * Returns array of fields
      *
      * @param string $entityType
-     * @return string[]
+     * @return array
      * @throws \Exception
      */
     public function getAttributes($entityType)
     {
         if (!isset($this->registry[$entityType])) {
             $metadata = $this->metadataPool->getMetadata($entityType);
-            $entityDescription = $metadata->getEntityConnection()->describeTable($metadata->getEntityTable());
-            if ($metadata->getLinkField() !== $metadata->getIdentifierField()) {
-                unset($entityDescription[$metadata->getLinkField()]);
+            $this->registry[$entityType] = $metadata->getEntityConnection()->describeTable($metadata->getEntityTable());
+            if ($metadata->getLinkField() != $metadata->getIdentifierField()) {
+                unset($this->registry[$entityType][$metadata->getLinkField()]);
             }
-            $attributes = [];
-            $attributes[] = \array_keys($entityDescription);
-
-            $providers = $this->providers[$entityType] ?? $this->providers['default'] ?? [];
+            $providers = [];
+            if (isset($this->providers[$entityType])) {
+                $providers = $this->providers[$entityType];
+            } elseif (isset($this->providers['default'])) {
+                $providers = $this->providers['default'];
+            }
             foreach ($providers as $providerClass) {
                 $provider = $this->objectManager->get($providerClass);
-                $attributes[] = $provider->getAttributes($entityType);
+                $this->registry[$entityType] = array_merge(
+                    $this->registry[$entityType],
+                    $provider->getAttributes($entityType)
+                );
             }
-
-            $this->registry[$entityType] = \array_merge(...$attributes);
         }
-
         return $this->registry[$entityType];
     }
 }

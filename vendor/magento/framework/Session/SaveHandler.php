@@ -6,7 +6,7 @@
 namespace Magento\Framework\Session;
 
 use Magento\Framework\Session\Config\ConfigInterface;
-use Magento\Framework\Exception\SessionException;
+use \Magento\Framework\Exception\SessionException;
 
 /**
  * Magento session save handler
@@ -21,21 +21,8 @@ class SaveHandler implements SaveHandlerInterface
     protected $saveHandlerAdapter;
 
     /**
-     * @var SaveHandlerFactory
-     */
-    private $saveHandlerFactory;
-
-    /**
-     * @var ConfigInterface
-     */
-    private $sessionConfig;
-
-    /**
-     * @var string
-     */
-    private $defaultHandler;
-
-    /**
+     * Constructor
+     *
      * @param SaveHandlerFactory $saveHandlerFactory
      * @param ConfigInterface $sessionConfig
      * @param string $default
@@ -45,9 +32,19 @@ class SaveHandler implements SaveHandlerInterface
         ConfigInterface $sessionConfig,
         $default = self::DEFAULT_HANDLER
     ) {
-        $this->saveHandlerFactory = $saveHandlerFactory;
-        $this->sessionConfig = $sessionConfig;
-        $this->defaultHandler = $default;
+        /**
+         * Session handler
+         *
+         * Save handler may be set to custom value in deployment config, which will override everything else.
+         * Otherwise, try to read PHP settings for session.save_handler value. Otherwise, use 'files' as default.
+         */
+        $saveMethod = $sessionConfig->getOption('session.save_handler') ?: $default;
+
+        try {
+            $this->saveHandlerAdapter = $saveHandlerFactory->create($saveMethod);
+        } catch (SessionException $e) {
+            $this->saveHandlerAdapter = $saveHandlerFactory->create($default);
+        }
     }
 
     /**
@@ -59,7 +56,7 @@ class SaveHandler implements SaveHandlerInterface
      */
     public function open($savePath, $name)
     {
-        return $this->callSafely('open', $savePath, $name);
+        return $this->saveHandlerAdapter->open($savePath, $name);
     }
 
     /**
@@ -69,7 +66,7 @@ class SaveHandler implements SaveHandlerInterface
      */
     public function close()
     {
-        return $this->callSafely('close');
+        return $this->saveHandlerAdapter->close();
     }
 
     /**
@@ -80,7 +77,7 @@ class SaveHandler implements SaveHandlerInterface
      */
     public function read($sessionId)
     {
-        return $this->callSafely('read', $sessionId);
+        return $this->saveHandlerAdapter->read($sessionId);
     }
 
     /**
@@ -92,7 +89,7 @@ class SaveHandler implements SaveHandlerInterface
      */
     public function write($sessionId, $data)
     {
-        return $this->callSafely('write', $sessionId, $data);
+        return $this->saveHandlerAdapter->write($sessionId, $data);
     }
 
     /**
@@ -103,11 +100,12 @@ class SaveHandler implements SaveHandlerInterface
      */
     public function destroy($sessionId)
     {
-        return $this->callSafely('destroy', $sessionId);
+        return $this->saveHandlerAdapter->destroy($sessionId);
     }
 
     /**
-     * Garbage Collection - remove old session data older than $maxLifetime (in seconds)
+     * Garbage Collection - remove old session data older
+     * than $maxLifetime (in seconds)
      *
      * @param int $maxLifetime
      * @return bool
@@ -115,30 +113,6 @@ class SaveHandler implements SaveHandlerInterface
      */
     public function gc($maxLifetime)
     {
-        return $this->callSafely('gc', $maxLifetime);
-    }
-
-    /**
-     * Call save handler adapter method.
-     *
-     * In case custom handler failed, default files handler is used.
-     *
-     * @param string $method
-     * @param mixed $arguments
-     *
-     * @return mixed
-     */
-    private function callSafely(string $method, ...$arguments)
-    {
-        try {
-            if ($this->saveHandlerAdapter === null) {
-                $saveMethod = $this->sessionConfig->getOption('session.save_handler') ?: $this->defaultHandler;
-                $this->saveHandlerAdapter = $this->saveHandlerFactory->create($saveMethod);
-            }
-            return $this->saveHandlerAdapter->{$method}(...$arguments);
-        } catch (SessionException $exception) {
-            $this->saveHandlerAdapter = $this->saveHandlerFactory->create($this->defaultHandler);
-            return $this->saveHandlerAdapter->{$method}(...$arguments);
-        }
+        return $this->saveHandlerAdapter->gc($maxLifetime);
     }
 }

@@ -55,11 +55,6 @@ class Argument implements FieldInterface
     private $defaultValue;
 
     /**
-     * @var array
-     */
-    private $deprecated;
-
-    /**
      * @param string $name
      * @param string $type
      * @param string $baseType
@@ -69,8 +64,6 @@ class Argument implements FieldInterface
      * @param string $itemType
      * @param bool $itemsRequired
      * @param string $defaultValue
-     * @param array $deprecated
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         string $name,
@@ -81,8 +74,7 @@ class Argument implements FieldInterface
         bool $isList,
         string $itemType = '',
         bool $itemsRequired = false,
-        string $defaultValue = null,
-        array $deprecated = []
+        string $defaultValue = null
     ) {
         $this->name = $name;
         $this->type = $isList ? $itemType : $type;
@@ -92,7 +84,6 @@ class Argument implements FieldInterface
         $this->isList = $isList;
         $this->itemsRequired = $itemsRequired;
         $this->defaultValue = $defaultValue;
-        $this->deprecated = $deprecated;
     }
 
     /**
@@ -183,15 +174,5 @@ class Argument implements FieldInterface
     public function hasDefaultValue() : bool
     {
         return $this->defaultValue ? true: false;
-    }
-
-    /**
-     * Return the deprecated
-     *
-     * @return array
-     */
-    public function getDeprecated() : array
-    {
-        return $this->deprecated;
     }
 }

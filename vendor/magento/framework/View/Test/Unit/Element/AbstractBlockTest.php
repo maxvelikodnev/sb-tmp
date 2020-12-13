@@ -7,7 +7,6 @@
 namespace Magento\Framework\View\Test\Unit\Element;
 
 use Magento\Framework\Cache\LockGuardedCacheLoader;
-use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\AbstractBlock;
 use Magento\Framework\View\Element\Context;
 use Magento\Framework\Config\View;
@@ -54,11 +53,6 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
     private $sessionMock;
 
     /**
-     * @var Escaper|\PHPUnit_Framework_MockObject_MockObject
-     */
-    private $escaperMock;
-
-    /**
      * @var LockGuardedCacheLoader|\PHPUnit_Framework_MockObject_MockObject
      */
     private $lockQuery;
@@ -77,9 +71,6 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
             ->getMockForAbstractClass();
         $this->sidResolverMock = $this->getMockForAbstractClass(SidResolverInterface::class);
         $this->sessionMock = $this->getMockForAbstractClass(SessionManagerInterface::class);
-        $this->escaperMock = $this->getMockBuilder(Escaper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
         $contextMock = $this->createMock(Context::class);
         $contextMock->expects($this->once())
             ->method('getEventManager')
@@ -96,9 +87,6 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
         $contextMock->expects($this->once())
             ->method('getSession')
             ->willReturn($this->sessionMock);
-        $contextMock->expects($this->once())
-            ->method('getEscaper')
-            ->willReturn($this->escaperMock);
         $contextMock->expects($this->once())
             ->method('getLockGuardedCacheLoader')
             ->willReturn($this->lockQuery);
@@ -119,13 +107,6 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetUiId($expectedResult, $nameInLayout, $methodArguments)
     {
-        $this->escaperMock->expects($this->once())
-            ->method('escapeHtmlAttr')
-            ->willReturnCallback(
-                function ($string) {
-                    return $string;
-                }
-            );
         $this->block->setNameInLayout($nameInLayout);
         $this->assertEquals($expectedResult, call_user_func_array([$this->block, 'getUiId'], $methodArguments));
     }
@@ -172,12 +153,10 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
 
         $config->expects($this->any())
             ->method('getVarValue')
-            ->willReturnMap(
-                [
-                    ['Magento_Theme', 'v1', 'one'],
-                    [$module, 'v2', 'two']
-                ]
-            );
+            ->willReturnMap([
+                ['Magento_Theme', 'v1', 'one'],
+                [$module, 'v2', 'two']
+            ]);
 
         $configManager = $this->createMock(ConfigInterface::class);
         $configManager->expects($this->exactly(2))->method('getViewConfig')->willReturn($config);
@@ -323,32 +302,6 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
                 'expectsDispatchEvent' => $this->exactly(2),
                 'expectedResult' => '',
             ],
-        ];
-    }
-
-    /**
-     * @return void
-     */
-    public function testExtractModuleName()
-    {
-        $blockClassNames = $this->getPossibleBlockClassNames();
-
-        foreach ($blockClassNames as $expectedModuleName => $className) {
-            $extractedModuleName = $this->block->extractModuleName($className);
-            $this->assertSame($expectedModuleName, $extractedModuleName);
-        }
-    }
-
-    /**
-     * @return array
-     */
-    private function getPossibleBlockClassNames()
-    {
-        return [
-            'Vendor_Module' => 'Vendor\Module\Block\Class',
-            'Vendor_ModuleBlock' => 'Vendor\ModuleBlock\Block\Class',
-            'Vendor_BlockModule' => 'Vendor\BlockModule\Block\Class',
-            'Vendor_CustomBlockModule' => 'Vendor\CustomBlockModule\Block\Class',
         ];
     }
 }

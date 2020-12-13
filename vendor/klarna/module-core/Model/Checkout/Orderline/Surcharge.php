@@ -19,6 +19,11 @@ use Magento\Framework\DataObjectFactory;
 use Magento\Tax\Model\Calculation;
 use Klarna\Core\Model\Fpt\Rate;
 
+/**
+ * Class Surcharge
+ *
+ * @package Klarna\Core\Model\Checkout\Orderline
+ */
 class Surcharge extends AbstractLine
 {
 
@@ -29,6 +34,8 @@ class Surcharge extends AbstractLine
     private $configHelper;
 
     /**
+     * AbstractLine constructor.
+     *
      * @param DataConverter        $helper
      * @param Calculation          $calculator
      * @param ScopeConfigInterface $config
@@ -76,12 +83,12 @@ class Surcharge extends AbstractLine
         }
         $result = $this->rate->getFptTax($object);
 
-        $checkout->addData([
+        $checkout->addData(array(
             'surcharge_unit_price'   => $this->helper->toApiFloat($result['tax']),
             'surcharge_total_amount' => $this->helper->toApiFloat($result['tax']),
             'surcharge_reference'    => implode(',', $result['reference']),
             'surcharge_name'         => implode(',', $result['name'])
-        ]);
+        ));
     }
 
     /**
@@ -94,7 +101,7 @@ class Surcharge extends AbstractLine
     public function fetch(BuilderInterface $checkout)
     {
         if ($checkout->getSurchargeUnitPrice()) {
-            $checkout->addOrderLine([
+            $checkout->addOrderLine(array(
                 'type'             => self::ITEM_TYPE_SURCHARGE,
                 'reference'        => $checkout->getSurchargeReference(),
                 'name'             => $checkout->getSurchargeName(),
@@ -103,7 +110,7 @@ class Surcharge extends AbstractLine
                 'tax_rate'         => 0,
                 'total_amount'     => $checkout->getSurchargeTotalAmount(),
                 'total_tax_amount' => 0,
-            ]);
+            ));
         }
 
         return $this;

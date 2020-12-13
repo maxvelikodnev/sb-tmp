@@ -16,12 +16,9 @@ use Vertex\Tax\Model\Api\Data\InvoiceRequestBuilder;
 use Vertex\Tax\Model\Config;
 use Vertex\Tax\Model\ConfigurationValidator;
 use Vertex\Tax\Model\CountryGuard;
-use Vertex\Tax\Model\GuestAfterPaymentWorkaroundService;
 use Vertex\Tax\Model\InvoiceSentRegistry;
 use Vertex\Tax\Model\TaxInvoice;
 use Vertex\Tax\Model\VertexTaxAttributeManager;
-use Vertex\Tax\Model\Loader\VertexCalculationExtensionLoader;
-use Vertex\Tax\Model\Loader\GiftwrapExtensionLoader;
 
 /**
  * Observes when an Invoice is issued to fire off data to the Vertex Tax Log
@@ -61,9 +58,6 @@ class InvoiceSavedAfterObserver implements ObserverInterface
     /** @var bool */
     private $showSuccessMessage;
 
-    /** @var GuestAfterPaymentWorkaroundService */
-    private $workaroundService;
-
     /**
      * @param Config $config
      * @param CountryGuard $countryGuard
@@ -75,7 +69,6 @@ class InvoiceSavedAfterObserver implements ObserverInterface
      * @param GiftwrapExtensionLoader $extensionLoader
      * @param VertexTaxAttributeManager $attributeManager
      * @param VertexCalculationExtensionLoader $vertexExtensionLoader
-     * @param GuestAfterPaymentWorkaroundService $workaroundService
      * @param bool $showSuccessMessage
      */
     public function __construct(
@@ -89,7 +82,6 @@ class InvoiceSavedAfterObserver implements ObserverInterface
         GiftwrapExtensionLoader $extensionLoader,
         VertexTaxAttributeManager $attributeManager,
         VertexCalculationExtensionLoader $vertexExtensionLoader,
-        GuestAfterPaymentWorkaroundService $workaroundService,
         $showSuccessMessage = false
     ) {
         $this->config = $config;
@@ -103,7 +95,6 @@ class InvoiceSavedAfterObserver implements ObserverInterface
         $this->attributeManager = $attributeManager;
         $this->showSuccessMessage = $showSuccessMessage;
         $this->vertexExtensionLoader = $vertexExtensionLoader;
-        $this->workaroundService = $workaroundService;
     }
 
     /**
@@ -116,8 +107,6 @@ class InvoiceSavedAfterObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $this->workaroundService->clearInvoices();
-
         /** @var Invoice $invoice */
         $invoice = $observer->getEvent()->getInvoice();
         $storeId = $invoice->getStoreId();
@@ -125,8 +114,7 @@ class InvoiceSavedAfterObserver implements ObserverInterface
             return;
         }
 
-        /** @var Invoice $invoice */
-        $invoice = $this->extensionLoader->loadOnInvoice($invoice);
+        $this->extensionLoader->loadOnInvoice($invoice);
 
         /** @var \Magento\Sales\Model\Order $order */
         $order = $invoice->getOrder();

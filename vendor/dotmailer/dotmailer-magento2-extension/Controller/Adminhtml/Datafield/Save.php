@@ -22,22 +22,22 @@ class Save extends \Magento\Backend\App\AbstractAction
     protected $messageManager;
 
     /**
-     * @var \Dotdigitalgroup\Email\Model\Apiconnector\DataField
+     * @var \Dotdigitalgroup\Email\Helper\Data
      */
-    private $datafieldHandler;
+    private $dataHelper;
 
     /**
      * Save constructor.
-     * @param \Dotdigitalgroup\Email\Model\Apiconnector\DataField $datafieldHandler
+     * @param \Dotdigitalgroup\Email\Helper\Data $data
      * @param \Magento\Framework\Escaper $escaper
      * @param \Magento\Backend\App\Action\Context $context
      */
     public function __construct(
-        \Dotdigitalgroup\Email\Model\Apiconnector\DataField $datafieldHandler,
+        \Dotdigitalgroup\Email\Helper\Data $data,
         \Magento\Framework\Escaper $escaper,
         \Magento\Backend\App\Action\Context $context
     ) {
-        $this->datafieldHandler = $datafieldHandler;
+        $this->dataHelper     = $data;
         $this->escaper = $escaper;
         $this->messageManager = $context->getMessageManager();
         parent::__construct($context);
@@ -46,19 +46,15 @@ class Save extends \Magento\Backend\App\AbstractAction
     /**
      * Execute method.
      *
-     * @return null|void
+     * @return void
      */
     public function execute()
     {
         $datafield  = $this->getRequest()->getParam('name');
 
-        if (!empty($datafield)) {
-            if (!$this->datafieldHandler->hasValidLength($datafield)) {
-                $this->messageManager->addErrorMessage(__('Please limit Data Field Name to 20 characters.'));
-                return;
-            }
-            $response = $this->datafieldHandler->createDatafield(
-                (int) $this->getRequest()->getParam('website_id'),
+        if (! empty($datafield)) {
+            $response = $this->dataHelper->createDatafield(
+                (int) $this->getRequest()->getParam('website', 0),
                 $datafield,
                 $this->getRequest()->getParam('type'),
                 $this->getRequest()->getParam('visibility'),

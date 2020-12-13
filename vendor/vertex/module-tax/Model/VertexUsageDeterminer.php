@@ -48,7 +48,7 @@ class VertexUsageDeterminer
     public function shouldUseVertex(
         $storeCode = null,
         $address = null,
-        ?int $customerId = null,
+        $customerId = null,
         $isVirtual = false,
         $checkCalculation = false
     ) {
@@ -60,8 +60,6 @@ class VertexUsageDeterminer
         if ($address !== null && !($address instanceof AddressInterface || $address instanceof QuoteAddressInterface)) {
             throw new \InvalidArgumentException(
                 '$address must be a Customer or Quote Address.  Is: '
-                // gettype() used for debug output and not for checking types
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
                 .(is_object($address) ? get_class($address) : gettype($address))
             );
         }

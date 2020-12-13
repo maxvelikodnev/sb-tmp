@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file, in reverse chronological order by release.
 
+## 2.8.0 - 2019-12-26
+
+### Added
+
+- [#48](https://github.com/zendframework/zend-barcode/pull/48) adds the methods `setProvidedChecksum(bool $value)` (and the option `providedChecksum`) and `getProvidedChecksum()`. These allow indicating that the barcode text includes a checksum value for purposes of validation.
+
+### Changed
+
+- Nothing.
+
+### Deprecated
+
+- [#49](https://github.com/zendframework/zend-barcode/pull/49) deprecates `Zend\Barcode\Renderer\Pdf`. The renderer uses the now-abandoned zendframework/zendpdf package, and, as such, is deprecated as well, and scheduled for removal with version 3.0.0. We will release a separate PDF renderer package at a later date that consumes a 3rd party PDF library.
+
+### Removed
+
+- Nothing.
+
+### Fixed
+
+- Nothing.
+
 ## 2.7.1 - 2019-09-21
 
 ### Added

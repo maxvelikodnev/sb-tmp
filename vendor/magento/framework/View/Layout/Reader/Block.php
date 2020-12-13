@@ -113,7 +113,9 @@ class Block implements Layout\ReaderInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
+     * @return string[]
      */
     public function getSupportedNodes()
     {
@@ -121,7 +123,12 @@ class Block implements Layout\ReaderInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
+     * @param Context $readerContext
+     * @param Element $currentElement
+     * @param Element $parentElement
+     * @return $this
      */
     public function interpret(Context $readerContext, Element $currentElement)
     {
@@ -244,7 +251,7 @@ class Block implements Layout\ReaderInterface
      * Update data for scheduled element
      *
      * @param Element $currentElement
-     * @param array $data
+     * @param array &$data
      * @return array
      */
     protected function updateScheduledData($currentElement, array &$data)

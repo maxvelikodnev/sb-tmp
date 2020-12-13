@@ -5,13 +5,15 @@
  */
 namespace Magento\Framework\Config;
 
-use Magento\Framework\App\AreaList;
-
-/**
- * Scope config
- */
-class Scope implements ScopeInterface, ScopeListInterface
+class Scope implements \Magento\Framework\Config\ScopeInterface, \Magento\Framework\Config\ScopeListInterface
 {
+    /**
+     * Default application scope
+     *
+     * @var string
+     */
+    protected $_defaultScope;
+
     /**
      * Current config scope
      *
@@ -22,19 +24,19 @@ class Scope implements ScopeInterface, ScopeListInterface
     /**
      * List of all available areas
      *
-     * @var AreaList
+     * @var \Magento\Framework\App\AreaList
      */
     protected $_areaList;
 
     /**
      * Constructor
      *
-     * @param AreaList $areaList
+     * @param \Magento\Framework\App\AreaList $areaList
      * @param string $defaultScope
      */
-    public function __construct(AreaList $areaList, $defaultScope = 'primary')
+    public function __construct(\Magento\Framework\App\AreaList $areaList, $defaultScope = 'primary')
     {
-        $this->_currentScope = $defaultScope;
+        $this->_defaultScope = $this->_currentScope = $defaultScope;
         $this->_areaList = $areaList;
     }
 
@@ -67,9 +69,7 @@ class Scope implements ScopeInterface, ScopeListInterface
     public function getAllScopes()
     {
         $codes = $this->_areaList->getCodes();
-        array_unshift($codes, 'global');
-        array_unshift($codes, 'primary');
-
+        array_unshift($codes, $this->_defaultScope);
         return $codes;
     }
 }

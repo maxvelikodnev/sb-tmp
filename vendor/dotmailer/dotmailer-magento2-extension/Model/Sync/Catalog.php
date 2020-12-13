@@ -5,7 +5,7 @@ namespace Dotdigitalgroup\Email\Model\Sync;
 /**
  * Sync account TD for catalog.
  */
-class Catalog implements SyncInterface
+class Catalog
 {
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data
@@ -23,9 +23,24 @@ class Catalog implements SyncInterface
     private $start;
 
     /**
-     * @var \Dotdigitalgroup\Email\Model\ResourceModel\CatalogFactory
+     * @var int
      */
-    public $catalogResourceFactory;
+    private $countProducts = 0;
+
+    /**
+     * @var array
+     */
+    private $productIds = [];
+
+    /**
+     * @var \Dotdigitalgroup\Email\Model\ImporterFactory
+     */
+    private $importerFactory;
+
+    /**
+     * @var \Dotdigitalgroup\Email\Model\Connector\ProductFactory
+     */
+    private $connectorProductFactory;
 
     /**
      * @var \Dotdigitalgroup\Email\Model\ResourceModel\Catalog\CollectionFactory
@@ -33,139 +48,275 @@ class Catalog implements SyncInterface
     private $catalogCollectionFactory;
 
     /**
-     * @var \Dotdigitalgroup\Email\Model\Sync\Catalog\CatalogSyncFactory
+     * @var \Dotdigitalgroup\Email\Model\ResourceModel\CatalogFactory
      */
-    private $catalogSyncFactory;
+    public $catalogResourceFactory;
 
     /**
      * Catalog constructor.
      *
-     * @param \Dotdigitalgroup\Email\Helper\Data $helper
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Dotdigitalgroup\Email\Model\ResourceModel\CatalogFactory $catalogResourceFactory
-     * @param \Dotdigitalgroup\Email\Model\ResourceModel\Catalog\CollectionFactory $catalogCollectionFactory
-     * @param \Dotdigitalgroup\Email\Model\Sync\Catalog\CatalogSyncFactory $catalogSyncFactory
+     * @param \Dotdigitalgroup\Email\Model\ResourceModel\Catalog\CollectionFactory $catalogCollection
+     * @param \Dotdigitalgroup\Email\Model\Connector\ProductFactory           $connectorProductFactory
+     * @param \Dotdigitalgroup\Email\Model\ImporterFactory                    $importerFactory
+     * @param \Dotdigitalgroup\Email\Helper\Data                              $helper
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface              $scopeConfig
+     * @param \Dotdigitalgroup\Email\Model\ResourceModel\CatalogFactory       $catalogResourceFactory
      */
     public function __construct(
+        \Dotdigitalgroup\Email\Model\ResourceModel\Catalog\CollectionFactory $catalogCollection,
+        \Dotdigitalgroup\Email\Model\Connector\ProductFactory $connectorProductFactory,
+        \Dotdigitalgroup\Email\Model\ImporterFactory $importerFactory,
         \Dotdigitalgroup\Email\Helper\Data $helper,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Dotdigitalgroup\Email\Model\ResourceModel\CatalogFactory $catalogResourceFactory,
-        \Dotdigitalgroup\Email\Model\ResourceModel\Catalog\CollectionFactory $catalogCollectionFactory,
-        Catalog\CatalogSyncFactory $catalogSyncFactory
+        \Dotdigitalgroup\Email\Model\ResourceModel\CatalogFactory $catalogResourceFactory
     ) {
-        $this->helper = $helper;
-        $this->scopeConfig = $scopeConfig;
-        $this->catalogResourceFactory = $catalogResourceFactory;
-        $this->catalogCollectionFactory = $catalogCollectionFactory;
-        $this->catalogSyncFactory = $catalogSyncFactory;
+        $this->catalogCollectionFactory = $catalogCollection;
+        $this->connectorProductFactory  = $connectorProductFactory;
+        $this->importerFactory          = $importerFactory;
+        $this->helper                   = $helper;
+        $this->scopeConfig              = $scopeConfig;
+        $this->catalogResourceFactory   = $catalogResourceFactory;
     }
 
     /**
      * Catalog sync.
      *
-     * @param \DateTime|null $from
      * @return array
      */
-    public function sync(\DateTime $from = null)
+    public function sync()
     {
-        $response = ['success' => true, 'message' => 'Done.'];
+        $response    = ['success' => true, 'message' => 'Done.'];
+        $this->start = microtime(true);
 
-        if (!$this->shouldProceed()) {
-            return $response;
+        $enabled = $this->helper->isEnabled();
+        $catalogSyncEnabled = $this->helper->isCatalogSyncEnabled();
+        //api and catalog sync enabled
+        if ($enabled && $catalogSyncEnabled) {
+            $this->syncCatalog();
         }
 
-        $this->start = microtime(true);
-        $limit = $this->scopeConfig->getValue(
-            \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_TRANSACTIONAL_DATA_SYNC_LIMIT
-        );
-
-        $syncedProducts = [];
-        $productsToProcess = $this->getProductsToProcess($limit);
-
-        if (!$productsToProcess) {
-            $message = 'Catalog sync skipped, no products to process.';
-            $this->helper->log($message);
-            $response['message'] = $message;
-        } else {
-            $syncedProducts = $this->syncCatalog($productsToProcess);
-
+        if ($this->countProducts) {
             $message = '----------- Catalog sync ----------- : ' .
                 gmdate('H:i:s', microtime(true) - $this->start) .
-                ', Total processed = ' . count($productsToProcess) . ', Total synced = ' . count($syncedProducts);
+                ', Total synced = ' . $this->countProducts;
             $this->helper->log($message);
             $response['message'] = $message;
         }
-
-        $this->catalogResourceFactory->create()
-            ->setProcessedByIds($productsToProcess);
-
-        $this->catalogResourceFactory->create()
-            ->setImportedDateByIds(array_keys($syncedProducts));
 
         return $response;
     }
 
     /**
-     * Sync product catalogs
+     * Export catalog.
      *
-     * @param array $products
+     * @param int $storeId
      *
-     * @return array
+     * @return array|bool
      */
-    public function syncCatalog($products)
+    public function exportCatalog($storeId)
+    {
+        $connectorProducts = [];
+        //all products for export
+        $products = $this->getProductsToExport($storeId);
+        //get products id's
+        try {
+            if ($products) {
+                $this->productIds = array_merge($this->productIds, $products->getColumnValues('entity_id'));
+
+                foreach ($products as $product) {
+                    $product->setStoreId($storeId);
+                    $connProduct = $this->connectorProductFactory->create()
+                        ->setProduct($product);
+                    $connectorProducts[] = $connProduct->expose();
+                }
+            }
+        } catch (\Exception $e) {
+            $this->helper->debug((string)$e, []);
+        }
+
+        return $connectorProducts;
+    }
+
+    /**
+     * Export in single.
+     *
+     * @param int $storeId
+     * @param string $collectionName
+     * @param int $websiteId
+     *
+     * @return null
+     */
+    public function exportInSingle($storeId, $collectionName, $websiteId)
+    {
+        $productIds = [];
+        $products         = $this->getProductsToExport($storeId, true);
+        if (! empty($products)) {
+            foreach ($products as $product) {
+                $connectorProduct = $this->connectorProductFactory->create();
+                $product->setStoreId($storeId);
+                $connectorProduct->setProduct($product);
+                $this->helper->log(
+                    '---------- Start catalog single sync ----------'
+                );
+
+                //register in queue with importer
+                $check = $this->importerFactory->create()
+                    ->registerQueue(
+                        $collectionName,
+                        $connectorProduct->expose(),
+                        \Dotdigitalgroup\Email\Model\Importer::MODE_SINGLE,
+                        $websiteId
+                    );
+                if ($check) {
+                    $productIds[] = $product->getId();
+                } else {
+                    $pid = $product->getId();
+                    $msg = "Failed to register with IMPORTER. Type(Catalog) / Scope(Single) / Product Ids($pid)";
+                    $this->helper->log($msg);
+                }
+            }
+        }
+
+        if (! empty($productIds)) {
+            $this->setImported($productIds, true);
+            $this->countProducts += count($productIds);
+        }
+    }
+
+    /**
+     * Get product collection to export.
+     *
+     * @param \Magento\Store\Model\Store|int $store
+     * @param bool $modified
+     *
+     * @return mixed
+     */
+    public function getProductsToExport($store, $modified = false)
+    {
+        $limit = $this->helper->getWebsiteConfig(
+            \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_TRANSACTIONAL_DATA_SYNC_LIMIT
+        );
+        return $this->catalogCollectionFactory->create()
+            ->getProductsToExportByStore($store, $limit, $modified);
+    }
+
+    /**
+     * Set imported in bulk query. If modified true then set modified to null in bulk query.
+     *
+     * @param array $ids
+     * @param bool $modified
+     *
+     * @return null
+     */
+    public function setImported($ids, $modified = false)
+    {
+        $this->catalogResourceFactory->create()
+            ->setImportedByIds($ids, $modified);
+    }
+
+    /**
+     * @return null
+     */
+    public function syncCatalog()
     {
         try {
             //remove product with product id set and no product
             $this->catalogResourceFactory->create()
                 ->removeOrphanProducts();
+            $scope = $this->scopeConfig->getValue(
+                \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_SYNC_CATALOG_VALUES
+            );
 
-            return $this->catalogSyncFactory->create()
-                ->sync($products);
-
+            if ($scope == 1) {
+                $this->batchDefaultLevelValues();
+            } elseif ($scope == 2) {
+                $this->batchStoreLevelValues();
+            }
         } catch (\Exception $e) {
             $this->helper->debug((string)$e, []);
         }
-
-        return [];
     }
 
     /**
-     * Get products to process.
-     *
-     * @param int $limit
-     *
-     * @return array
+     * Batch default level values for catalog
      */
-    private function getProductsToProcess($limit)
+    private function batchDefaultLevelValues()
     {
-        return $this->catalogCollectionFactory->create()
-            ->getProductsToProcess($limit);
-    }
+        $products = $this->exportCatalog(\Magento\Store\Model\Store::DEFAULT_STORE_ID);
+        if (! empty($products)) {
+            //register in queue with importer
+            $check = $this->importerFactory->create()
+                ->registerQueue(
+                    'Catalog_Default',
+                    $products,
+                    \Dotdigitalgroup\Email\Model\Importer::MODE_BULK,
+                    \Magento\Store\Model\Store::DEFAULT_STORE_ID
+                );
 
-    /**
-     * @return bool
-     */
-    private function shouldProceed()
-    {
-        // check default level
-        $apiEnabled = $this->helper->isEnabled();
-        $catalogSyncEnabled = $this->helper->isCatalogSyncEnabled();
+            if ($check) {
+                //set imported
+                $this->setImported($this->productIds);
 
-        if ($apiEnabled && $catalogSyncEnabled) {
-            return true;
-        }
-
-        // not enabled at default, check each website, exiting as soon as we find an enabled website
-        $websites = $this->helper->getWebsites();
-        foreach ($websites as $website) {
-
-            $apiEnabled = $this->helper->isEnabled($website);
-            $catalogSyncEnabled = $this->helper->isCatalogSyncEnabled($website);
-
-            if ($apiEnabled && $catalogSyncEnabled) {
-                return true;
+                //set number of product imported
+                $this->countProducts += count($products);
+            } else {
+                $pid = implode(",", $this->productIds);
+                $msg = "Failed to register with IMPORTER. Type(Catalog) / Scope(Bulk) / Product Ids($pid)";
+                $this->helper->log($msg);
             }
         }
-        return false;
+
+        //using single api
+        $this->exportInSingle(
+            \Magento\Store\Model\Store::DEFAULT_STORE_ID,
+            'Catalog_Default',
+            \Magento\Store\Model\Store::DEFAULT_STORE_ID
+        );
+    }
+
+    /**
+     * Batch store level values for catalog
+     */
+    private function batchStoreLevelValues()
+    {
+        $stores = $this->helper->getStores();
+
+        foreach ($stores as $store) {
+            $websiteCode = $store->getWebsite()->getCode();
+            $storeCode = $store->getCode();
+            $products = $this->exportCatalog($store->getId());
+            if (! empty($products)) {
+                //register in queue with importer
+                $check = $this->importerFactory->create()
+                    ->registerQueue(
+                        'Catalog_' . $websiteCode . '_'
+                        . $storeCode,
+                        $products,
+                        \Dotdigitalgroup\Email\Model\Importer::MODE_BULK,
+                        $store->getWebsiteId()
+                    );
+
+                if (! $check) {
+                    $pid = implode(",", $this->productIds);
+                    $msg = "Failed to register with IMPORTER. Type(Catalog) / Scope(Bulk) / Store($store) 
+                            / Product Ids($pid)";
+                    $this->helper->log($msg);
+                }
+            }
+            //using single api
+            $this->exportInSingle(
+                $store->getId(),
+                'Catalog_' . $websiteCode . '_' . $storeCode,
+                $store->getWebsiteId()
+            );
+        }
+
+        if (! empty($this->productIds)) {
+            //set imported
+            $this->setImported(array_unique($this->productIds));
+
+            //set number of product imported
+            $this->countProducts += count($this->productIds);
+        }
     }
 }

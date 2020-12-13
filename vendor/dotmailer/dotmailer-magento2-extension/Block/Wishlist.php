@@ -7,7 +7,7 @@ namespace Dotdigitalgroup\Email\Block;
  *
  * @api
  */
-class Wishlist extends Recommended
+class Wishlist extends \Magento\Catalog\Block\Product\AbstractProduct
 {
 
     /**
@@ -39,8 +39,6 @@ class Wishlist extends Recommended
      * Wishlist constructor.
      *
      * @param \Magento\Catalog\Block\Product\Context $context
-     * @param Helper\Font $font
-     * @param \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder
      * @param \Magento\Customer\Model\ResourceModel\Customer $customerResource
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Wishlist $wishlist
      * @param \Magento\Customer\Model\CustomerFactory $customerFactory
@@ -50,8 +48,6 @@ class Wishlist extends Recommended
      */
     public function __construct(
         \Magento\Catalog\Block\Product\Context $context,
-        Helper\Font $font,
-        \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder,
         \Magento\Customer\Model\ResourceModel\Customer $customerResource,
         \Dotdigitalgroup\Email\Model\ResourceModel\Wishlist $wishlist,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
@@ -59,13 +55,12 @@ class Wishlist extends Recommended
         \Magento\Framework\Pricing\Helper\Data $priceHelper,
         array $data = []
     ) {
+        parent::__construct($context, $data);
         $this->wishlist = $wishlist;
         $this->customerFactory = $customerFactory;
         $this->helper          = $helper;
         $this->priceHelper     = $priceHelper;
         $this->customerResource = $customerResource;
-
-        parent::__construct($context, $font, $urlFinder, $data);
     }
 
     /**
@@ -76,7 +71,7 @@ class Wishlist extends Recommended
     public function getWishlistItems()
     {
         $wishlist = $this->_getWishlist();
-        if ($wishlist && $wishlist->getItemCollection()->getSize()) {
+        if ($wishlist && ! empty($wishlist->getItemCollection())) {
             return $wishlist->getItemCollection();
         } else {
             return false;
@@ -115,7 +110,7 @@ class Wishlist extends Recommended
     public function getMode()
     {
         return $this->helper->getWebsiteConfig(
-            \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_DYNAMIC_CONTENT_WISHLIST_DISPLAY
+            \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_DYNAMIC_CONTENT_WIHSLIST_DISPLAY
         );
     }
 

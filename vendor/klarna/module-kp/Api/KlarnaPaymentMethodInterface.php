@@ -10,6 +10,11 @@
 
 namespace Klarna\Kp\Api;
 
+/**
+ * Interface KlarnaPaymentMethod
+ *
+ * @package Klarna\Kp\Model\Payment
+ */
 interface KlarnaPaymentMethodInterface
 {
     /**

@@ -78,8 +78,6 @@ class Loader
     public function load(array $exclude = [])
     {
         $result = [];
-        $excludeSet = array_flip($exclude);
-
         foreach ($this->getModuleConfigs() as list($file, $contents)) {
             try {
                 $this->parser->loadXML($contents);
@@ -95,7 +93,7 @@ class Loader
 
             $data = $this->converter->convert($this->parser->getDom());
             $name = key($data);
-            if (!isset($excludeSet[$name])) {
+            if (!in_array($name, $exclude)) {
                 $result[$name] = $data[$name];
             }
         }
@@ -142,7 +140,7 @@ class Loader
 
             $expanded[] = [
                 'name' => $moduleName,
-                'sequence_set' => array_flip($sequence),
+                'sequence' => $sequence,
             ];
         }
 
@@ -150,7 +148,7 @@ class Loader
         $total = count($expanded);
         for ($i = 0; $i < $total - 1; $i++) {
             for ($j = $i; $j < $total; $j++) {
-                if (isset($expanded[$i]['sequence_set'][$expanded[$j]['name']])) {
+                if (in_array($expanded[$j]['name'], $expanded[$i]['sequence'], true)) {
                     $temp = $expanded[$i];
                     $expanded[$i] = $expanded[$j];
                     $expanded[$j] = $temp;
@@ -198,19 +196,18 @@ class Loader
      */
     private function expandSequence($list, $name, $accumulated = [])
     {
-        $accumulated[$name] = true;
+        $accumulated[] = $name;
         $result = $list[$name]['sequence'];
-        $allResults = [];
         foreach ($result as $relatedName) {
-            if (isset($accumulated[$relatedName])) {
-                throw new \LogicException("Circular sequence reference from '{$name}' to '{$relatedName}'.");
+            if (in_array($relatedName, $accumulated)) {
+                throw new \Exception("Circular sequence reference from '{$name}' to '{$relatedName}'.");
             }
             if (!isset($list[$relatedName])) {
                 continue;
             }
-            $allResults[] = $this->expandSequence($list, $relatedName, $accumulated);
+            $relatedResult = $this->expandSequence($list, $relatedName, $accumulated);
+            $result = array_unique(array_merge($result, $relatedResult));
         }
-        $allResults[] = $result;
-        return array_unique(array_merge(...$allResults));
+        return $result;
     }
 }

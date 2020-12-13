@@ -7,6 +7,7 @@
 namespace Vertex\Tax\Model\Plugin;
 
 use Magento\Quote\Model\Quote;
+use Magento\Tax\Api\Data\QuoteDetailsItemExtensionFactory;
 use Magento\Tax\Api\Data\QuoteDetailsItemExtensionInterface;
 use Magento\Tax\Api\Data\QuoteDetailsItemInterface;
 use Magento\Tax\Api\Data\QuoteDetailsItemInterfaceFactory;
@@ -22,9 +23,17 @@ class TaxPlugin
     /** @var Config */
     private $config;
 
-    public function __construct(Config $config)
+    /** @var QuoteDetailsItemExtensionFactory */
+    private $extensionFactory;
+
+    /**
+     * @param QuoteDetailsItemExtensionFactory $extensionFactory
+     * @param Config $config
+     */
+    public function __construct(QuoteDetailsItemExtensionFactory $extensionFactory, Config $config)
     {
         $this->config = $config;
+        $this->extensionFactory = $extensionFactory;
     }
 
     /**
@@ -71,7 +80,7 @@ class TaxPlugin
                 default:
                     continue 2;
             }
-            $extensionAttributes = $item->getExtensionAttributes();
+            $extensionAttributes = $this->getExtensionAttributes($item);
             $extensionAttributes->setVertexProductCode($sku);
             $item->setTaxClassId($taxClassId);
             if ($item->getTaxClassKey() && $item->getTaxClassKey()->getType() === TaxClassKeyInterface::TYPE_ID) {
@@ -80,5 +89,23 @@ class TaxPlugin
         }
 
         return $items;
+    }
+
+    /**
+     * Retrieve an extension attribute object for the QuoteDetailsItem
+     *
+     * @param QuoteDetailsItemInterface $taxData
+     * @return QuoteDetailsItemExtensionInterface
+     */
+    private function getExtensionAttributes(QuoteDetailsItemInterface $taxData)
+    {
+        $extensionAttributes = $taxData->getExtensionAttributes();
+        if ($extensionAttributes instanceof QuoteDetailsItemExtensionInterface) {
+            return $extensionAttributes;
+        }
+
+        $extensionAttributes = $this->extensionFactory->create();
+        $taxData->setExtensionAttributes($extensionAttributes);
+        return $extensionAttributes;
     }
 }

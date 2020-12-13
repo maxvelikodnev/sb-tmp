@@ -15,6 +15,11 @@ use Magento\Sales\Api\Data\InvoiceInterface as Invoice;
 use Magento\Sales\Api\Data\CreditmemoInterface as CreditMemo;
 use Magento\Store\Api\Data\StoreInterface;
 
+/**
+ * Interface ApiInterface
+ *
+ * @package Klarna\Ordermanagement\Api
+ */
 interface ApiInterface
 {
     /**
@@ -26,7 +31,7 @@ interface ApiInterface
      *
      * @return DataObject
      */
-    public function capture(string $orderId, float $amount, Invoice $invoice);
+    public function capture($orderId, $amount, $invoice = null);
 
     /**
      * Refund for an order
@@ -37,7 +42,7 @@ interface ApiInterface
      *
      * @return DataObject
      */
-    public function refund(string $orderId, float $amount, Creditmemo $creditMemo);
+    public function refund($orderId, $amount, $creditMemo = null);
 
     /**
      * Cancel an order

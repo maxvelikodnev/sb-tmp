@@ -13,27 +13,19 @@ namespace Vertex\Tax\Api\Data;
  */
 interface LogEntryInterface
 {
-    const FIELD_CART_ID = 'quote_id';
     const FIELD_ID = 'request_id';
-    const FIELD_LOOKUP_RESULT = 'lookup_result';
+    const FIELD_TYPE = 'request_type';
+    const FIELD_CART_ID = 'quote_id';
     const FIELD_ORDER_ID = 'order_id';
+    const FIELD_TOTAL_TAX = 'total_tax';
+    const FIELD_SOURCE_PATH = 'source_path';
+    const FIELD_TAX_AREA_ID = 'tax_area_id';
+    const FIELD_SUBTOTAL = 'sub_total';
+    const FIELD_TOTAL = 'total';
+    const FIELD_LOOKUP_RESULT = 'lookup_result';
     const FIELD_REQUEST_DATE = 'request_date';
     const FIELD_REQUEST_XML = 'request_xml';
-    const FIELD_RESPONSE_TIME = 'response_time';
     const FIELD_RESPONSE_XML = 'response_xml';
-    const FIELD_SOURCE_PATH = 'source_path';
-    const FIELD_SUBTOTAL = 'sub_total';
-    const FIELD_TAX_AREA_ID = 'tax_area_id';
-    const FIELD_TOTAL = 'total';
-    const FIELD_TOTAL_TAX = 'total_tax';
-    const FIELD_TYPE = 'request_type';
-
-    /**
-     * Get the date of the request
-     *
-     * @return string
-     */
-    public function getDate();
 
     /**
      * Retrieve unique identifier for the Log Entry
@@ -43,69 +35,12 @@ interface LogEntryInterface
     public function getId();
 
     /**
-     * Get the result of the lookup
+     * Set unique identifier for the Log Entry
      *
-     * Typically empty, the string "NORMAL" or a SOAP Exception
-     *
-     * @return string
+     * @param int $requestId
+     * @return \Vertex\Tax\Api\Data\LogEntryInterface
      */
-    public function getLookupResult();
-
-    /**
-     * Get the ID of the Order the request was made for
-     *
-     * @return int
-     */
-    public function getOrderId();
-
-    /**
-     * Get the XML sent to the Vertex API
-     *
-     * @return string
-     */
-    public function getRequestXml();
-
-    /**
-     * Return the time taken to get a response in milliseconds
-     *
-     * @return int
-     */
-    public function getResponseTime();
-
-    /**
-     * Get the XML response received from the Vertex API
-     *
-     * @return string
-     */
-    public function getResponseXml();
-
-    /**
-     * Get the total of the request before taxes
-     *
-     * @return float
-     */
-    public function getSubTotal();
-
-    /**
-     * Get the Tax Area ID calculated by the request
-     *
-     * @return int
-     */
-    public function getTaxAreaId();
-
-    /**
-     * Get the total of the request after taxes
-     *
-     * @return float
-     */
-    public function getTotal();
-
-    /**
-     * Get the total amount of tax calculated by the request
-     *
-     * @return float
-     */
-    public function getTotalTax();
+    public function setId($requestId);
 
     /**
      * Get the type of request
@@ -117,20 +52,98 @@ interface LogEntryInterface
     public function getType();
 
     /**
-     * Set the date of the request
+     * Set the type of request
      *
-     * @param string $requestDate Date in format of Y-m-d H:i:s
+     * Typically one of quote, invoice, tax_area_lookup or creditmemo
+     *
+     * @param string $type
      * @return \Vertex\Tax\Api\Data\LogEntryInterface
      */
-    public function setDate($requestDate);
+    public function setType($type);
 
     /**
-     * Set unique identifier for the Log Entry
+     * Get the ID of the Order the request was made for
      *
-     * @param int $requestId
+     * @return int
+     */
+    public function getOrderId();
+
+    /**
+     * Set the ID of the Order the request was made for
+     *
+     * @param int $orderId
      * @return \Vertex\Tax\Api\Data\LogEntryInterface
      */
-    public function setId($requestId);
+    public function setOrderId($orderId);
+
+    /**
+     * Get the total amount of tax calculated by the request
+     *
+     * @return float
+     */
+    public function getTotalTax();
+
+    /**
+     * Set the total amount of tax calculated by the request
+     *
+     * @param float $totalTax
+     * @return \Vertex\Tax\Api\Data\LogEntryInterface
+     */
+    public function setTotalTax($totalTax);
+
+    /**
+     * Get the Tax Area ID calculated by the request
+     *
+     * @return int
+     */
+    public function getTaxAreaId();
+
+    /**
+     * Set the Tax Area ID calculated by the request
+     *
+     * @param int $taxAreaId
+     * @return \Vertex\Tax\Api\Data\LogEntryInterface
+     */
+    public function setTaxAreaId($taxAreaId);
+
+    /**
+     * Get the total of the request before taxes
+     *
+     * @return float
+     */
+    public function getSubTotal();
+
+    /**
+     * Set the total of the request before taxes
+     *
+     * @param float $subtotal
+     * @return \Vertex\Tax\Api\Data\LogEntryInterface
+     */
+    public function setSubTotal($subtotal);
+
+    /**
+     * Get the total of the request after taxes
+     *
+     * @return float
+     */
+    public function getTotal();
+
+    /**
+     * Set the total of the request after taxes
+     *
+     * @param float $total
+     * @return \Vertex\Tax\Api\Data\LogEntryInterface
+     */
+    public function setTotal($total);
+
+    /**
+     * Get the result of the lookup
+     *
+     * Typically empty, the string "NORMAL" or a SOAP Exception
+     *
+     * @return string
+     */
+    public function getLookupResult();
 
     /**
      * Set the result of the lookup
@@ -143,12 +156,26 @@ interface LogEntryInterface
     public function setLookupResult($lookupResult);
 
     /**
-     * Set the ID of the Order the request was made for
+     * Get the date of the request
      *
-     * @param int $orderId
+     * @return string
+     */
+    public function getDate();
+
+    /**
+     * Set the date of the request
+     *
+     * @param string $requestDate Date in format of Y-m-d H:i:s
      * @return \Vertex\Tax\Api\Data\LogEntryInterface
      */
-    public function setOrderId($orderId);
+    public function setDate($requestDate);
+
+    /**
+     * Get the XML sent to the Vertex API
+     *
+     * @return string
+     */
+    public function getRequestXml();
 
     /**
      * Set the XML sent to the Vertex API
@@ -159,12 +186,11 @@ interface LogEntryInterface
     public function setRequestXml($requestXml);
 
     /**
-     * Set the time taken to get a response in milliseconds
+     * Get the XML response received from the Vertex API
      *
-     * @param int $milliseconds
-     * @return \Vertex\Tax\Api\Data\LogEntryInterface
+     * @return string
      */
-    public function setResponseTime($milliseconds);
+    public function getResponseXml();
 
     /**
      * Set the XML response received from the Vertex API
@@ -173,46 +199,4 @@ interface LogEntryInterface
      * @return \Vertex\Tax\Api\Data\LogEntryInterface
      */
     public function setResponseXml($responseXml);
-
-    /**
-     * Set the total of the request before taxes
-     *
-     * @param float $subtotal
-     * @return \Vertex\Tax\Api\Data\LogEntryInterface
-     */
-    public function setSubTotal($subtotal);
-
-    /**
-     * Set the Tax Area ID calculated by the request
-     *
-     * @param int $taxAreaId
-     * @return \Vertex\Tax\Api\Data\LogEntryInterface
-     */
-    public function setTaxAreaId($taxAreaId);
-
-    /**
-     * Set the total of the request after taxes
-     *
-     * @param float $total
-     * @return \Vertex\Tax\Api\Data\LogEntryInterface
-     */
-    public function setTotal($total);
-
-    /**
-     * Set the total amount of tax calculated by the request
-     *
-     * @param float $totalTax
-     * @return \Vertex\Tax\Api\Data\LogEntryInterface
-     */
-    public function setTotalTax($totalTax);
-
-    /**
-     * Set the type of request
-     *
-     * Typically one of quote, invoice, tax_area_lookup or creditmemo
-     *
-     * @param string $type
-     * @return \Vertex\Tax\Api\Data\LogEntryInterface
-     */
-    public function setType($type);
 }

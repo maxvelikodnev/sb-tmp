@@ -75,7 +75,8 @@ class Addressbooks implements \Magento\Framework\Data\OptionSourceInterface
         $apiEnabled = $this->helper->isEnabled($website);
 
         //get address books options
-        if ($apiEnabled && $addressBooks = $this->getAddressBooks()) {
+        if ($apiEnabled) {
+            $addressBooks = $this->getAddressBooks();
             //set the error message to the select option
             if (isset($addressBooks->message)) {
                 $fields[] = [

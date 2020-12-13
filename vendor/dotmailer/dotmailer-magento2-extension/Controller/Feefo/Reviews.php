@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Controller\Feefo;
 
-class Reviews extends \Dotdigitalgroup\Email\Controller\Edc
+class Reviews extends \Dotdigitalgroup\Email\Controller\Response
 {
     /**
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -14,7 +14,7 @@ class Reviews extends \Dotdigitalgroup\Email\Controller\Edc
         //authenticate
         if ($this->authenticate()) {
             $quote = $this->getRequest()->getParam('quote_id');
-            if (!$this->helper->getFeefoLogon() || !$quote) {
+            if (!$this->helper->getFeefoLogon() or !$quote) {
                 return $this->sendNoContentResponse();
             }
 

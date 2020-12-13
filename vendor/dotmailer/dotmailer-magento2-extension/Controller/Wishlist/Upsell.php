@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Controller\Wishlist;
 
-class Upsell extends \Dotdigitalgroup\Email\Controller\Edc
+class Upsell extends \Dotdigitalgroup\Email\Controller\Response
 {
     /**
      * Basket page to display the user items with specific email.
@@ -15,7 +15,6 @@ class Upsell extends \Dotdigitalgroup\Email\Controller\Edc
         if ($this->authenticate()) {
             $this->_view->loadLayout();
             $this->_view->renderLayout();
-            $this->checkResponse();
         }
     }
 }

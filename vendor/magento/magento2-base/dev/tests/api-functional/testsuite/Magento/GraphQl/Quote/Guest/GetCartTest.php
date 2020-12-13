@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\GraphQl\Quote\Guest;
 
-use Exception;
 use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\GraphQlAbstract;
@@ -44,8 +43,6 @@ class GetCartTest extends GraphQlAbstract
 
         self::assertArrayHasKey('cart', $response);
         self::assertArrayHasKey('items', $response['cart']);
-        self::assertArrayHasKey('id', $response['cart']);
-        self::assertEquals($maskedQuoteId, $response['cart']['id']);
         self::assertCount(2, $response['cart']['items']);
 
         self::assertNotEmpty($response['cart']['items'][0]['id']);
@@ -74,36 +71,7 @@ class GetCartTest extends GraphQlAbstract
     }
 
     /**
-     * @expectedException Exception
-     * @expectedExceptionMessage Required parameter "cart_id" is missing
-     */
-    public function testGetCartIfCartIdIsEmpty()
-    {
-        $maskedQuoteId = '';
-        $query = $this->getQuery($maskedQuoteId);
-
-        $this->graphQlQuery($query);
-    }
-
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage Field "cart" argument "cart_id" of type "String!" is required but not provided.
-     */
-    public function testGetCartIfCartIdIsMissed()
-    {
-        $query = <<<QUERY
-{
-  cart {
-    email
-  }
-}
-QUERY;
-
-        $this->graphQlQuery($query);
-    }
-
-    /**
-     * @expectedException Exception
+     * @expectedException \Exception
      * @expectedExceptionMessage Could not find a cart with ID "non_existent_masked_id"
      */
     public function testGetNonExistentCart()
@@ -118,7 +86,7 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/make_cart_inactive.php
      *
-     * @expectedException Exception
+     * @expectedException \Exception
      * @expectedExceptionMessage Current user does not have an active cart.
      */
     public function testGetInactiveCart()
@@ -148,7 +116,7 @@ QUERY;
      * @magentoApiDataFixture Magento/Checkout/_files/active_quote.php
      * @magentoApiDataFixture Magento/Store/_files/second_store.php
      *
-     * @expectedException Exception
+     * @expectedException \Exception
      * @expectedExceptionMessage Wrong store code specified for cart
      */
     public function testGetCartWithWrongStore()
@@ -164,7 +132,7 @@ QUERY;
      * @magentoApiDataFixture Magento/Customer/_files/customer.php
      * @magentoApiDataFixture Magento/Checkout/_files/active_quote_guest_not_default_store.php
      *
-     * @expectedException Exception
+     * @expectedException \Exception
      * @expectedExceptionMessage Requested store is not found
      */
     public function testGetCartWithNotExistingStore()
@@ -186,7 +154,6 @@ QUERY;
         return <<<QUERY
 {
   cart(cart_id: "{$maskedQuoteId}") {
-    id
     items {
       id
       quantity

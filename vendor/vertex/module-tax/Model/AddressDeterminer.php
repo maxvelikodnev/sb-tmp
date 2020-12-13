@@ -22,9 +22,6 @@ class AddressDeterminer
     /** @var CustomerRepositoryInterface */
     private $customerRepository;
 
-    /** @var IncompleteAddressDeterminer */
-    private $incompleteAddressDeterminer;
-
     /** @var ExceptionLogger */
     private $logger;
 
@@ -32,18 +29,15 @@ class AddressDeterminer
      * @param CustomerRepositoryInterface $customerRepository
      * @param AddressRepositoryInterface $addressRepository
      * @param ExceptionLogger $logger
-     * @param IncompleteAddressDeterminer $incompleteAddressDeterminer
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
         AddressRepositoryInterface $addressRepository,
-        ExceptionLogger $logger,
-        IncompleteAddressDeterminer $incompleteAddressDeterminer
+        ExceptionLogger $logger
     ) {
         $this->customerRepository = $customerRepository;
         $this->addressRepository = $addressRepository;
         $this->logger = $logger;
-        $this->incompleteAddressDeterminer = $incompleteAddressDeterminer;
     }
 
     /**
@@ -54,23 +48,17 @@ class AddressDeterminer
      * @param bool $virtual Whether or not the cart or order is virtual
      * @return AddressInterface|null
      */
-    public function determineAddress($address = null, ?int $customerId = null, bool $virtual = false)
+    public function determineAddress($address = null, $customerId = null, $virtual = false)
     {
         if ($address !== null && !($address instanceof AddressInterface || $address instanceof QuoteAddressInterface)) {
             throw new \InvalidArgumentException(
                 '$address must be a Customer or Quote Address.  Is: '
-                // gettype() used for debug output and not for checking types
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
                 . (is_object($address) ? get_class($address) : gettype($address))
             );
         }
 
-        if (!$this->isIncompleteAddress($address)) {
+        if (!$customerId || ($address !== null && $address->getCountryId() !== null)) {
             return $address;
-        }
-
-        if (!$customerId) {
-            return null;
         }
 
         // Default to billing address for virtual orders unless there is not one
@@ -86,8 +74,11 @@ class AddressDeterminer
 
     /**
      * Retrieve the default billing address for a customer
+     *
+     * @param int $customerId
+     * @return AddressInterface|null
      */
-    private function getDefaultBilling(int $customerId): ?AddressInterface
+    private function getDefaultBilling($customerId)
     {
         try {
             $customer = $this->customerRepository->getById($customerId);
@@ -102,8 +93,11 @@ class AddressDeterminer
 
     /**
      * Retrieve the default shipping address for a customer
+     *
+     * @param int $customerId
+     * @return AddressInterface|null
      */
-    private function getDefaultShipping(int $customerId): ?AddressInterface
+    private function getDefaultShipping($customerId)
     {
         try {
             $customer = $this->customerRepository->getById($customerId);
@@ -114,21 +108,5 @@ class AddressDeterminer
             $this->logger->warning($e);
             return null;
         }
-    }
-
-    /**
-     * Determine whether or not the address is incomplete
-     *
-     * @param AddressInterface|QuoteAddressInterface $address
-     */
-    private function isIncompleteAddress($address): bool
-    {
-        if ($address instanceof AddressInterface) {
-            return $this->incompleteAddressDeterminer->isIncompleteAddress($address);
-        }
-        if ($address instanceof QuoteAddressInterface) {
-            return $this->incompleteAddressDeterminer->isIncompleteQuoteAddress($address);
-        }
-        return $address === null || $address->getCountryId() === null;
     }
 }

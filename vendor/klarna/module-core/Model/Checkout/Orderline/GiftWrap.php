@@ -49,6 +49,8 @@ class GiftWrap extends AbstractLine
     private $giftWrappingHelper;
 
     /**
+     * GiftWrap constructor.
+     *
      * @param DataConverter        $dataConverter
      * @param Calculation          $calculator
      * @param ScopeConfigInterface $config

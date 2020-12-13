@@ -5,7 +5,7 @@ namespace Dotdigitalgroup\Email\Model\Sync;
 /**
  * Sync Orders.
  */
-class Order implements SyncInterface
+class Order
 {
     /**
      * @var \Dotdigitalgroup\Email\Model\ResourceModel\Contact\CollectionFactory
@@ -30,19 +30,14 @@ class Order implements SyncInterface
     /**
      * Global number of orders.
      *
-     * @var array
+     * @var int
      */
-    public $countOrders = [
-        'orders' => 0,
-        'single_sync' => 0,
-        'pending' => 0,
-        'modified' => 0,
-    ];
+    public $countOrders = 0;
 
     /**
      * @var array
      */
-    private $orderIds = [];
+    private $orderIds;
 
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data
@@ -90,16 +85,6 @@ class Order implements SyncInterface
     public $guests = [];
 
     /**
-     * @var \Dotdigitalgroup\Email\Model\ResourceModel\Catalog
-     */
-    private $catalogResource;
-
-    /**
-     * @var \Dotdigitalgroup\Email\Model\Product\Bunch
-     */
-    private $bunch;
-
-    /**
      * Order constructor.
      * @param \Dotdigitalgroup\Email\Model\ImporterFactory $importerFactory
      * @param \Dotdigitalgroup\Email\Model\OrderFactory $orderFactory
@@ -122,9 +107,7 @@ class Order implements SyncInterface
         \Dotdigitalgroup\Email\Model\ResourceModel\Contact\CollectionFactory $contactCollectionFactory,
         \Dotdigitalgroup\Email\Model\ResourceModel\Order $orderResource,
         \Dotdigitalgroup\Email\Helper\Data $helper,
-        \Magento\Sales\Model\OrderFactory $salesOrderFactory,
-        \Dotdigitalgroup\Email\Model\ResourceModel\Catalog $catalogResource,
-        \Dotdigitalgroup\Email\Model\Product\Bunch $bunch
+        \Magento\Sales\Model\OrderFactory $salesOrderFactory
     ) {
         $this->importerFactory       = $importerFactory;
         $this->orderFactory          = $orderFactory;
@@ -135,8 +118,6 @@ class Order implements SyncInterface
         $this->helper                = $helper;
         $this->salesOrderFactory     = $salesOrderFactory;
         $this->contactCollectionFactory = $contactCollectionFactory;
-        $this->catalogResource = $catalogResource;
-        $this->bunch = $bunch;
     }
 
     /**
@@ -144,10 +125,9 @@ class Order implements SyncInterface
      *
      * @return array
      *
-     * @param \DateTime|null $from
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function sync(\DateTime $from = null)
+    public function sync()
     {
         $response = ['success' => true, 'message' => 'Done.'];
 
@@ -160,10 +140,8 @@ class Order implements SyncInterface
             $numOrders = count($orders);
             $numOrdersForSingleSync = count($ordersForSingleSync);
             $website = $account->getWebsites();
-
-            $this->countOrders['orders'] += $numOrders;
-            $this->countOrders['single_sync'] += $numOrdersForSingleSync;
-
+            $this->countOrders += $numOrders;
+            $this->countOrders += $numOrdersForSingleSync;
             //create bulk
             if ($numOrders) {
                 $this->helper->log('--------- Order sync ---------- : ' . $numOrders);
@@ -183,10 +161,6 @@ class Order implements SyncInterface
 
             //mark the orders as imported
             $this->orderResource->setImported($this->orderIds);
-
-            //Mark ordered products as unprocessed to be imported again
-            $mergedProducts = $this->getAllProducts($orders + $ordersForSingleSync);
-            $this->catalogResource->setUnprocessedByIds($this->bunch->getProductIdsBySkuInBunch($mergedProducts));
 
             unset($this->accounts[$account->getApiUsername()]);
         }
@@ -210,11 +184,8 @@ class Order implements SyncInterface
             $this->contactResource->updateContactsAsGuests($guestsEmailFound);
         }
 
-        $totalOrders = $this->countOrders['orders'] + $this->countOrders['single_sync'];
         if ($this->countOrders) {
-            $response = [
-                'message' => 'Orders updated ' . $totalOrders,
-            ] + $this->countOrders + $response;
+            $response['message'] = 'Orders updated ' . $this->countOrders;
         }
 
         return $response;
@@ -254,17 +225,13 @@ class Order implements SyncInterface
                     $account->setApiPassword($this->apiPassword);
                     $this->accounts[$this->apiUsername] = $account;
                 }
-
                 $pendingOrders = $this->getPendingConnectorOrders($website, $limit);
                 if (! empty($pendingOrders)) {
-                    $this->countOrders['pending'] += count($pendingOrders);
                     $this->accounts[$this->apiUsername]->setOrders($pendingOrders);
                 }
                 $this->accounts[$this->apiUsername]->setWebsites($website->getId());
-
                 $modifiedOrders = $this->getModifiedOrders($website, $limit);
                 if (! empty($modifiedOrders)) {
-                    $this->countOrders['modified'] += count($modifiedOrders);
                     $this->accounts[$this->apiUsername]->setOrdersForSingleSync($modifiedOrders);
                 }
             }
@@ -299,7 +266,7 @@ class Order implements SyncInterface
             return $orders;
         }
 
-        $orders = $this->mapOrderData($orderCollection, $orderModel, $orders);
+        $orders = $this->mappOrderData($orderCollection, $orderModel, $orders);
 
         return $orders;
     }
@@ -332,7 +299,7 @@ class Order implements SyncInterface
             return $orders;
         }
 
-        $orders = $this->mapOrderData($orderCollection, $orderModel, $orders);
+        $orders = $this->mappOrderData($orderCollection, $orderModel, $orders);
 
         return $orders;
     }
@@ -344,7 +311,7 @@ class Order implements SyncInterface
      *
      * @return array
      */
-    protected function mapOrderData($orderCollection, $orderModel, $orders)
+    protected function mappOrderData($orderCollection, $orderModel, $orders)
     {
         $orderIds = $orderCollection->getColumnValues('order_id');
 
@@ -398,23 +365,5 @@ class Order implements SyncInterface
                     $website[0]
                 );
         }
-    }
-
-    /**
-     * @param array $orders
-     * @return array
-     */
-    private function getAllProducts($orders)
-    {
-        $allProducts = [];
-        foreach ($orders as $order) {
-            if (!isset($orders['products'])) {
-                continue;
-            }
-            foreach ($order['products'] as $products) {
-                $allProducts[] = $products;
-            }
-        }
-        return $allProducts;
     }
 }

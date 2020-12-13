@@ -2,8 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Model;
 
-use Dotdigitalgroup\Email\Model\Sync\IntegrationInsightsFactory;
-use Dotdigitalgroup\Email\Setup\SchemaInterface as Schema;
+use Dotdigitalgroup\Email\Setup\Schema;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -26,7 +25,7 @@ class Cron
     private $automationFactory;
 
     /**
-     * @var Sync\ImporterFactory
+     * @var ImporterFactory
      */
     private $importerFactory;
 
@@ -86,11 +85,6 @@ class Cron
     private $cronHelper;
 
     /**
-     * @var IntegrationInsightsFactory
-     */
-    private $integrationInsights;
-
-    /**
      * Cron constructor.
      *
      * @param Sync\CampaignFactory                     $campaignFactory
@@ -98,8 +92,8 @@ class Cron
      * @param Sales\QuoteFactory                       $quoteFactory
      * @param Customer\GuestFactory                    $guestFactory
      * @param Newsletter\SubscriberFactory             $subscriberFactory
-     * @param Sync\CatalogFactory                      $catalogFactory
-     * @param Sync\ImporterFactory                     $importerFactory
+     * @param Sync\CatalogFactory                      $catalogFactorty
+     * @param ImporterFactory                          $importerFactory
      * @param Sync\AutomationFactory                   $automationFactory
      * @param Apiconnector\ContactFactory              $contact
      * @param \Dotdigitalgroup\Email\Helper\Data       $helper
@@ -116,8 +110,8 @@ class Cron
         \Dotdigitalgroup\Email\Model\Sales\QuoteFactory $quoteFactory,
         \Dotdigitalgroup\Email\Model\Customer\GuestFactory $guestFactory,
         \Dotdigitalgroup\Email\Model\Newsletter\SubscriberFactory $subscriberFactory,
-        \Dotdigitalgroup\Email\Model\Sync\CatalogFactory $catalogFactory,
-        \Dotdigitalgroup\Email\Model\Sync\ImporterFactory $importerFactory,
+        \Dotdigitalgroup\Email\Model\Sync\CatalogFactory $catalogFactorty,
+        \Dotdigitalgroup\Email\Model\ImporterFactory $importerFactory,
         \Dotdigitalgroup\Email\Model\Sync\AutomationFactory $automationFactory,
         \Dotdigitalgroup\Email\Model\Apiconnector\ContactFactory $contact,
         \Dotdigitalgroup\Email\Helper\Data $helper,
@@ -125,16 +119,14 @@ class Cron
         \Dotdigitalgroup\Email\Model\ResourceModel\Importer $importerResource,
         \Dotdigitalgroup\Email\Model\Email\TemplateFactory $templateFactory,
         \Dotdigitalgroup\Email\Model\ResourceModel\Cron\CollectionFactory $cronCollection,
-        Cron\CronSubFactory $cronSubFactory,
-        \Dotdigitalgroup\Email\Model\AbandonedCart\ProgramEnrolment\Enroller $abandonedCartProgramEnroller,
-        IntegrationInsightsFactory $integrationInsightsFactory
+        Cron\CronSubFactory $cronSubFactory
     ) {
         $this->campaignFactory   = $campaignFactory;
         $this->syncOrderFactory  = $syncOrderFactory;
         $this->quoteFactory      = $quoteFactory;
         $this->guestFactory      = $guestFactory;
         $this->subscriberFactory = $subscriberFactory;
-        $this->catalogFactory    = $catalogFactory;
+        $this->catalogFactory    = $catalogFactorty;
         $this->importerFactory   = $importerFactory;
         $this->automationFactory = $automationFactory;
         $this->contactFactory    = $contact;
@@ -144,8 +136,6 @@ class Cron
         $this->cronCollection    = $cronCollection;
         $this->templateFactory   = $templateFactory;
         $this->cronHelper        = $cronSubFactory->create();
-        $this->abandonedCartProgramEnroller = $abandonedCartProgramEnroller;
-        $this->integrationInsights = $integrationInsightsFactory;
     }
 
     /**
@@ -184,7 +174,7 @@ class Cron
     {
         //sync subscribers
         $subscriberModel = $this->subscriberFactory->create();
-        $result = $subscriberModel->runExport();
+        $result = $subscriberModel->sync();
 
         //un-subscribe suppressed contacts
         $subscriberModel->unsubscribe();
@@ -226,26 +216,10 @@ class Cron
             return;
         }
 
-        $this->importerFactory->create()
-            ->sync();
+        $this->importerFactory->create()->processQueue();
     }
 
     /**
-     * Send integration insight data
-     */
-    public function sendIntegrationInsights()
-    {
-        if ($this->jobHasAlreadyBeenRun('ddg_automation_integration_insights')) {
-            $this->helper->log('Skipping ddg_automation_integration_insights job run');
-            return;
-        }
-
-        $this->integrationInsights->create()
-            ->sync();
-    }
-
-    /**
-     *
      * CRON FOR SYNC REVIEWS and REGISTER ORDER REVIEW CAMPAIGNS.
      *
      * @return null
@@ -286,7 +260,6 @@ class Cron
         }
 
         $this->quoteFactory->create()->processAbandonedCarts();
-        $this->abandonedCartProgramEnroller->process();
     }
 
     /**

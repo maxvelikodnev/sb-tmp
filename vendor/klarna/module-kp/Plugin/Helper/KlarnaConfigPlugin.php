@@ -14,6 +14,11 @@ use Klarna\Core\Api\VersionInterface;
 use Klarna\Core\Helper\KlarnaConfig;
 use Klarna\Kp\Model\Payment\Kp;
 
+/**
+ * Class KlarnaConfigPlugin
+ *
+ * @package Klarna\Kp\Plugin\Helper
+ */
 class KlarnaConfigPlugin
 {
 

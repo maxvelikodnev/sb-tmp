@@ -6,9 +6,9 @@
 
 namespace Vertex\Tax\Model\Plugin;
 
-use InvalidArgumentException;
 use Magento\Quote\Api\Data\ShippingAssignmentInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Tax\Api\Data\QuoteDetailsItemInterface;
 use Magento\Tax\Model\Sales\Total\Quote\Subtotal;
 use Vertex\Tax\Model\VertexUsageDeterminer;
 
@@ -40,8 +40,8 @@ class SubtotalPlugin
      * @param Quote $quote
      * @param ShippingAssignmentInterface $shippingAssignment
      * @param Quote\Address\Total $total
-     * @return null|Subtotal
-     * @throws InvalidArgumentException
+     * @return QuoteDetailsItemInterface
+     * @throws \InvalidArgumentException
      * @SuppressWarnings(PHPMD.UnusedFormalParameter) $subject is a necessary part of a plugin
      */
     public function aroundCollect(
@@ -50,16 +50,18 @@ class SubtotalPlugin
         Quote $quote,
         ShippingAssignmentInterface $shippingAssignment,
         Quote\Address\Total $total
-    ): ?Subtotal {
+    ) {
         if (!$this->usageDeterminer->shouldUseVertex(
             $quote->getStoreId(),
             $shippingAssignment->getShipping()->getAddress(),
-            $quote->getCustomerId() === null ? null : (int)$quote->getCustomerId(),
+            $quote->getCustomerId(),
             $quote->isVirtual(),
             true
         )) {
-            return $super($quote, $shippingAssignment, $total);
+            // Allows forward compatibility with argument additions
+            $arguments = func_get_args();
+            array_splice($arguments, 0, 2);
+            return call_user_func_array($super, $arguments);
         }
-        return null;
     }
 }

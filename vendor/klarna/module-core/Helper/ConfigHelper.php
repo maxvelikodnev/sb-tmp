@@ -21,6 +21,9 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 
 /**
+ * Class ConfigHelper
+ *
+ * @package Klarna\Core\Helper
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ConfigHelper extends AbstractHelper
@@ -55,6 +58,8 @@ class ConfigHelper extends AbstractHelper
     const KCO_METHOD_CODE = 'klarna_kco';
 
     /**
+     * ConfigHelper constructor.
+     *
      * @param Context                     $context
      * @param Resolver                    $resolver
      * @param CustomerRepositoryInterface $customerRepository

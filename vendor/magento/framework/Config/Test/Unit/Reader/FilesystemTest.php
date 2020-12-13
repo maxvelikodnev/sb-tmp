@@ -5,13 +5,8 @@
  */
 namespace Magento\Framework\Config\Test\Unit\Reader;
 
-use Magento\Framework\Config\Reader\Filesystem;
+use \Magento\Framework\Config\Reader\Filesystem;
 
-/**
- * Test for
- *
- * @see Filesystem
- */
 class FilesystemTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -69,7 +64,7 @@ class FilesystemTest extends \PHPUnit\Framework\TestCase
         );
         $this->_fileResolverMock->expects($this->once())->method('get')->will($this->returnValue([$this->_file]));
 
-        $dom = new \DOMDocument();
+        $dom = new \DomDocument();
         $dom->loadXML($this->_file);
         $this->_converterMock->expects($this->once())->method('convert')->with($dom);
         $model->read('scope');

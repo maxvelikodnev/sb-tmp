@@ -50,7 +50,7 @@ class Integer implements FactoryInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create(array $data)
     {
@@ -63,7 +63,7 @@ class Integer implements FactoryInterface
         }
 
         if (isset($data['default'])) {
-            $data['default'] = $data['default'] !== 'null' ? (int) $data['default'] : null;
+            $data['default'] = (int) $data['default'];
         }
 
         return $this->objectManager->create($this->className, $data);

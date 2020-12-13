@@ -12,6 +12,11 @@ namespace Klarna\Kp\Model\ResourceModel;
 
 use Magento\Quote\Api\Data\CartInterface as MageQuoteInterface;
 
+/**
+ * Class Quote
+ *
+ * @package Klarna\Kp\Model\ResourceModel
+ */
 class Quote extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
@@ -71,6 +76,8 @@ class Quote extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
+     * Constructor
+     *
      * @codeCoverageIgnore
      * @codingStandardsIgnoreLine
      */

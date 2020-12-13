@@ -298,13 +298,4 @@ class BootstrapTest extends \PHPUnit\Framework\TestCase
             [true, false],
         ];
     }
-
-    /**
-     * Restore error handler after Bootstrap->run method
-     */
-    public function tearDown()
-    {
-        restore_error_handler();
-        setCustomErrorHandler();
-    }
 }

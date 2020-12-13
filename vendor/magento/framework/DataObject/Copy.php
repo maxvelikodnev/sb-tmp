@@ -3,16 +3,8 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Framework\DataObject;
-
-use Magento\Framework\Api\AbstractSimpleObject;
-use Magento\Framework\Api\ExtensibleDataInterface;
-use Magento\Framework\Api\ExtensionAttributesFactory;
-use Magento\Framework\DataObject;
-use Magento\Framework\DataObject\Copy\Config;
-use Magento\Framework\Event\ManagerInterface;
 
 /**
  * Utility class for copying data sets between objects
@@ -20,31 +12,31 @@ use Magento\Framework\Event\ManagerInterface;
 class Copy
 {
     /**
-     * @var Config
+     * @var \Magento\Framework\DataObject\Copy\Config
      */
     protected $fieldsetConfig;
 
     /**
      * Core event manager proxy
      *
-     * @var ManagerInterface
+     * @var \Magento\Framework\Event\ManagerInterface
      */
     protected $eventManager = null;
 
     /**
-     * @var ExtensionAttributesFactory
+     * @var \Magento\Framework\Api\ExtensionAttributesFactory
      */
     protected $extensionAttributesFactory;
 
     /**
-     * @param ManagerInterface $eventManager
-     * @param Config $fieldsetConfig
-     * @param ExtensionAttributesFactory $extensionAttributesFactory
+     * @param \Magento\Framework\Event\ManagerInterface $eventManager
+     * @param \Magento\Framework\DataObject\Copy\Config $fieldsetConfig
+     * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionAttributesFactory
      */
     public function __construct(
-        ManagerInterface $eventManager,
-        Config $fieldsetConfig,
-        ExtensionAttributesFactory $extensionAttributesFactory
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Framework\DataObject\Copy\Config $fieldsetConfig,
+        \Magento\Framework\Api\ExtensionAttributesFactory $extensionAttributesFactory
     ) {
         $this->eventManager = $eventManager;
         $this->fieldsetConfig = $fieldsetConfig;
@@ -59,11 +51,10 @@ class Copy
      *
      * @param string $fieldset
      * @param string $aspect
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $source
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $target
+     * @param array|\Magento\Framework\DataObject $source
+     * @param array|\Magento\Framework\DataObject $target
      * @param string $root
-     *
-     * @return array|DataObject|null the value of $target
+     * @return array|\Magento\Framework\DataObject|null the value of $target
      * @throws \InvalidArgumentException
      *
      * @api
@@ -102,18 +93,17 @@ class Copy
      *
      * @param string $fieldset
      * @param string $aspect
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $source
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $target
+     * @param array|\Magento\Framework\DataObject $source
+     * @param array|\Magento\Framework\DataObject $target
      * @param string $root
      * @param bool $targetIsArray
-     *
-     * @return DataObject|mixed
+     * @return \Magento\Framework\DataObject|mixed
      */
     protected function dispatchCopyFieldSetEvent($fieldset, $aspect, $source, $target, $root, $targetIsArray)
     {
         $eventName = sprintf('core_copy_fieldset_%s_%s', $fieldset, $aspect);
         if ($targetIsArray) {
-            $target = new DataObject($target);
+            $target = new \Magento\Framework\DataObject($target);
         }
         $this->eventManager->dispatch(
             $eventName,
@@ -130,19 +120,17 @@ class Copy
      *
      * @param string $fieldset
      * @param string $aspect a field name
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $source
+     * @param array|\Magento\Framework\DataObject $source
      * @param string $root
-     *
      * @return array
      *
      * @api
      */
     public function getDataFromFieldset($fieldset, $aspect, $source, $root = 'global')
     {
-        if ((!$this->isInputArgumentValid($source))) {
+        if (!(is_array($source) || $source instanceof \Magento\Framework\DataObject)) {
             return null;
         }
-
         $fields = $this->fieldsetConfig->getFieldset($fieldset, $root);
         if ($fields === null) {
             return null;
@@ -167,34 +155,24 @@ class Copy
     /**
      * Check if source and target are valid input for converting using fieldset
      *
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $source
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $target
-     *
+     * @param array|\Magento\Framework\DataObject $source
+     * @param array|\Magento\Framework\DataObject $target
      * @return bool
      */
     protected function _isFieldsetInputValid($source, $target)
     {
-        return $this->isInputArgumentValid($source) && $this->isInputArgumentValid($target);
-    }
-
-    /**
-     * Verify that we can access data from input object.
-     *
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $object
-     *
-     * @return bool
-     */
-    private function isInputArgumentValid($object): bool
-    {
-        return (is_array($object) || $object instanceof DataObject ||
-            $object instanceof ExtensibleDataInterface ||
-            $object instanceof AbstractSimpleObject);
+        return (is_array($source) || $source instanceof \Magento\Framework\DataObject ||
+            $source instanceof \Magento\Framework\Api\ExtensibleDataInterface ||
+            $source instanceof \Magento\Framework\Api\AbstractSimpleObject) && (
+            is_array($target) || $target instanceof \Magento\Framework\DataObject ||
+            $target instanceof \Magento\Framework\Api\ExtensibleDataInterface ||
+            $target instanceof \Magento\Framework\Api\AbstractSimpleObject);
     }
 
     /**
      * Get value of source by code
      *
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $source
+     * @param mixed $source
      * @param string $code
      *
      * @return mixed
@@ -202,58 +180,49 @@ class Copy
      */
     protected function _getFieldsetFieldValue($source, $code)
     {
-        switch (true) {
-            case is_array($source):
-                $value = isset($source[$code]) ? $source[$code] : null;
-                break;
-            case $source instanceof ExtensibleDataInterface:
-                $value = $this->getAttributeValueFromExtensibleObject($source, $code);
-                break;
-            case $source instanceof DataObject:
-                $value = $source->getDataUsingMethod($code);
-                break;
-            case $source instanceof AbstractSimpleObject:
-                $sourceArray = $source->__toArray();
-                $value = isset($sourceArray[$code]) ? $sourceArray[$code] : null;
-                break;
-            default:
-                throw new \InvalidArgumentException(
-                    'Source should be array, Magento Object, ExtensibleDataInterface, or AbstractSimpleObject'
-                );
+        if (is_array($source)) {
+            $value = isset($source[$code]) ? $source[$code] : null;
+        } elseif ($source instanceof \Magento\Framework\DataObject) {
+            $value = $source->getDataUsingMethod($code);
+        } elseif ($source instanceof \Magento\Framework\Api\ExtensibleDataInterface) {
+            $value = $this->getAttributeValueFromExtensibleDataObject($source, $code);
+        } elseif ($source instanceof \Magento\Framework\Api\AbstractSimpleObject) {
+            $sourceArray = $source->__toArray();
+            $value = isset($sourceArray[$code]) ? $sourceArray[$code] : null;
+        } else {
+            throw new \InvalidArgumentException(
+                'Source should be array, Magento Object, ExtensibleDataInterface, or AbstractSimpleObject'
+            );
         }
-
         return $value;
     }
 
     /**
      * Set value of target by code
      *
-     * @param array|DataObject|ExtensibleDataInterface|AbstractSimpleObject $target
+     * @param mixed $target
      * @param string $targetCode
      * @param mixed $value
      *
-     * @return array|DataObject|ExtensibleDataInterface|AbstractSimpleObject
+     * @return mixed
      * @throws \InvalidArgumentException
      */
     protected function _setFieldsetFieldValue($target, $targetCode, $value)
     {
-        switch (true) {
-            case is_array($target):
-                $target[$targetCode] = $value;
-                break;
-            case $target instanceof ExtensibleDataInterface:
-                $this->setAttributeValueFromExtensibleObject($target, $targetCode, $value);
-                break;
-            case $target instanceof DataObject:
-                $target->setDataUsingMethod($targetCode, $value);
-                break;
-            case $target instanceof AbstractSimpleObject:
-                $target->setData($targetCode, $value);
-                break;
-            default:
-                throw new \InvalidArgumentException(
-                    'Source should be array, Magento Object, ExtensibleDataInterface, or AbstractSimpleObject'
-                );
+        $targetIsArray = is_array($target);
+
+        if ($targetIsArray) {
+            $target[$targetCode] = $value;
+        } elseif ($target instanceof \Magento\Framework\DataObject) {
+            $target->setDataUsingMethod($targetCode, $value);
+        } elseif ($target instanceof \Magento\Framework\Api\ExtensibleDataInterface) {
+            $this->setAttributeValueFromExtensibleDataObject($target, $targetCode, $value);
+        } elseif ($target instanceof \Magento\Framework\Api\AbstractSimpleObject) {
+            $target->setData($targetCode, $value);
+        } else {
+            throw new \InvalidArgumentException(
+                'Source should be array, Magento Object, ExtensibleDataInterface, or AbstractSimpleObject'
+            );
         }
 
         return $target;
@@ -262,118 +231,68 @@ class Copy
     /**
      * Access the extension get method
      *
-     * @param ExtensibleDataInterface $source
+     * @param \Magento\Framework\Api\ExtensibleDataInterface $source
      * @param string $code
      *
      * @return mixed
      * @throws \InvalidArgumentException
-     *
-     * @deprecated 102.0.3
-     * @see \Magento\Framework\DataObject\Copy::getAttributeValueFromExtensibleObject
      */
     protected function getAttributeValueFromExtensibleDataObject($source, $code)
-    {
-        return $this->getAttributeValueFromExtensibleObject($source, $code);
-    }
-
-    /**
-     * Get Attribute Value from Extensible Object Data with fallback to DataObject or AbstractSimpleObject.
-     *
-     * @param ExtensibleDataInterface $source
-     * @param string $code
-     *
-     * @return mixed|null
-     */
-    private function getAttributeValueFromExtensibleObject(ExtensibleDataInterface $source, string $code)
     {
         $method = 'get' . str_replace('_', '', ucwords($code, '_'));
 
         $methodExists = method_exists($source, $method);
-
-        if ($methodExists === true) {
-            return $source->{$method}();
-        }
-
-        $extensionAttributes = $source->getExtensionAttributes();
-
-        if ($extensionAttributes) {
-            $methodExists = method_exists($extensionAttributes, $method);
-            if ($methodExists) {
-                return $extensionAttributes->{$method}();
+        if ($methodExists == true) {
+            $value = $source->{$method}();
+        } else {
+            // If we couldn't find the method, check if we can get it from the extension attributes
+            $extensionAttributes = $source->getExtensionAttributes();
+            if ($extensionAttributes == null) {
+                throw new \InvalidArgumentException('Method in extension does not exist.');
+            } else {
+                $extensionMethodExists = method_exists($extensionAttributes, $method);
+                if ($extensionMethodExists == true) {
+                    $value = $extensionAttributes->{$method}();
+                } else {
+                    throw new \InvalidArgumentException('Attribute in object does not exist.');
+                }
             }
         }
-
-        if ($source instanceof DataObject) {
-            return $source->getDataUsingMethod($code);
-        }
-
-        if ($source instanceof AbstractSimpleObject) {
-            $sourceArray = $source->__toArray();
-            return isset($sourceArray[$code]) ? $sourceArray[$code] : null;
-        }
-
-        throw new \InvalidArgumentException('Attribute in object does not exist.');
+        return $value;
     }
 
     /**
      * Access the extension set method
      *
-     * @param ExtensibleDataInterface $target
+     * @param \Magento\Framework\Api\ExtensibleDataInterface $target
      * @param string $code
      * @param mixed $value
      *
-     * @return void
-     * @throws \InvalidArgumentException
-     *
-     * @deprecated 102.0.3
-     * @see \Magento\Framework\DataObject\Copy::setAttributeValueFromExtensibleObject
-     */
-    protected function setAttributeValueFromExtensibleDataObject(ExtensibleDataInterface $target, $code, $value)
-    {
-        $this->setAttributeValueFromExtensibleObject($target, $code, $value);
-    }
-
-    /**
-     * Set Attribute Value for Extensible Object Data with fallback to DataObject or AbstractSimpleObject.
-     *
-     * @param ExtensibleDataInterface $target
-     * @param string $code
-     * @param mixed $value
-     *
-     * @return void
+     * @return null
      * @throws \InvalidArgumentException
      */
-    private function setAttributeValueFromExtensibleObject(ExtensibleDataInterface $target, string $code, $value): void
+    protected function setAttributeValueFromExtensibleDataObject($target, $code, $value)
     {
         $method = 'set' . str_replace('_', '', ucwords($code, '_'));
 
         $methodExists = method_exists($target, $method);
-        if ($methodExists) {
+        if ($methodExists == true) {
             $target->{$method}($value);
-            return;
+        } else {
+            // If we couldn't find the method, check if we can set it from the extension attributes
+            $extensionAttributes = $target->getExtensionAttributes();
+            if ($extensionAttributes == null) {
+                $extensionAttributes = $this->extensionAttributesFactory->create(get_class($target));
+            }
+            $extensionMethodExists = method_exists($extensionAttributes, $method);
+            if ($extensionMethodExists == true) {
+                $extensionAttributes->{$method}($value);
+                $target->setExtensionAttributes($extensionAttributes);
+            } else {
+                throw new \InvalidArgumentException('Attribute in object does not exist.');
+            }
         }
 
-        $extensionAttributes = $target->getExtensionAttributes();
-        if ($extensionAttributes === null) {
-            $extensionAttributes = $this->extensionAttributesFactory->create(get_class($target));
-        }
-
-        if (method_exists($extensionAttributes, $method)) {
-            $extensionAttributes->{$method}($value);
-            $target->setExtensionAttributes($extensionAttributes);
-            return;
-        }
-
-        if ($target instanceof DataObject) {
-            $target->setDataUsingMethod($code, $value);
-            return;
-        }
-
-        if ($target instanceof AbstractSimpleObject) {
-            $target->setData($code, $value);
-            return;
-        }
-
-        throw new \InvalidArgumentException('Attribute in object does not exist.');
+        return null;
     }
 }

@@ -72,8 +72,7 @@ class InputFactory implements ConfigElementFactoryInterface
             [
                 'name' => $typeData['name'],
                 'fields' => $fields,
-                'description' => isset($typeData['description']) ? $typeData['description'] : '',
-                'deprecated' => isset($typeData['deprecated']) ? $typeData['deprecated'] : []
+                'description' => isset($typeData['description']) ? $typeData['description'] : ''
             ]
         );
     }

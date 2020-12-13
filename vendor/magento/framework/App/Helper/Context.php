@@ -117,8 +117,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get module manager.
-     *
      * @return \Magento\Framework\Module\Manager
      */
     public function getModuleManager()
@@ -127,8 +125,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get url builder.
-     *
      * @return \Magento\Framework\UrlInterface
      */
     public function getUrlBuilder()
@@ -137,8 +133,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get request.
-     *
      * @return \Magento\Framework\App\RequestInterface
      */
     public function getRequest()
@@ -147,8 +141,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get cache configs.
-     *
      * @return \Magento\Framework\Cache\ConfigInterface
      */
     public function getCacheConfig()
@@ -157,8 +149,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get event manager.
-     *
      * @return \Magento\Framework\Event\ManagerInterface
      */
     public function getEventManager()
@@ -167,8 +157,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get logger.
-     *
      * @return \Psr\Log\LoggerInterface
      */
     public function getLogger()
@@ -177,8 +165,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get http header.
-     *
      * @return \Magento\Framework\HTTP\Header
      */
     public function getHttpHeader()
@@ -187,8 +173,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get remote address.
-     *
      * @return \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress
      */
     public function getRemoteAddress()
@@ -197,8 +181,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get url encoder.
-     *
      * @return \Magento\Framework\Url\EncoderInterface
      */
     public function getUrlEncoder()
@@ -207,8 +189,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get url decoder.
-     *
      * @return \Magento\Framework\Url\DecoderInterface
      */
     public function getUrlDecoder()
@@ -217,8 +197,6 @@ class Context implements \Magento\Framework\ObjectManager\ContextInterface
     }
 
     /**
-     * Get scope config.
-     *
      * @return \Magento\Framework\App\Config\ScopeConfigInterface
      */
     public function getScopeConfig()

@@ -8,13 +8,12 @@
 namespace Magento\Framework\App;
 
 use Magento\Framework\Composer\ComposerFactory;
-use Magento\Framework\Composer\ComposerJsonFinder;
-use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\Composer\ComposerInformation;
+use \Magento\Framework\Composer\ComposerJsonFinder;
+use \Magento\Framework\App\Filesystem\DirectoryList;
+use \Magento\Framework\Composer\ComposerInformation;
 
 /**
  * Class ProductMetadata
- *
  * @package Magento\Framework\App
  */
 class ProductMetadata implements ProductMetadataInterface
@@ -28,11 +27,6 @@ class ProductMetadata implements ProductMetadataInterface
      * Magento product name
      */
     const PRODUCT_NAME  = 'Magento';
-
-    /**
-     * Magento version cache key
-     */
-    const VERSION_CACHE_KEY = 'mage-version';
 
     /**
      * Product version
@@ -53,21 +47,11 @@ class ProductMetadata implements ProductMetadataInterface
     private $composerInformation;
 
     /**
-     * @var CacheInterface
-     */
-    private $cache;
-
-    /**
-     * ProductMetadata constructor.
      * @param ComposerJsonFinder $composerJsonFinder
-     * @param \Magento\Framework\App\CacheInterface $cache
      */
-    public function __construct(
-        ComposerJsonFinder $composerJsonFinder,
-        CacheInterface $cache = null
-    ) {
+    public function __construct(ComposerJsonFinder $composerJsonFinder)
+    {
         $this->composerJsonFinder = $composerJsonFinder;
-        $this->cache = $cache ?: ObjectManager::getInstance()->get(CacheInterface::class);
     }
 
     /**
@@ -77,7 +61,6 @@ class ProductMetadata implements ProductMetadataInterface
      */
     public function getVersion()
     {
-        $this->version = $this->version ?: $this->cache->load(self::VERSION_CACHE_KEY);
         if (!$this->version) {
             if (!($this->version = $this->getSystemPackageVersion())) {
                 if ($this->getComposerInformation()->isMagentoRoot()) {
@@ -85,7 +68,6 @@ class ProductMetadata implements ProductMetadataInterface
                 } else {
                     $this->version = 'UNKNOWN';
                 }
-                $this->cache->save($this->version, self::VERSION_CACHE_KEY, [Config::CACHE_TAG]);
             }
         }
         return $this->version;

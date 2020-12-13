@@ -3,13 +3,7 @@
 namespace Dotdigitalgroup\Email\Controller\Adminhtml\Rules;
 
 use Magento\Backend\App\Action\Context;
-use Dotdigitalgroup\Email\Model\ExclusionRule\RuleValidator;
 
-/**
- * Class Ajax
- * If a user selects a different attribute for an exclusion rule condition,
- * the condition and value fields are dynamically updated.
- */
 class Ajax extends \Magento\Backend\App\AbstractAction
 {
     /**
@@ -50,11 +44,6 @@ class Ajax extends \Magento\Backend\App\AbstractAction
     private $escaper;
 
     /**
-     * @var RuleValidator
-     */
-    private $ruleValidator;
-
-    /**
      * Ajax constructor.
      *
      * @param Context                                                       $context
@@ -72,15 +61,13 @@ class Ajax extends \Magento\Backend\App\AbstractAction
         \Dotdigitalgroup\Email\Model\Adminhtml\Source\Rules\Value $ruleValue,
         \Magento\Framework\Json\Helper\Data $jsonEncoder,
         \Magento\Framework\App\Response\Http $http,
-        \Magento\Framework\Escaper $escaper,
-        RuleValidator $ruleValidator
+        \Magento\Framework\Escaper $escaper
     ) {
         $this->ruleType = $ruleType;
         $this->ruleCondition = $ruleCondition;
         $this->ruleValue = $ruleValue;
         $this->jsonEncoder = $jsonEncoder;
         $this->escaper = $escaper;
-        $this->ruleValidator = $ruleValidator;
         parent::__construct($context);
         $this->http = $http;
     }
@@ -96,8 +83,8 @@ class Ajax extends \Magento\Backend\App\AbstractAction
         $conditionName = $this->getRequest()->getParam('condition');
         $valueName = $this->getRequest()->getParam('value');
         if ($attribute && $conditionName && $valueName) {
-            $inputType = $this->ruleType->getInputType($attribute);
-            $conditionOptions = $this->ruleCondition->getInputTypeOptions($inputType);
+            $type = $this->ruleType->getInputType($attribute);
+            $conditionOptions = $this->ruleCondition->getInputTypeOptions($type);
             $response['condition'] = $this->_getOptionHtml(
                 'conditions',
                 $conditionName,
@@ -113,15 +100,7 @@ class Ajax extends \Magento\Backend\App\AbstractAction
                     $valueOptions
                 );
             } elseif ($elmType == 'text') {
-                $validationType = $this->ruleValidator->setFrontEndValidation(
-                    $inputType,
-                    $conditionName
-                );
-                $html = "<input title='cvalue' class='ddg-rules-conditions' id='' name=$valueName ";
-                if ($validationType) {
-                    $html .= "data-validate=$validationType";
-                }
-                $html .= " />";
+                $html = "<input title='cvalue' class='ddg-rules-conditions' id='' name=$valueName />";
                 $response['cvalue'] = $html;
             }
             $this->http->getHeaders()->clearHeaders();

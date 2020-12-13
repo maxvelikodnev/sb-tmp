@@ -12,7 +12,7 @@ use Magento\Framework\GraphQl\Config\ConfigElementInterface;
 use Magento\Framework\ObjectManagerInterface;
 
 /**
- * @inheritdoc
+ * {@inheritdoc}
  */
 class EnumFactory implements ConfigElementFactoryInterface
 {
@@ -71,8 +71,7 @@ class EnumFactory implements ConfigElementFactoryInterface
             $values[$item['_value']] = $this->enumValueFactory->create(
                 $item['name'],
                 $item['_value'],
-                isset($item['description']) ? $item['description'] : '',
-                isset($item['deprecationReason']) ? $item['deprecationReason'] : ''
+                isset($item['description']) ? $item['description'] : ''
             );
         }
         return $this->create(

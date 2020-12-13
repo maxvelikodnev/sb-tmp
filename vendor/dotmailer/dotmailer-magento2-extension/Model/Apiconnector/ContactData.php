@@ -2,13 +2,9 @@
 
 namespace Dotdigitalgroup\Email\Model\Apiconnector;
 
-use Magento\Framework\Model\AbstractModel;
-use Magento\Framework\Stdlib\DateTime\TimezoneInterfaceFactory;
-use Dotdigitalgroup\Email\Model\DateIntervalFactory;
-use Dotdigitalgroup\Email\Logger\Logger;
-
 /**
  * Manages data synced as contact.
+ * @package Dotdigitalgroup\Email\Model\Apiconnector
  */
 class ContactData
 {
@@ -25,7 +21,7 @@ class ContactData
     /**
      * @var array
      */
-    private $columns;
+    private $mappingHash;
 
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order
@@ -73,6 +69,11 @@ class ContactData
     private $storeManager;
 
     /**
+     * @var \Magento\Store\Model\Store
+     */
+    private $store;
+
+    /**
      * @var array
      */
     private $brandValue = [];
@@ -88,21 +89,6 @@ class ContactData
     private $products = [];
 
     /**
-     * @var TimezoneInterfaceFactory
-     */
-    private $localeDateFactory;
-
-    /**
-     * @var DateIntervalFactory
-     */
-    private $dateIntervalFactory;
-
-    /**
-     * @var Logger
-     */
-    private $logger;
-
-    /**
      * ContactData constructor.
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Api\Data\ProductInterfaceFactory $productFactory
@@ -113,9 +99,6 @@ class ContactData
      * @param \Magento\Catalog\Model\ResourceModel\Category $categoryResource
      * @param \Magento\Eav\Model\ConfigFactory $eavConfigFactory
      * @param \Dotdigitalgroup\Email\Helper\Config $configHelper
-     * @param TimezoneInterfaceFactory $localeDateFactory
-     * @param DateIntervalFactory $dateIntervalFactory
-     * @param Logger $logger
      */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
@@ -126,10 +109,7 @@ class ContactData
         \Magento\Catalog\Api\Data\CategoryInterfaceFactory $categoryFactory,
         \Magento\Catalog\Model\ResourceModel\Category $categoryResource,
         \Magento\Eav\Model\ConfigFactory $eavConfigFactory,
-        \Dotdigitalgroup\Email\Helper\Config $configHelper,
-        TimezoneInterfaceFactory $localeDateFactory,
-        DateIntervalFactory $dateIntervalFactory,
-        Logger $logger
+        \Dotdigitalgroup\Email\Helper\Config $configHelper
     ) {
         $this->storeManager = $storeManager;
         $this->orderFactory = $orderFactory;
@@ -140,16 +120,20 @@ class ContactData
         $this->productResource = $productResource;
         $this->categoryResource = $categoryResource;
         $this->eavConfigFactory = $eavConfigFactory;
-        $this->localeDateFactory = $localeDateFactory;
-        $this->dateIntervalFactory = $dateIntervalFactory;
-        $this->logger = $logger;
     }
 
-    public function init(AbstractModel $model, array $columns)
+    /**
+     * @param $storeId
+     *
+     * @return \Magento\Store\Api\Data\StoreInterface|\Magento\Store\Model\Store
+     */
+    private function getStore($storeId)
     {
-        $this->model = $model;
-        $this->columns = $columns;
-        return $this;
+        if (! isset($this->store)) {
+            $this->store = $this->storeManager->getStore($storeId);
+        }
+
+        return $this->store;
     }
 
     /**
@@ -161,53 +145,42 @@ class ContactData
     }
 
     /**
-     * Set column data on the customer model
-     *
-     * @return $this
+     * @param $model
      */
-    public function setContactData()
+    public function setContactData($model)
     {
-        foreach (array_keys($this->getColumns()) as $key) {
-            switch ($key) {
-                case 'dob':
-                    $value = $this->model->getDob()
-                        ? $this->getScopeAdjustedDob($this->model->getStoreId())
-                        : null;
-                    break;
-
-                case 'email_type':
-                    $value = 'Html';
-                    break;
-
-                default:
-                    $method = 'get' . str_replace(' ', '', ucwords(str_replace('_', ' ', $key)));
-                    $value = method_exists($this, $method)
-                        ? $this->$method()
-                        : $this->model->$method();
+        $this->model = $model;
+        $mappingHash = array_keys($this->getMappingHash());
+        foreach ($mappingHash as $key) {
+            //Call user function based on the attribute mapped.
+            $function = 'get';
+            $exploded = explode('_', $key);
+            foreach ($exploded as $one) {
+                $function .= ucfirst($one);
             }
-
+            $value = call_user_func(
+                ['self', $function]
+            );
             $this->contactData[$key] = $value;
         }
-
-        return $this;
     }
 
     /**
      * @return array
      */
-    public function getColumns()
+    public function getMappingHash()
     {
-        return $this->columns;
+        return $this->mappingHash;
     }
 
     /**
-     * @param mixed $columns
+     * @param mixed $mappingHash
      *
      * @return $this
      */
-    public function setColumns($columns)
+    public function setMappingHash($mappingHash)
     {
-        $this->columns = $columns;
+        $this->mappingHash = $mappingHash;
 
         return $this;
     }
@@ -228,8 +201,10 @@ class ContactData
      */
     public function getWebsiteName()
     {
-        $website = $this->storeManager->getWebsite($this->model->getWebsiteId());
-
+        $store = $this->getStore($this->model->getStoreId());
+        $website = $store->getWebsite(
+            $store->getWebsiteId()
+        );
         if ($website) {
             return $website->getName();
         }
@@ -242,14 +217,10 @@ class ContactData
      */
     public function getStoreName()
     {
-        try {
-            $store = $this->storeManager->getStore($this->model->getStoreId());
+        $store = $this->getStore($this->model->getStoreId());
+
+        if ($store) {
             return $store->getName();
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            $this->logger->debug(
-                'Requested store is not found. Store id: ' . $this->model->getStoreId(),
-                [(string) $e]
-            );
         }
 
         return '';
@@ -267,14 +238,9 @@ class ContactData
                 \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_SYNC_DATA_FIELDS_BRAND_ATTRIBUTE,
                 $this->model->getWebsiteId()
             );
+            $storeId = $this->model->getStoreId();
+            $this->brandValue[$id] = $this->getAttributeValue($id, $attributeCode, $storeId);
 
-            $brandValue = $this->getAttributeValue($id, $attributeCode, $this->model->getStoreId());
-
-            if (is_array($brandValue)) {
-                $this->brandValue[$id] = implode(',', $brandValue);
-            } else {
-                $this->brandValue[$id] = $brandValue;
-            }
         }
 
         return $this->brandValue[$id];
@@ -301,23 +267,20 @@ class ContactData
      */
     public function getCategoriesFromOrderItems($orderItems)
     {
-        $catIds = $categoryIds = [];
+        $catIds = [];
         //categories from all products
         foreach ($orderItems as $item) {
             $product = $item->getProduct();
-            //sales item product may return null if product no longer exists, rather than empty object
+            //sales item product may return null if the product not exists anymore rathe then empty object
             if ($product) {
-                $categoryIds[] = $product->getCategoryIds();
+                $categoryIds = $product->getCategoryIds();
+                if (count($categoryIds)) {
+                    $catIds = array_unique(array_merge($catIds, $categoryIds));
+                }
             }
         }
 
-        foreach ($categoryIds as $array) {
-            foreach ($array as $key => $value) {
-                $catIds[] = $value;
-            }
-        }
-
-        return array_unique($catIds);
+        return $catIds;
     }
 
     /**
@@ -384,14 +347,6 @@ class ContactData
     }
 
     /**
-     * @return AbstractModel
-     */
-    public function getModel()
-    {
-        return $this->model;
-    }
-
-    /**
      * Get last purchased brand.
      *
      * @return string
@@ -409,17 +364,17 @@ class ContactData
     public function getMostPurBrand()
     {
         $productId = $this->model->getProductIdForMostSoldProduct();
+        $store = $this->getStore($this->model->getStoreId());
         $attributeCode = $this->configHelper->getWebsiteConfig(
             \Dotdigitalgroup\Email\Helper\Config::XML_PATH_CONNECTOR_SYNC_DATA_FIELDS_BRAND_ATTRIBUTE,
-            $this->model->getWebsiteId()
+            $store->getWebsiteId()
         );
 
         //if the id and attribute found
         if ($productId && $attributeCode) {
             $product = $this->getProduct($productId);
             if ($product->getId()) {
-                $attribute = $this->productResource->getAttribute($attributeCode);
-                $value = is_object($attribute) ? $attribute->getFrontend()->getValue($product) : null;
+                $value = $this->productResource->getAttribute($attributeCode)->getFrontend()->getValue($product);
                 if ($value) {
                     return $value;
                 }
@@ -591,40 +546,5 @@ class ContactData
         }
 
         return $this->products[$productId];
-    }
-
-    /**
-     * @param string $storeId
-     * @return string
-     */
-    private function getScopeAdjustedDob($storeId)
-    {
-        $scopedDob = $this->localeDateFactory->create()
-            ->scopeDate(
-                $storeId,
-                strtotime($this->model->getDob()),
-                true
-            );
-
-        $timezoneOffset = $scopedDob->getOffset();
-
-        // For locales east of GMT i.e. +01:00 and up, return the raw date
-        if ($timezoneOffset > 0) {
-            return $this->model->getDob();
-        }
-
-        // For locales west of GMT i.e. -01:00 and below, adjust DOB by adding the current timezone offset
-        $offset = $this->dateIntervalFactory->create(
-            ['interval_spec' => 'PT' . abs($timezoneOffset) . 'S']
-        );
-
-        return $this->localeDateFactory->create()
-            ->date(
-                strtotime($this->model->getDob()),
-                null,
-                false
-            )
-            ->add($offset)
-            ->format(\Zend_Date::ISO_8601);
     }
 }

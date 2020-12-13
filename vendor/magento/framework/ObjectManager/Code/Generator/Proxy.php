@@ -5,7 +5,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Framework\ObjectManager\Code\Generator;
 
@@ -74,7 +73,6 @@ class Proxy extends \Magento\Framework\Code\Generator\EntityAbstract
                 'tags' => [['name' => 'var', 'description' => 'bool']],
             ],
         ];
-
         return $properties;
     }
 
@@ -156,7 +154,6 @@ class Proxy extends \Magento\Framework\Code\Generator\EntityAbstract
             $this->_classGenerator->setExtendedClass($typeName);
             $this->_classGenerator->setImplementedInterfaces(['\\' . self::NON_INTERCEPTABLE_INTERFACE]);
         }
-
         return parent::_generateCode();
     }
 
@@ -176,7 +173,7 @@ class Proxy extends \Magento\Framework\Code\Generator\EntityAbstract
             $parameters[] = $this->_getMethodParameterInfo($parameter);
         }
 
-        $returnTypeValue = $this->getReturnTypeValue($method);
+        $returnTypeValue = $this->getReturnTypeValue($method->getReturnType());
         $methodInfo = [
             'name' => $method->getName(),
             'parameters' => $parameters,
@@ -272,27 +269,24 @@ class Proxy extends \Magento\Framework\Code\Generator\EntityAbstract
                 $result = false;
             }
         }
-
         return $result;
     }
 
     /**
      * Returns return type
      *
-     * @param \ReflectionMethod $method
+     * @param mixed $returnType
      * @return null|string
      */
-    private function getReturnTypeValue(\ReflectionMethod $method): ?string
+    private function getReturnTypeValue($returnType): ?string
     {
         $returnTypeValue = null;
-        $returnType = $method->getReturnType();
         if ($returnType) {
             $returnTypeValue = ($returnType->allowsNull() ? '?' : '');
             $returnTypeValue .= ($returnType->getName() === 'self')
-                ? $this->_getFullyQualifiedClassName($method->getDeclaringClass()->getName())
+                ? $this->getSourceClassName()
                 : $returnType->getName();
         }
-
         return $returnTypeValue;
     }
 }

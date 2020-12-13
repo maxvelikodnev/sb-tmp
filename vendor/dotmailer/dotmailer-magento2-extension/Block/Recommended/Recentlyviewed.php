@@ -7,7 +7,7 @@ namespace Dotdigitalgroup\Email\Block\Recommended;
  *
  * @api
  */
-class Recentlyviewed extends \Dotdigitalgroup\Email\Block\Recommended
+class Recentlyviewed extends \Magento\Catalog\Block\Product\AbstractProduct
 {
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data
@@ -22,7 +22,7 @@ class Recentlyviewed extends \Dotdigitalgroup\Email\Block\Recommended
     /**
      * @var \Dotdigitalgroup\Email\Helper\Recommended
      */
-    public $recommendedHelper;
+    public $recommnededHelper;
 
     /**
      * @var \Magento\Customer\Model\SessionFactory
@@ -43,8 +43,6 @@ class Recentlyviewed extends \Dotdigitalgroup\Email\Block\Recommended
      * Recentlyviewed constructor.
      *
      * @param \Magento\Catalog\Block\Product\Context $context
-     * @param \Dotdigitalgroup\Email\Block\Helper\Font $font
-     * @param \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder
      * @param \Dotdigitalgroup\Email\Model\ResourceModel\Catalog $catalog
      * @param \Magento\Customer\Model\SessionFactory $sessionFactory
      * @param \Dotdigitalgroup\Email\Helper\Data $helper
@@ -54,8 +52,6 @@ class Recentlyviewed extends \Dotdigitalgroup\Email\Block\Recommended
      */
     public function __construct(
         \Magento\Catalog\Block\Product\Context $context,
-        \Dotdigitalgroup\Email\Block\Helper\Font $font,
-        \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder,
         \Dotdigitalgroup\Email\Model\ResourceModel\Catalog $catalog,
         \Magento\Customer\Model\SessionFactory $sessionFactory,
         \Dotdigitalgroup\Email\Helper\Data $helper,
@@ -63,14 +59,13 @@ class Recentlyviewed extends \Dotdigitalgroup\Email\Block\Recommended
         \Dotdigitalgroup\Email\Helper\Recommended $recommended,
         array $data = []
     ) {
+        parent::__construct($context, $data);
         $this->sessionFactory    = $sessionFactory;
         $this->helper            = $helper;
-        $this->recommendedHelper = $recommended;
+        $this->recommnededHelper = $recommended;
         $this->priceHelper       = $priceHelper;
         $this->storeManager      = $this->_storeManager;
-        $this->catalog           = $catalog;
-
-        parent::__construct($context, $font, $urlFinder, $data);
+        $this->catalog    = $catalog;
     }
 
     /**
@@ -93,7 +88,7 @@ class Recentlyviewed extends \Dotdigitalgroup\Email\Block\Recommended
         $productsToDisplay = [];
         $mode = $this->getRequest()->getActionName();
         $customerId = (int) $this->getRequest()->getParam('customer_id');
-        $limit = (int) $this->recommendedHelper->getDisplayLimitByMode($mode);
+        $limit = (int) $this->recommnededHelper->getDisplayLimitByMode($mode);
 
         //login customer to receive the recent products
         $session = $this->sessionFactory->create();
@@ -128,7 +123,7 @@ class Recentlyviewed extends \Dotdigitalgroup\Email\Block\Recommended
      */
     public function getMode()
     {
-        return $this->recommendedHelper->getDisplayType();
+        return $this->recommnededHelper->getDisplayType();
     }
 
     /**

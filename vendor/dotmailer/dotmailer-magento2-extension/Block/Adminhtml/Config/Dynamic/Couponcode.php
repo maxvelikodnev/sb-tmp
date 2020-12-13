@@ -8,9 +8,11 @@ class Couponcode extends \Dotdigitalgroup\Email\Block\Adminhtml\Config\Dynamic\R
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data
      */
-    private $dataHelper;
+    public $dataHelper;
 
     /**
+     * Couponcode constructor.
+     *
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Dotdigitalgroup\Email\Helper\Data $dataHelper
      */
@@ -41,8 +43,8 @@ class Couponcode extends \Dotdigitalgroup\Email\Block\Adminhtml\Config\Dynamic\R
         }
 
         //full url
-        $text = $baseUrl . 'connector/email/coupon/id/[INSERT CART PRICE RULE ID HERE]/code/'
-            . $passcode . '/@EMAIL@';
+        $text = $baseUrl . 'connector/email/coupon/id/[INSERT ID HERE]/code/'
+            . $passcode . '/expire_days/[INSERT NUMBER OF DAYS HERE]/@EMAIL@';
         $element->setData('value', $text);
 
         return parent::_getElementHtml($element);

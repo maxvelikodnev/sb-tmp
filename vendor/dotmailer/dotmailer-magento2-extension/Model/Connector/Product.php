@@ -2,10 +2,6 @@
 
 namespace Dotdigitalgroup\Email\Model\Connector;
 
-use Dotdigitalgroup\Email\Model\Product\AttributeFactory;
-use Dotdigitalgroup\Email\Model\Product\ParentFinder;
-use Dotdigitalgroup\Email\Api\TierPriceFinderInterface;
-
 /**
  * Transactional data for catalog products to sync.
  *
@@ -13,17 +9,10 @@ use Dotdigitalgroup\Email\Api\TierPriceFinderInterface;
  */
 class Product
 {
-    const TYPE_VARIANT = 'Variant';
-
     /**
      * @var string
      */
     public $id;
-
-    /**
-     * @var string
-     */
-    public $parent_id = '';
 
     /**
      * @var string
@@ -58,11 +47,6 @@ class Product
     /**
      * @var array
      */
-    public $tierPrices = [];
-
-    /**
-     * @var array
-     */
     public $categories = [];
 
     /**
@@ -91,11 +75,6 @@ class Product
     public $websites = [];
 
     /**
-     * @var string
-     */
-    public $type = '';
-
-    /**
      * @var \Dotdigitalgroup\Email\Helper\Data
      */
     public $helper;
@@ -103,7 +82,7 @@ class Product
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
-    private $storeManager;
+    public $storeManager;
 
     /**
      * @var \Magento\Catalog\Model\Product\Attribute\Source\StatusFactory
@@ -116,102 +95,99 @@ class Product
     public $visibilityFactory;
 
     /**
-     * @var \Dotdigitalgroup\Email\Model\Catalog\UrlFinder
+     * @var \Magento\Catalog\Model\Product\Media\ConfigFactory
      */
-    private $urlFinder;
+    public $mediaConfigFactory;
 
     /**
-     * @var \Magento\CatalogInventory\Api\StockStateInterface
+     * @var \Magento\CatalogInventory\Model\Stock\ItemFactory
      */
-    private $stockStateInterface;
+    public $itemFactory;
 
     /**
-     * @var AttributeFactory $attributeHandler
+     * @var \Magento\Framework\Stdlib\StringUtils
      */
-    private $attributeHandler;
-
-    /**
-     * @var ParentFinder
-     */
-    private $parentFinder;
-
-    /**
-     * @var TierPriceFinderInterface
-     */
-    private $tierPriceFinder;
+    private $stringUtils;
 
     /**
      * Product constructor.
      *
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManagerInterface
-     * @param \Dotdigitalgroup\Email\Helper\Data $helper
+     * @param \Magento\Store\Model\StoreManagerInterface                    $storeManagerInterface
+     * @param \Dotdigitalgroup\Email\Helper\Data                            $helper
+     * @param \Magento\CatalogInventory\Model\Stock\ItemFactory             $itemFactory
+     * @param \Magento\Catalog\Model\Product\Media\ConfigFactory            $mediaConfigFactory
      * @param \Magento\Catalog\Model\Product\Attribute\Source\StatusFactory $statusFactory
-     * @param \Magento\Catalog\Model\Product\VisibilityFactory $visibilityFactory
-     * @param \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder
-     * @param \Magento\CatalogInventory\Api\StockStateInterface $stockStateInterface
-     * @param AttributeFactory $attributeHandler
-     * @param ParentFinder $parentFinder
-     * @param TierPriceFinderInterface $tierPriceFinder
+     * @param \Magento\Catalog\Model\Product\VisibilityFactory              $visibilityFactory
+     * @param \Magento\Framework\Stdlib\StringUtils                         $stringUtils
      */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
         \Dotdigitalgroup\Email\Helper\Data $helper,
+        \Magento\CatalogInventory\Model\Stock\ItemFactory $itemFactory,
+        \Magento\Catalog\Model\Product\Media\ConfigFactory $mediaConfigFactory,
         \Magento\Catalog\Model\Product\Attribute\Source\StatusFactory $statusFactory,
         \Magento\Catalog\Model\Product\VisibilityFactory $visibilityFactory,
-        \Dotdigitalgroup\Email\Model\Catalog\UrlFinder $urlFinder,
-        \Magento\CatalogInventory\Api\StockStateInterface $stockStateInterface,
-        AttributeFactory $attributeHandler,
-        ParentFinder $parentFinder,
-        TierPriceFinderInterface $tierPriceFinder
+        \Magento\Framework\Stdlib\StringUtils $stringUtils
     ) {
-        $this->visibilityFactory = $visibilityFactory;
-        $this->statusFactory = $statusFactory;
-        $this->helper = $helper;
-        $this->storeManager = $storeManagerInterface;
-        $this->urlFinder = $urlFinder;
-        $this->stockStateInterface = $stockStateInterface;
-        $this->attributeHandler = $attributeHandler;
-        $this->parentFinder = $parentFinder;
-        $this->tierPriceFinder = $tierPriceFinder;
+        $this->itemFactory        = $itemFactory;
+        $this->mediaConfigFactory = $mediaConfigFactory;
+        $this->visibilityFactory  = $visibilityFactory;
+        $this->statusFactory      = $statusFactory;
+        $this->helper             = $helper;
+        $this->storeManager       = $storeManagerInterface;
+        $this->stringUtils        = $stringUtils;
     }
 
     /**
-     * Set the product data
-     * @param $product
-     * @param $storeId
+     * Set the product data.
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     *
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function setProduct($product, $storeId)
+    public function setProduct($product)
     {
         $this->id = $product->getId();
         $this->sku = $product->getSku();
         $this->name = $product->getName();
 
-        $this->status = $this->statusFactory->create()
+        $status = $this->statusFactory->create()
             ->getOptionText($product->getStatus());
 
-        $this->type = ucfirst($product->getTypeId());
+        $this->status = $status->getText();
 
         $options = $this->visibilityFactory->create()
             ->getOptionArray();
         $this->visibility = (string)$options[$product->getVisibility()];
-
-        $this->getMinPrices($product);
-
-        $this->url = $this->urlFinder->fetchFor($product);
-
-        $this->imagePath = $this->urlFinder->getProductSmallImageUrl($product);
-
-        $this->stock = (float)number_format($this->getStockQty($product), 2, '.', '');
-
-        //limit short description
-        $this->shortDescription = mb_substr(
-            $product->getShortDescription(),
-            0,
-            \Dotdigitalgroup\Email\Helper\Data::DM_FIELD_LIMIT
+        $this->price = (float)number_format(
+            $product->getPrice(),
+            2,
+            '.',
+            ''
         );
+        $this->specialPrice = (float)number_format(
+            $product->getSpecialPrice(),
+            2,
+            '.',
+            ''
+        );
+        $this->url = $product->getProductUrl();
+
+        $this->imagePath = $this->mediaConfigFactory->create()
+            ->getMediaUrl($product->getSmallImage());
+
+        $stock = $this->itemFactory->create()
+            ->setProduct($product);
+
+        $this->stock = (float)number_format($stock->getQty(), 2, '.', '');
+
+        $shortDescription = $product->getShortDescription();
+        //limit short description
+        if ($this->stringUtils->strlen($shortDescription) > \Dotdigitalgroup\Email\Helper\Data::DM_FIELD_LIMIT) {
+            $shortDescription = mb_substr($shortDescription, 0, \Dotdigitalgroup\Email\Helper\Data::DM_FIELD_LIMIT);
+        }
+
+        $this->shortDescription = $shortDescription;
 
         //category data
         $count = 0;
@@ -235,68 +211,92 @@ class Product
             ++$count;
         }
 
-        $this->processProductOptions($product, $storeId);
-        $this->processParentProducts($product);
+        $this->processProductOptions($product);
 
         unset(
+            $this->itemFactory,
+            $this->mediaConfigFactory,
             $this->visibilityFactory,
             $this->statusFactory,
             $this->helper,
-            $this->storeManager,
-            $this->attributeHandler,
-            $this->parentFinder,
-            $this->tierPriceFinder
+            $this->storeManager
         );
 
         return $this;
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
-     * This function calculates the stock Quantity for each Product.
-     * @return float
-     */
-    private function getStockQty($product)
-    {
-        return $this->stockStateInterface->getStockQty($product->getId(), $product->getStore()->getWebsiteId());
-    }
-
-    /**
-     * Retrieve product attributes for catalog sync.
-     *
-     * @param \Magento\Catalog\Model\Product $product
-     * @param string $storeId
+     * @param mixed $product
      *
      * @return null
      */
-    private function processProductOptions($product, $storeId)
+    private function processProductOptions($product)
     {
-        $attributeModel = $this->attributeHandler->create();
-
-        $attributeSetKey = 'attribute_set';
-        $this->$attributeSetKey = $attributeModel->getAttributeSetName($product);
-
-        //selected attributes from config
-        $configAttributes = $attributeModel->getConfigAttributesForSync(
-            $this->storeManager->getStore($storeId)->getWebsiteId()
-        );
-
-        if ($configAttributes) {
-            $configAttributes = explode(',', $configAttributes);
-            //attributes from attribute set
-            $attributesFromAttributeSet = $attributeModel->getAttributesArray(
-                $product->getAttributeSetId()
+        //bundle product options
+        if ($product->getTypeId()
+            == \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE
+        ) {
+            $optionCollection = $product->getTypeInstance()
+                ->getOptionsCollection($product);
+            $selectionCollection = $product->getTypeInstance()
+                ->getSelectionsCollection(
+                    $product->getTypeInstance()->getOptionsIds($product),
+                    $product
+                );
+            $options = $optionCollection->appendSelections(
+                $selectionCollection
             );
+            foreach ($options as $option) {
+                $trimmedTitle = str_replace(' ', '', $option->getDefaultTitle());
+                if (!$this->textIsValidForInsightDataKey($trimmedTitle)) {
+                    continue;
+                }
 
-            $attributes = $attributeModel->processConfigAttributes(
-                $configAttributes,
-                $attributesFromAttributeSet,
-                $product
-            );
+                $count = 0;
+                $selections = $option->getSelections();
+                $sOptions = [];
+                foreach ($selections as $selection) {
+                    $sOptions[$count]['name'] = $selection->getName();
+                    $sOptions[$count]['sku'] = $selection->getSku();
+                    $sOptions[$count]['id'] = $selection->getProductId();
+                    $sOptions[$count]['price'] = (float)number_format(
+                        $selection->getPrice(),
+                        2,
+                        '.',
+                        ''
+                    );
+                    ++$count;
+                }
+                $this->$trimmedTitle = $sOptions;
+            }
+        }
 
-            if ($attributes->hasValues()) {
-                $attributesKey = 'attributes';
-                $this->$attributesKey = $attributes;
+        //configurable product options
+        if ($product->getTypeId() == 'configurable') {
+            $productAttributeOptions = $product->getTypeInstance()
+                ->getConfigurableAttributesAsArray($product);
+
+            foreach ($productAttributeOptions as $productAttribute) {
+                $trimmedLabel = str_replace(' ', '', $productAttribute['label']);
+                if (!$this->textIsValidForInsightDataKey($trimmedLabel)) {
+                    continue;
+                }
+
+                $count = 0;
+                $options = [];
+                foreach ($productAttribute['values'] as $attribute) {
+                    $options[$count]['option'] = $attribute['default_label'];
+                    if (isset($attribute['pricing_value'])) {
+                        $options[$count]['price'] = (float)number_format(
+                            $attribute['pricing_value'],
+                            2,
+                            '.',
+                            ''
+                        );
+                    }
+                    ++$count;
+                }
+                $this->$trimmedLabel = $options;
             }
         }
     }
@@ -313,91 +313,24 @@ class Product
             array_flip([
                 'storeManager',
                 'helper',
+                'itemFactory',
+                'mediaConfigFactory',
                 'visibilityFactory',
                 'statusFactory',
-                'storeManager',
-                'urlFinder',
-                'stockStateInterface',
-                'attributeHandler',
-                'parentFinder',
-                'tierPriceFinder'
+                'storeManager'
             ])
         );
     }
 
     /**
-     * Set the Minimum Prices for Configurable and Bundle products.
+     * @param string $label
      *
-     * @param \Magento\Catalog\Model\Product $product
+     * https://support.dotmailer.com/hc/en-gb/articles/212214538-Using-Insight-data-developers-guide-#restrictkeys
      *
-     * @return null
+     * @return false|int
      */
-
-    private function getMinPrices($product)
+    private function textIsValidForInsightDataKey($label)
     {
-        if ($product->getTypeId() == 'configurable') {
-            foreach ($product->getTypeInstance()->getUsedProducts($product) as $childProduct) {
-                $childPrices[] = $childProduct->getPrice();
-                if ($childProduct->getSpecialPrice() !== null) {
-                    $childSpecialPrices[] = $childProduct->getSpecialPrice();
-                }
-            }
-            $this->price = isset($childPrices) ? min($childPrices) : null;
-            $this->specialPrice = isset($childSpecialPrices) ? min($childSpecialPrices) : null;
-        } elseif ($product->getTypeId() == 'bundle') {
-            $this->price = $product->getPriceInfo()->getPrice('regular_price')->getMinimalPrice()->getValue();
-            $this->specialPrice = $product->getPriceInfo()->getPrice('final_price')->getMinimalPrice()->getValue();
-            //if special price equals to price then its wrong.)
-            $this->specialPrice = ($this->specialPrice === $this->price) ? null : $this->specialPrice;
-        } elseif ($product->getTypeId() == 'grouped') {
-            foreach ($product->getTypeInstance()->getAssociatedProducts($product) as $childProduct) {
-                $childPrices[] = $childProduct->getPrice();
-                if ($childProduct->getSpecialPrice() !== null) {
-                    $childSpecialPrices[] = $childProduct->getSpecialPrice();
-                }
-            }
-            $this->price = isset($childPrices) ? min($childPrices) : null;
-            $this->specialPrice = isset($childSpecialPrices) ? min($childSpecialPrices) : null;
-        } else {
-            $this->price = $product->getPrice();
-            $this->specialPrice = $product->getSpecialPrice();
-        }
-        $this->formatPriceValues();
-        $this->tierPrices = $this->tierPriceFinder->getTierPrices($product);
-    }
-
-    /**
-     * Formats the price values.
-     *
-     * @return null
-     */
-    private function formatPriceValues()
-    {
-        $this->price = (float)number_format(
-            $this->price,
-            2,
-            '.',
-            ''
-        );
-
-        $this->specialPrice = (float)number_format(
-            $this->specialPrice,
-            2,
-            '.',
-            ''
-        );
-    }
-
-    /**
-     * @param $product
-     */
-    private function processParentProducts($product)
-    {
-        $parentId = $this->parentFinder->getProductParentIdToCatalogSync($product);
-
-        if ($parentId) {
-            $this->parent_id = $parentId;
-            $this->type = self::TYPE_VARIANT;
-        }
+        return preg_match('/^[a-zA-Z_\\\\-][a-zA-Z0-9_\\\\-]*$/', $label);
     }
 }

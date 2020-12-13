@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Framework\Model\EntitySnapshot;
 
@@ -13,10 +12,8 @@ namespace Magento\Framework\Model\EntitySnapshot;
 interface AttributeProviderInterface
 {
     /**
-     * Returns array of fields
-     *
      * @param string $entityType
-     * @return string[]
+     * @return array
      */
     public function getAttributes($entityType);
 }

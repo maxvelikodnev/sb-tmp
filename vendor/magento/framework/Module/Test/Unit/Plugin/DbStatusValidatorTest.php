@@ -9,9 +9,6 @@ use \Magento\Framework\Module\Plugin\DbStatusValidator;
 
 use Magento\Framework\Module\DbVersionInfo;
 
-/**
- * DbStatus validator test.
- */
 class DbStatusValidatorTest extends \PHPUnit\Framework\TestCase
 {
     /**

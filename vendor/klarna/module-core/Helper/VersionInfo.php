@@ -14,6 +14,11 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\State;
 use Magento\Framework\Module\ResourceInterface;
 
+/**
+ * Class VersionInfo
+ *
+ * @package Klarna\Core\Helper
+ */
 class VersionInfo
 {
     /**
@@ -32,6 +37,8 @@ class VersionInfo
     private $productMetadata;
 
     /**
+     * VersionInfo constructor.
+     *
      * @param ProductMetadataInterface $productMetadata
      * @param State                    $appState
      * @param ResourceInterface        $resource

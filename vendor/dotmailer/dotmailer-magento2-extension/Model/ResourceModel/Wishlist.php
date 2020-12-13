@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel;
 
-use Dotdigitalgroup\Email\Setup\SchemaInterface as Schema;
+use Dotdigitalgroup\Email\Setup\Schema;
 
 class Wishlist extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
@@ -10,7 +10,7 @@ class Wishlist extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * @var \Magento\Wishlist\Model\WishlistFactory
      */
     public $wishlist;
-
+    
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data
      */
@@ -59,15 +59,18 @@ class Wishlist extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             $where = [
                 'created_at >= ?' => $from . ' 00:00:00',
                 'created_at <= ?' => $to . ' 23:59:59',
-                'wishlist_imported' => 1
+                'wishlist_imported is ?' => new \Zend_Db_Expr('not null')
             ];
         } else {
-            $where = ['wishlist_imported' => 1];
+            $where = $conn->quoteInto(
+                'wishlist_imported is ?',
+                new \Zend_Db_Expr('not null')
+            );
         }
         $num = $conn->update(
             $this->getTable(Schema::EMAIL_WISHLIST_TABLE),
             [
-                'wishlist_imported' => 0,
+                'wishlist_imported' => new \Zend_Db_Expr('null'),
                 'wishlist_modified' => new \Zend_Db_Expr('null'),
             ],
             $where

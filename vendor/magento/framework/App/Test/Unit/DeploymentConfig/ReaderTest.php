@@ -43,18 +43,17 @@ class ReaderTest extends \PHPUnit\Framework\TestCase
             ->willReturn(__DIR__ . '/_files');
         $this->fileDriver = $this->createMock(File::class);
         $this->fileDriver
+            ->expects($this->any())
             ->method('isExists')
-            ->willReturnMap(
-                [
-                    [__DIR__.'/_files/config.php', true],
-                    [__DIR__.'/_files/custom.php', true],
-                    [__DIR__.'/_files/duplicateConfig.php', true],
-                    [__DIR__.'/_files/env.php', true],
-                    [__DIR__.'/_files/mergeOne.php', true],
-                    [__DIR__.'/_files/mergeTwo.php', true],
-                    [__DIR__.'/_files/nonexistent.php', false]
-                ]
-            );
+            ->will($this->returnValueMap([
+                [__DIR__ . '/_files/config.php', true],
+                [__DIR__ . '/_files/custom.php', true],
+                [__DIR__ . '/_files/duplicateConfig.php', true],
+                [__DIR__ . '/_files/env.php', true],
+                [__DIR__ . '/_files/mergeOne.php', true],
+                [__DIR__ . '/_files/mergeTwo.php', true],
+                [__DIR__ . '/_files/nonexistent.php', false]
+            ]));
         $this->driverPool = $this->createMock(DriverPool::class);
         $this->driverPool
             ->expects($this->any())
@@ -153,9 +152,8 @@ class ReaderTest extends \PHPUnit\Framework\TestCase
      * @expectedException \Magento\Framework\Exception\RuntimeException
      * @expectedExceptionMessageRegExp /Invalid configuration file: \'.*\/\_files\/emptyConfig\.php\'/
      * @return void
-     * @throws \Magento\Framework\Exception\FileSystemException
      */
-    public function testLoadInvalidConfigurationFile(): void
+    public function testLoadInvalidConfigurationFile()
     {
         $fileDriver = $this->getMockBuilder(File::class)
             ->disableOriginalConstructor()
@@ -175,13 +173,22 @@ class ReaderTest extends \PHPUnit\Framework\TestCase
         $configFilePool = $this->getMockBuilder(ConfigFilePool::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $configFilePool->expects($this->once())
+        $configFilePool->expects($this->exactly(2))
             ->method('getPaths')
             ->willReturn(
                 [
                     'configKeyOne' => 'config.php',
                     'testConfig' => 'emptyConfig.php'
                 ]
+            );
+        $configFilePool->expects($this->exactly(2))
+            ->method('getPath')
+            ->withConsecutive(
+                [$this->identicalTo('configKeyOne')],
+                [$this->identicalTo('testConfig')]
+            )->willReturnOnConsecutiveCalls(
+                'config.php',
+                'emptyConfig.php'
             );
         $object = new Reader($this->dirList, $driverPool, $configFilePool);
         $object->load();

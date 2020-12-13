@@ -14,10 +14,7 @@ class Productattributes implements \Magento\Framework\Data\OptionSourceInterface
      * @var array
      */
     private $excluded = [
-        'quantity_and_stock_status',
-        'name',
-        'sku',
-        'price'
+        'quantity_and_stock_status'
     ];
 
     /**

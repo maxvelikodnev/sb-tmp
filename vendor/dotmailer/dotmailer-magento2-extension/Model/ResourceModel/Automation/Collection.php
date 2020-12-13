@@ -2,9 +2,8 @@
 
 namespace Dotdigitalgroup\Email\Model\ResourceModel\Automation;
 
-use Dotdigitalgroup\Email\Model\Sync\Automation;
-
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class Collection extends
+ \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     /**
      * @var string
@@ -33,12 +32,12 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $automationOrderStatusCollection = $this->addFieldToFilter(
             'enrolment_status',
-            Automation::AUTOMATION_STATUS_PENDING
+            \Dotdigitalgroup\Email\Model\Sync\Automation::AUTOMATION_STATUS_PENDING
         );
         $automationOrderStatusCollection
             ->addFieldToFilter(
                 'automation_type',
-                ['like' => '%' . Automation::ORDER_STATUS_AUTOMATION . '%']
+                ['like' => '%' . \Dotdigitalgroup\Email\Model\Sync\Automation::ORDER_STATUS_AUTOMATION . '%']
             )->getSelect()
             ->group('automation_type');
 
@@ -59,8 +58,8 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             'enrolment_status',
             [
                 'in' => [
-                    Automation::AUTOMATION_STATUS_PENDING,
-                    Automation::CONTACT_STATUS_CONFIRMED
+                    \Dotdigitalgroup\Email\Model\Sync\Automation::AUTOMATION_STATUS_PENDING,
+                    \Dotdigitalgroup\Email\Model\Sync\Automation::CONTACT_STATUS_CONFIRMED
                 ]
             ]
         )->addFieldToFilter(
@@ -82,7 +81,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $collection = $this->addFieldToFilter(
             'enrolment_status',
-            Automation::CONTACT_STATUS_PENDING
+            \Dotdigitalgroup\Email\Model\Sync\Automation::CONTACT_STATUS_PENDING
         );
         if ($expireTime) {
             $collection->addFieldToFilter('created_at', ['lt' => $expireTime]);
@@ -98,35 +97,9 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $collection = $this->addFieldToFilter(
             'enrolment_status',
-            Automation::CONTACT_STATUS_PENDING
+            \Dotdigitalgroup\Email\Model\Sync\Automation::CONTACT_STATUS_PENDING
         )->setOrder("updated_at")->setPageSize(1);
 
         return $collection->getFirstItem()->getUpdatedAt();
-    }
-
-    /**
-     * @param int $quoteId
-     *
-     * @return Collection
-     */
-    public function getAbandonedCartAutomationByQuoteId($quoteId)
-    {
-        $collection = $this->addFieldToFilter('type_id', $quoteId)
-            ->addFieldToFilter('automation_type', Automation::AUTOMATION_TYPE_ABANDONED_CART_PROGRAM_ENROLMENT);
-
-        return $collection;
-    }
-
-    /**
-     * @param string $email
-     *
-     * @return Collection
-     */
-    public function getSubscriberAutomationByEmail($email)
-    {
-        $collection = $this->addFieldToFilter('email', $email)
-            ->addFieldToFilter('automation_type', Automation::AUTOMATION_TYPE_NEW_SUBSCRIBER);
-
-        return $collection;
     }
 }

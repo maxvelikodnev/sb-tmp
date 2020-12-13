@@ -20,12 +20,9 @@ use Vertex\Tax\Model\CountryGuard;
 use Vertex\Tax\Model\Data\OrderInvoiceStatus;
 use Vertex\Tax\Model\Data\OrderInvoiceStatusFactory;
 use Vertex\Tax\Model\ExceptionLogger;
-use Vertex\Tax\Model\GuestAfterPaymentWorkaroundService;
 use Vertex\Tax\Model\Repository\OrderInvoiceStatusRepository;
 use Vertex\Tax\Model\TaxInvoice;
 use Vertex\Tax\Model\VertexTaxAttributeManager;
-use Vertex\Tax\Model\Loader\ShippingAssignmentExtensionLoader;
-use Vertex\Tax\Model\Loader\GiftwrapExtensionLoader;
 
 /**
  * Observes when an Order is saved to determine if we need to commit data to the Vertex Tax Log
@@ -71,9 +68,6 @@ class OrderSavedAfterObserver implements ObserverInterface
     /** @var TaxInvoice */
     private $taxInvoice;
 
-    /** @var GuestAfterPaymentWorkaroundService */
-    private $workaroundService;
-
     /**
      * @param Config $config
      * @param CountryGuard $countryGuard
@@ -87,7 +81,6 @@ class OrderSavedAfterObserver implements ObserverInterface
      * @param GiftwrapExtensionLoader $giftwrapExtensionLoader
      * @param ShippingAssignmentExtensionLoader $shipmentExtensionLoader
      * @param VertexTaxAttributeManager $attributeManager
-     * @param GuestAfterPaymentWorkaroundService $workaroundService
      * @param bool $showSuccessMessage
      */
     public function __construct(
@@ -103,7 +96,6 @@ class OrderSavedAfterObserver implements ObserverInterface
         GiftwrapExtensionLoader $giftwrapExtensionLoader,
         ShippingAssignmentExtensionLoader $shipmentExtensionLoader,
         VertexTaxAttributeManager $attributeManager,
-        GuestAfterPaymentWorkaroundService $workaroundService,
         $showSuccessMessage = false
     ) {
         $this->config = $config;
@@ -119,7 +111,6 @@ class OrderSavedAfterObserver implements ObserverInterface
         $this->shipmentExtensionLoader = $shipmentExtensionLoader;
         $this->attributeManager = $attributeManager;
         $this->showSuccessMessage = $showSuccessMessage;
-        $this->workaroundService = $workaroundService;
     }
 
     /**
@@ -133,8 +124,6 @@ class OrderSavedAfterObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $this->workaroundService->clearOrders();
-
         /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getEvent()->getOrder();
         if (!$this->config->isVertexActive($order->getStoreId())

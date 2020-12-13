@@ -3,7 +3,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\Framework\App\Cache\Frontend;
 
 use Magento\Framework\App\Cache\Type\FrontendPool;
@@ -56,7 +55,6 @@ class Pool implements \Iterator
 
     /**
      * Create instances of every cache frontend known to the system.
-     *
      * Method is to be used for delayed initialization of the iterator.
      *
      * @return void
@@ -79,21 +77,18 @@ class Pool implements \Iterator
     protected function _getCacheSettings()
     {
         /*
-         * Merging is intentionally implemented through array_replace_recursive() instead of array_merge(), because even
-         * though some settings may become irrelevant when the cache storage type is changed, they don't do any harm
-         * and can be overwritten when needed.
-         * Also array_merge leads to unexpected behavior, for for example by dropping the
-         * default cache_dir setting from di.xml when a cache id_prefix is configured in app/etc/env.php.
+         * Merging is intentionally implemented through array_merge() instead of array_replace_recursive()
+         * to avoid "inheritance" of the default settings that become irrelevant as soon as cache storage type changes
          */
         $cacheInfo = $this->deploymentConfig->getConfigData(FrontendPool::KEY_CACHE);
         if (null !== $cacheInfo) {
-            return array_replace_recursive($this->_frontendSettings, $cacheInfo[FrontendPool::KEY_FRONTEND_CACHE]);
+            return array_merge($this->_frontendSettings, $cacheInfo[FrontendPool::KEY_FRONTEND_CACHE]);
         }
         return $this->_frontendSettings;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      *
      * @return \Magento\Framework\Cache\FrontendInterface
      */
@@ -104,7 +99,7 @@ class Pool implements \Iterator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function key()
     {
@@ -113,7 +108,7 @@ class Pool implements \Iterator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function next()
     {
@@ -122,7 +117,7 @@ class Pool implements \Iterator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rewind()
     {
@@ -131,7 +126,7 @@ class Pool implements \Iterator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function valid()
     {
@@ -152,15 +147,6 @@ class Pool implements \Iterator
         if (isset($this->_instances[$identifier])) {
             return $this->_instances[$identifier];
         }
-
-        if (!isset($this->_instances[self::DEFAULT_FRONTEND_ID])) {
-            throw new \InvalidArgumentException(
-                "Cache frontend '{$identifier}' is not recognized. As well as " .
-                self::DEFAULT_FRONTEND_ID .
-                "cache is not configured"
-            );
-        }
-
-        return $this->_instances[self::DEFAULT_FRONTEND_ID];
+        throw new \InvalidArgumentException("Cache frontend '{$identifier}' is not recognized.");
     }
 }

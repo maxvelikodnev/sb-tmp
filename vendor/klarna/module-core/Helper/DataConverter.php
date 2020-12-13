@@ -10,6 +10,11 @@
 
 namespace Klarna\Core\Helper;
 
+/**
+ * Class DataConverter
+ *
+ * @package Klarna\Core\Helper
+ */
 class DataConverter
 {
     /**

@@ -18,6 +18,11 @@ use Magento\Payment\Model\MethodList;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * Class MethodListPlugin
+ *
+ * @package Klarna\Kp\Plugin\Model
+ */
 class MethodListPlugin
 {
     /**
@@ -31,6 +36,8 @@ class MethodListPlugin
     private $config;
 
     /**
+     * MethodListPlugin constructor.
+     *
      * @param SessionInitiatorFactory $sessInitFactory
      * @param ScopeConfigInterface    $config
      */

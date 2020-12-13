@@ -71,6 +71,8 @@ abstract class AbstractLine implements OrderLineInterface
     protected $klarnaConfig;
 
     /**
+     * AbstractLine constructor.
+     *
      * @param DataConverter        $helper
      * @param Calculation          $calculator
      * @param ScopeConfigInterface $config

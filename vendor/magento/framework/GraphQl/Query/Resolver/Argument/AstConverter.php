@@ -54,15 +54,13 @@ class AstConverter
      * @param string $fieldName
      * @param array $arguments
      * @return array
-     * @throws \LogicException
      */
     public function getClausesFromAst(string $fieldName, array $arguments) : array
     {
         $attributes = $this->fieldEntityAttributesPool->getEntityAttributesForEntityFromField($fieldName);
         $conditions = [];
         foreach ($arguments as $argumentName => $argument) {
-            if (key_exists($argumentName, $attributes)) {
-                $argumentName = $attributes[$argumentName]['fieldName'] ?? $argumentName;
+            if (in_array($argumentName, $attributes)) {
                 foreach ($argument as $clauseType => $clause) {
                     if (is_array($clause)) {
                         $value = [];
@@ -78,14 +76,12 @@ class AstConverter
                         $value
                     );
                 }
-            } elseif (is_array($argument)) {
+            } else {
                 $conditions[] =
                     $this->connectiveFactory->create(
                         $this->getClausesFromAst($fieldName, $argument),
                         $argumentName
                     );
-            } else {
-                throw new \LogicException('Attribute not found in the visible attributes list');
             }
         }
         return $conditions;

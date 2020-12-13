@@ -2,7 +2,7 @@
 
 namespace Dotdigitalgroup\Email\Block\Adminhtml\Config\Automation\Feefo;
 
-class Reviews extends \Dotdigitalgroup\Email\Block\Adminhtml\Config\Dynamic\ReadonlyFormField
+class Reviews extends \Magento\Config\Block\System\Config\Form\Field
 {
     /**
      * @var \Dotdigitalgroup\Email\Helper\Data

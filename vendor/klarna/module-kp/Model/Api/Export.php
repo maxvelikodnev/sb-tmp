@@ -10,6 +10,11 @@
 
 namespace Klarna\Kp\Model\Api;
 
+/**
+ * Trait Export
+ *
+ * @package Klarna\Kp\Model\Api
+ */
 trait Export
 {
 

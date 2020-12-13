@@ -3,13 +3,13 @@
 namespace Dotdigitalgroup\Email\Model\ResourceModel;
 
 use Dotdigitalgroup\Email\Model\ResourceModel\Cron\Collection;
-use Magento\Framework\Serialize\SerializerInterface;
-use Dotdigitalgroup\Email\Setup\SchemaInterface as Schema;
+use Dotdigitalgroup\Email\Model\Config\Json;
+use Dotdigitalgroup\Email\Setup\Schema;
 
 class Rules extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
-     * @var SerializerInterface
+     * @var Json
      */
     protected $serializer;
 
@@ -27,12 +27,12 @@ class Rules extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * Rules constructor.
      *
      * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
-     * @param SerializerInterface $serializer
+     * @param Json $serializer
      * @param null $connectionName
      */
     public function __construct(
         \Magento\Framework\Model\ResourceModel\Db\Context $context,
-        SerializerInterface $serializer,
+        Json $serializer,
         $connectionName = null
     ) {
         $this->serializer = $serializer;
@@ -44,9 +44,7 @@ class Rules extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
     protected function _afterLoad(\Magento\Framework\Model\AbstractModel $object)
     {
-        if (!empty($object->getConditions())) {
-            $object->setCondition($this->serializer->unserialize($object->getConditions()));
-        }
+        $object->setCondition($this->serializer->unserialize($object->getConditions()));
 
         return parent::_afterLoad($object);
     }

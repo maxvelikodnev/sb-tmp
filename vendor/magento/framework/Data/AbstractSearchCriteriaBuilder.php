@@ -9,7 +9,6 @@ use Psr\Log\LoggerInterface as Logger;
 
 /**
  * Class AbstractSearchCriteriaBuilder
- *
  * @package Magento\Framework\Data
  */
 abstract class AbstractSearchCriteriaBuilder
@@ -25,13 +24,8 @@ abstract class AbstractSearchCriteriaBuilder
     protected $resultObjectInterface;
 
     /**
-     * @var Logger
-     */
-    private $logger;
-
-    /**
      * @param Logger $logger
-     * @param ObjectFactory $objectFactory
+     * @param ObjectFactory $objectFactory,
      */
     public function __construct(
         Logger $logger,
@@ -43,15 +37,11 @@ abstract class AbstractSearchCriteriaBuilder
     }
 
     /**
-     * Initialization
-     *
      * @return string
      */
     abstract protected function init();
 
     /**
-     * Retrieve interface for result
-     *
      * @return string
      */
     protected function getResultObjectInterface()
@@ -60,8 +50,6 @@ abstract class AbstractSearchCriteriaBuilder
     }
 
     /**
-     * Create result object
-     *
      * @return SearchResultInterface
      */
     public function make()

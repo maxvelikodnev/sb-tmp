@@ -10,6 +10,11 @@
 
 namespace Klarna\Core\Model\Checkout\Orderline;
 
+/**
+ * Class OrderLineFactory
+ *
+ * @package Klarna\Core\Model\Checkout\Orderline
+ */
 class OrderLineFactory
 {
     /**

@@ -20,6 +20,11 @@ use Klarna\Kp\Api\QuoteRepositoryInterface;
 use Klarna\Kp\Model\QuoteFactory as KlarnaQuoteFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
 
+/**
+ * Class Session
+ *
+ * @package Klarna\Kp\Model
+ */
 class Session
 {
     /**
@@ -66,6 +71,8 @@ class Session
     private $session;
 
     /**
+     * Session constructor.
+     *
      * @param \Magento\Checkout\Model\Session $session
      * @param CreditApiInterface              $api
      * @param BuilderInterface                $builder
@@ -168,7 +175,6 @@ class Session
      */
     private function getGeneratedCreateRequest()
     {
-        $this->getQuote()->collectTotals();
         return $this->builder->setObject($this->getQuote())->generateRequest(BuilderInterface::GENERATE_TYPE_CREATE)
             ->getRequest();
     }

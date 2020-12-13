@@ -23,6 +23,10 @@ use Magento\Framework\Escaper;
 
 class AmazonAddressFactory
 {
+    /**
+     * @var Escaper
+     */
+    private $escaper;
 
     /**
      * @var ObjectManagerInterface
@@ -44,7 +48,7 @@ class AmazonAddressFactory
      *
      * @param ObjectManagerInterface $objectManager
      * @param AmazonNameFactory $amazonNameFactory
-     * @param null $escaper Deprecated, do not remove for backward compatibility
+     * @param Escaper $escaper
      * @param array $addressDecoratorPool Per-country custom decorators of incoming address data.
      *                                         The key as an "ISO 3166-1 alpha-2" country code and
      *                                         the value as an FQCN of a child of AmazonAddress.
@@ -52,11 +56,12 @@ class AmazonAddressFactory
     public function __construct(
         ObjectManagerInterface $objectManager,
         AmazonNameFactory $amazonNameFactory,
-        $escaper = null,
+        Escaper $escaper,
         array $addressDecoratorPool = []
     ) {
         $this->objectManager = $objectManager;
         $this->amazonNameFactory = $amazonNameFactory;
+        $this->escaper = $escaper;
         $this->addressDecoratorPool = $addressDecoratorPool;
     }
 
@@ -71,22 +76,22 @@ class AmazonAddressFactory
         $address = $responseData['address'];
         $amazonName = $this->amazonNameFactory->create(
             [
-                'name' => $address['Name'],
-                'country' => $address['CountryCode']]
+                'name' => $this->escaper->escapeHtml($address['Name']),
+                'country' => $this->escaper->escapeHtml($address['CountryCode'])]
         );
 
         $data = [
-            AmazonAddressInterface::POSTAL_CODE => isset($address['PostalCode']) ? $address['PostalCode'] : '',
-            AmazonAddressInterface::COUNTRY_CODE => $address['CountryCode'],
-            AmazonAddressInterface::TELEPHONE => isset($address['Phone']) ? $address['Phone'] : '',
-            AmazonAddressInterface::STATE_OR_REGION => isset($address['StateOrRegion']) ? $address['StateOrRegion'] : '',
-            AmazonAddressInterface::FIRST_NAME => $amazonName->getFirstName(),
-            AmazonAddressInterface::LAST_NAME => $amazonName->getLastName(),
+            AmazonAddressInterface::POSTAL_CODE => isset($address['PostalCode']) ? $this->escaper->escapeHtml($address['PostalCode']) : '',
+            AmazonAddressInterface::COUNTRY_CODE => $this->escaper->escapeHtml($address['CountryCode']),
+            AmazonAddressInterface::TELEPHONE => isset($address['Phone']) ? $this->escaper->escapeHtml($address['Phone']) : '',
+            AmazonAddressInterface::STATE_OR_REGION => isset($address['StateOrRegion']) ? $this->escaper->escapeHtml($address['StateOrRegion']) : '',
+            AmazonAddressInterface::FIRST_NAME => $this->escaper->escapeHtml($amazonName->getFirstName()),
+            AmazonAddressInterface::LAST_NAME => $this->escaper->escapeHtml($amazonName->getLastName()),
             AmazonAddressInterface::LINES => $this->getLines($address)
         ];
 
         if (isset($address['City'])) {
-            $data[AmazonAddressInterface::CITY] = $address['City'];
+            $data[AmazonAddressInterface::CITY] = $this->escaper->escapeHtml($address['City']);
         }
 
         $amazonAddress = $this->objectManager->create(AmazonAddress::class, ['data' => $data]);
@@ -126,7 +131,7 @@ class AmazonAddressFactory
         $lines = [];
         for ($i = 1; $i <= 3; $i++) {
             if (isset($responseData['AddressLine' . $i]) && $responseData['AddressLine' . $i]) {
-                $lines[$i] = $responseData['AddressLine' . $i];
+                $lines[$i] = $this->escaper->escapeHtml($responseData['AddressLine' . $i]);
             }
         }
 
