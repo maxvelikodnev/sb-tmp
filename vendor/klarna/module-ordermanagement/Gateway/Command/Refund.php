@@ -13,11 +13,6 @@ namespace Klarna\Ordermanagement\Gateway\Command;
 use Klarna\Core\Exception as KlarnaException;
 use Magento\Payment\Gateway\Command;
 
-/**
- * Class Refund
- *
- * @package Klarna\Ordermanagement\Gateway\Command
- */
 class Refund extends AbstractCommand
 {
     /**
@@ -32,7 +27,7 @@ class Refund extends AbstractCommand
     {
         /** @var \Magento\Payment\Model\InfoInterface $payment */
         $payment = $commandSubject['payment']->getPayment();
-        $amount = $commandSubject['amount'];
+        $amount = (float) $commandSubject['amount'];
         $order = $payment->getOrder();
         $klarnaOrder = $this->getKlarnaOrder($order);
 

@@ -20,13 +20,10 @@ use Magento\Framework\DataObject;
 use Magento\Framework\DataObjectFactory;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order\Creditmemo;
-use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Api\Data\InvoiceInterface;
+use Magento\Sales\Api\Data\CreditmemoInterface;
 
 /**
- * Class Ordermanagement
- *
- * @package Klarna\Ordermanagement\Model\Api
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Ordermanagement implements ApiInterface
@@ -99,8 +96,6 @@ class Ordermanagement implements ApiInterface
     private $dataObjectFactory;
 
     /**
-     * OrdermanagementApi constructor.
-     *
      * @param OrdermanagementApi $orderManagement
      * @param ConfigHelper       $helper
      * @param KlarnaConfig       $klarnaConfig
@@ -189,20 +184,27 @@ class Ordermanagement implements ApiInterface
     /**
      * Capture an amount on an order
      *
-     * @param string  $orderId
-     * @param float   $amount
-     * @param Invoice $invoice
+     * @param string           $orderId
+     * @param float            $amount
+     * @param InvoiceInterface $invoice
      *
      * @return DataObject
      * @throws LocalizedException
      * @throws \Klarna\Core\Exception
      * @throws \Klarna\Core\Model\Api\Exception
      */
-    public function capture($orderId, $amount, $invoice = null)
+    public function capture(string $orderId, float $amount, InvoiceInterface $invoice)
     {
         $data = [
             'captured_amount' => $this->dataConverter->toApiFloat($amount)
         ];
+
+        $invoiceId = $this->getInvoiceId($invoice);
+        if ($invoiceId !== null) {
+            $data['reference'] = $invoiceId;
+
+        }
+
         $data = $this->prepareOrderLines($data, $invoice);
         $data = $this->checkShippingDelay($data);
 
@@ -240,6 +242,21 @@ class Ordermanagement implements ApiInterface
         }
 
         return $response;
+    }
+
+    /**
+     * Getting back the invoice id.
+     * It is intended that this method is public so that merchants can hook into it and return an ID based on
+     * their system.
+     *
+     * @param Invoice $invoice
+     * @return string|null
+     * @SuppressWarnings(PMD.UnusedFormalParameter)
+     * @api
+     */
+    public function getInvoiceId(InvoiceInterface $invoice): ?string
+    {
+        return null;
     }
 
     /**
@@ -292,7 +309,6 @@ class Ordermanagement implements ApiInterface
         return self::KLARNA_API_SHIPPING_METHOD_HOME;
     }
 
-
     /**
      * @param array                   $data
      * @param Invoice|Creditmemo|null $document
@@ -305,7 +321,7 @@ class Ordermanagement implements ApiInterface
         /**
          * Get items for capture
          */
-        if ($document instanceof Invoice || $document instanceof Creditmemo) {
+        if ($document instanceof InvoiceInterface || $document instanceof CreditmemoInterface) {
             $orderItems = $this->getGenerator()
                 ->setObject($document)
                 ->collectOrderLines($document->getStore())
@@ -355,21 +371,26 @@ class Ordermanagement implements ApiInterface
     /**
      * Refund for an order
      *
-     * @param string     $orderId
-     * @param float      $amount
-     * @param Creditmemo $creditMemo
+     * @param string              $orderId
+     * @param float               $amount
+     * @param CreditmemoInterface $creditMemo
      *
      * @return DataObject
      * @throws \Klarna\Core\Exception
      * @throws LocalizedException
      */
-    public function refund($orderId, $amount, $creditMemo = null)
+    public function refund(string $orderId, float $amount, CreditmemoInterface $creditMemo)
     {
         $data = [
             'refunded_amount' => $this->dataConverter->toApiFloat($amount)
         ];
 
-        if (!is_null($creditMemo->getCustomerNote())) {
+        $refundId = $this->getRefundId($creditMemo);
+        if ($refundId !== null) {
+            $data['reference'] = $refundId;
+        }
+
+        if ($creditMemo->getCustomerNote() !== null) {
             $data['description'] = $creditMemo->getCustomerNote();
         }
 
@@ -382,6 +403,21 @@ class Ordermanagement implements ApiInterface
             $response->setTransactionId($this->orderManagement->getLocationResourceId($response));
         }
         return $response;
+    }
+
+    /**
+     * Getting back the refund id.
+     * It is intended that this method is public so that merchants can hook into it and return an ID based on
+     * their system.
+     *
+     * @param CreditmemoInterface $creditmemo
+     * @return string|null
+     * @SuppressWarnings(PMD.UnusedFormalParameter)
+     * @api
+     */
+    public function getRefundId(CreditmemoInterface $creditmemo): ?string
+    {
+        return null;
     }
 
     /**

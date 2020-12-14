@@ -17,11 +17,6 @@ use Magento\Framework\App\Request\Http;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class Onboarding
- *
- * @package Klarna\Core\Model\System
- */
 class Onboarding
 {
 
@@ -81,9 +76,12 @@ class Onboarding
 
         $websiteId = $this->http->getParam('website', 0);
         $website = $this->storeManager->getWebsite($websiteId);
-
         $scope = $this->getScope($website);
-        $country = $this->scopeConfig->getValue('general/store_information/country_id', $scope, $website);
+
+        $country = urldecode(
+            $this->scopeConfig->getValue('general/store_information/country_id', $scope, $website)
+        );
+        $country = filter_var($country, FILTER_SANITIZE_STRING);
 
         if (!empty($country)) {
             $queryParameter .= '&country=' . $country;

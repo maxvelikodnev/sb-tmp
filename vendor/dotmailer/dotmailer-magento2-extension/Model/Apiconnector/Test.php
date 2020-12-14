@@ -3,7 +3,7 @@
 namespace Dotdigitalgroup\Email\Model\Apiconnector;
 
 /**
- * test class for validation of the api creds.
+ * test class for validation of the api credentials.
  */
 class Test
 {
@@ -88,7 +88,9 @@ class Test
     {
         if (!preg_match('#^https://(r[0-9]+-)?api\.dotmailer\.com$#', $apiEndpoint) &&
             !preg_match('#^https://(r[0-9]+\.)?apiconnector\.com$#', $apiEndpoint)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('The endpoint '.$apiEndpoint.' is not permitted.'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('The endpoint '.$apiEndpoint.' is not permitted.')
+            );
         }
 
         return true;

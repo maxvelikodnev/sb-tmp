@@ -16,6 +16,7 @@ use Magento\Framework\DataObject\IdentityInterface;
  *
  * Marked as public API because it is actively used now.
  *
+ * phpcs:disable Magento2.Classes.AbstractApi
  * @api
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
@@ -54,6 +55,7 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
      * SID Resolver
      *
      * @var \Magento\Framework\Session\SidResolverInterface
+     * @deprecated 102.0.5 Not used anymore.
      */
     protected $_sidResolver;
 
@@ -245,6 +247,7 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
      * Please override this one instead of overriding real __construct constructor
      *
      * @return void
+     * phpcs:disable Magento2.CodeAnalysis.EmptyBlock
      */
     protected function _construct()
     {
@@ -440,9 +443,9 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
      */
     public function unsetCallChild($alias, $callback, $result, $params)
     {
+        $args = func_get_args();
         $child = $this->getChildBlock($alias);
         if ($child) {
-            $args = func_get_args();
             $alias = array_shift($args);
             $callback = array_shift($args);
             $result = (string)array_shift($args);
@@ -677,10 +680,13 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
                 'html' => $html,
             ]
         );
-        $this->_eventManager->dispatch('view_block_abstract_to_html_after', [
-            'block' => $this,
-            'transport' => $transportObject
-        ]);
+        $this->_eventManager->dispatch(
+            'view_block_abstract_to_html_after',
+            [
+                'block' => $this,
+                'transport' => $transportObject
+            ]
+        );
         $html = $transportObject->getHtml();
 
         return $html;
@@ -723,7 +729,7 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
      */
     public function getUiId($arg1 = null, $arg2 = null, $arg3 = null, $arg4 = null, $arg5 = null)
     {
-        return ' data-ui-id="' . $this->getJsId($arg1, $arg2, $arg3, $arg4, $arg5) . '" ';
+        return ' data-ui-id="' . $this->escapeHtmlAttr($this->getJsId($arg1, $arg2, $arg3, $arg4, $arg5)) . '" ';
     }
 
     /**
@@ -872,7 +878,7 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
         $namespace = substr(
             $className,
             0,
-            strpos($className, '\\' . 'Block')
+            strpos($className, '\\' . 'Block' . '\\')
         );
         return str_replace('\\', '_', $namespace);
     }
@@ -1102,18 +1108,7 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
             return $html;
         }
         $loadAction = function () {
-            $cacheKey = $this->getCacheKey();
-            $cacheData = $this->_cache->load($cacheKey);
-            if ($cacheData) {
-                $cacheData = str_replace(
-                    $this->_getSidPlaceholder($cacheKey),
-                    $this->_sidResolver->getSessionIdQueryParam($this->_session)
-                    . '='
-                    . $this->_session->getSessionId(),
-                    $cacheData
-                );
-            }
-            return $cacheData;
+            return $this->_cache->load($this->getCacheKey());
         };
 
         $saveAction = function ($data) {
@@ -1143,11 +1138,6 @@ abstract class AbstractBlock extends \Magento\Framework\DataObject implements Bl
             return false;
         }
         $cacheKey = $this->getCacheKey();
-        $data = str_replace(
-            $this->_sidResolver->getSessionIdQueryParam($this->_session) . '=' . $this->_session->getSessionId(),
-            $this->_getSidPlaceholder($cacheKey),
-            $data
-        );
 
         $this->_cache->save($data, $cacheKey, array_unique($this->getCacheTags()), $this->getCacheLifetime());
         return $this;

@@ -6,8 +6,6 @@ namespace Fooman\EmailAttachments\Model;
 use Fooman\EmailAttachments\Model\Api\AttachmentContainerInterface as ContainerInterface;
 
 /**
- * @author     Kristof Ringleff
- * @package    Fooman_EmailAttachments
  * @copyright  Copyright (c) 2015 Fooman Limited (http://www.fooman.co.nz)
  *
  * For the full copyright and license information, please view the LICENSE
@@ -18,7 +16,7 @@ class ContentAttacher
     const MIME_PDF = 'application/pdf';
     const TYPE_OCTETSTREAM = 'application/octet-stream';
     const MIME_TXT = 'text/plain';
-    const MIME_HTML = 'text/html; charset=UTF-8';
+    const MIME_HTML = 'text/html';
 
     private $attachmentFactory;
 

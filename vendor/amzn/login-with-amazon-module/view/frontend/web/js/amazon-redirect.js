@@ -20,7 +20,6 @@ define([
     'amazonCsrf',
     'Magento_Customer/js/customer-data',
     'mage/loader',
-    'jquery/ui',
     'mage/cookies'
 ], function ($, amazonCore, amazonPaymentConfig, amazonCsrf, customerData) {
     'use strict';
@@ -44,30 +43,7 @@ define([
             // we don't have the customer's consent or invalid request
             this.redirectOnRequestWithError();
             this.setAuthStateCookies();
-            var onAmazonDefined = function () {
-                //only set this on the redirect page
-                amazon.Login.setUseCookie(true); //eslint-disable-line no-undef
-                amazonCore.verifyAmazonLoggedIn().then(function (loggedIn) {
-                    if (loggedIn) {
-                        self.redirect();
-                    } else {
-                        window.location = amazonPaymentConfig.getValue('customerLoginPageUrl');
-                    }
-                }, function(error) {
-                    $('body').trigger('processStop');
-                    customerData.set('messages', {
-                        messages: [{
-                            type: 'error',
-                            text: error
-                        }]
-                    });
-                });
-            };
-            if (amazonCore.amazonDefined()) {
-                onAmazonDefined();
-            } else {
-                amazonCore.amazonDefined.subscribe(onAmazonDefined, this);
-            }
+            self.redirect();
         },
 
         /**

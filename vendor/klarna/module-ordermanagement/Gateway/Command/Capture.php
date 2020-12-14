@@ -23,17 +23,14 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderRepository as MageOrderRepository;
 use Magento\Framework\App\RequestInterface;
 
-/**
- * Class Capture
- *
- * @package Klarna\Ordermanagement\Gateway\Command
- */
 class Capture extends AbstractCommand
 {
+    /**
+     * @var RequestInterface
+     */
+    private $request;
 
     /**
-     * Capture constructor.
-     *
      * @param KlarnaOrderRepository $kOrderRepository
      * @param MageQuoteRepository $mageQuoteRepository
      * @param MageOrderRepository $mageOrderRepository
@@ -67,8 +64,6 @@ class Capture extends AbstractCommand
     }
 
     /**
-     * Capture command
-     *
      * @param array $commandSubject
      *
      * @return null|Command\ResultInterface
@@ -82,7 +77,7 @@ class Capture extends AbstractCommand
         $requestData =  $this->request->getPost();
         /** @var \Magento\Payment\Model\InfoInterface $payment */
         $payment = $commandSubject['payment']->getPayment();
-        $amount = $commandSubject['amount'];
+        $amount = (float) $commandSubject['amount'];
 
         $klarnaOrder = $this->getKlarnaOrder($payment->getOrder());
 
