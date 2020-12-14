@@ -18,9 +18,6 @@
             <testCaseId value="MC-14008"/>
             <group value="catalog_import_export"/>
             <group value="mtf_migrated"/>
-            <skip>
-                <issueId value="MC-15934"/>
-            </skip>
         </annotations>
         <before>
             <!--Create bundle product with dynamic price with two simple products -->
@@ -83,19 +80,19 @@
                 <requiredEntity createDataKey="secondSimpleProductForFixedWithAttribute"/>
             </createData>
 
-            <!-- Login as admin -->
-            <actionGroup ref="LoginAsAdmin" stepKey="loginAsAdmin"/>
-
-            <!-- Run cron twice -->
-            <magentoCLI command="cron:run" stepKey="runCron1"/>
-            <magentoCLI command="cron:run" stepKey="runCron2"/>
-        </before>
-        <after>
-            <!-- Delete exported file -->
-            <actionGroup ref="deleteExportedFile" stepKey="deleteExportedFile">
-                <argument name="rowIndex" value="0"/>
+            <!-- Run cron twice (To reduce the load and with introducing BIC cron runs have been removed) -->
+            <actionGroup ref="CliIndexerReindexActionGroup" stepKey="runCron1">
+                <argument name="indices" value="catalog_category_product catalogrule_product catalog_product_price catalogsearch_fulltext "/>
+            </actionGroup>
+            <actionGroup ref="CliCacheCleanActionGroup" stepKey="runCron2">
+                <argument name="tags" value="full_page"/>
             </actionGroup>
 
+            <!-- Login as admin -->
+            <actionGroup ref="LoginAsAdmin" stepKey="loginAsAdmin"/>
+            <actionGroup ref="deleteAllExportedFiles" stepKey="clearExportedFilesList"/>
+        </before>
+        <after>
             <!-- Delete products creations -->
             <deleteData createDataKey="createDynamicBundleProduct" stepKey="deleteDynamicBundleProduct"/>
             <deleteData createDataKey="firstSimpleProductForDynamic" stepKey="deleteFirstSimpleProductForDynamic"/>
@@ -108,8 +105,15 @@
             <deleteData createDataKey="secondSimpleProductForFixedWithAttribute" stepKey="deleteSecondSimpleProductForFixedWithAttribute"/>
             <deleteData createDataKey="createProductAttribute" stepKey="deleteProductAttribute"/>
 
+            <!-- Delete exported file -->
+            <actionGroup ref="deleteExportedFile" stepKey="deleteExportedFile">
+                <argument name="rowIndex" value="0"/>
+            </actionGroup>
             <!-- Log out -->
             <actionGroup ref="logout" stepKey="logout"/>
+
+            <!-- Reindex invalidated indices after product attribute has been created/deleted -->
+            <actionGroup ref="CliRunReindexUsingCronJobsActionGroup" stepKey="reindexInvalidatedIndices"/>
         </after>
 
         <!-- Go to export page -->
@@ -118,8 +122,12 @@
         <!-- Export created below products -->
         <actionGroup ref="exportAllProducts" stepKey="exportCreatedProducts"/>
 
-        <!-- Run cron -->
-        <magentoCLI command="cron:run" stepKey="runCron3"/>
+        <!-- Run cron (To reduce the load and with introducing BIC cron runs have been removed) -->
+        <magentoCLI command="help" stepKey="runCron3"/>
+        <actionGroup ref="CliConsumerStartActionGroup" stepKey="runCron4">
+            <argument name="consumerName" value="exportProcessor"/>
+            <argument name="maxMessages" value="10"/>
+        </actionGroup>
 
         <!-- Download product -->
         <actionGroup ref="downloadFileByRowIndex" stepKey="downloadCreatedProducts">

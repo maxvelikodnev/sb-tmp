@@ -19,6 +19,9 @@ use Magento\Quote\Model\Quote;
 /**
  * Class OrderPlace
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
+ * @deprecated Starting from Magento 2.3.6 Braintree payment method core integration is deprecated
+ * in favor of official payment integration available on the marketplace
  */
 class OrderPlace extends AbstractHelper
 {
@@ -79,9 +82,10 @@ class OrderPlace extends AbstractHelper
     public function execute(Quote $quote, array $agreement)
     {
         if (!$this->agreementsValidator->isValid($agreement)) {
-            throw new LocalizedException(__(
+            $errorMsg = __(
                 "The order wasn't placed. First, agree to the terms and conditions, then try placing your order again."
-            ));
+            );
+            throw new LocalizedException($errorMsg);
         }
 
         if ($this->getCheckoutMethod($quote) === Onepage::METHOD_GUEST) {
@@ -91,12 +95,7 @@ class OrderPlace extends AbstractHelper
         $this->disabledQuoteAddressValidation($quote);
 
         $quote->collectTotals();
-        try {
-            $this->cartManagement->placeOrder($quote->getId());
-        } catch (\Exception $e) {
-            $this->orderCancellationService->execute($quote->getReservedOrderId());
-            throw $e;
-        }
+        $this->cartManagement->placeOrder($quote->getId());
     }
 
     /**

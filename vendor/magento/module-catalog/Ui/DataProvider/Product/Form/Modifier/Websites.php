@@ -6,12 +6,12 @@
 namespace Magento\Catalog\Ui\DataProvider\Product\Form\Modifier;
 
 use Magento\Catalog\Model\Locator\LocatorInterface;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Store\Api\WebsiteRepositoryInterface;
 use Magento\Store\Api\GroupRepositoryInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
-use Magento\Ui\Component\Form;
+use Magento\Store\Api\WebsiteRepositoryInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Ui\Component\DynamicRows;
+use Magento\Ui\Component\Form;
 
 /**
  * Class Websites customizes websites panel
@@ -165,7 +165,7 @@ class Websites extends AbstractModifier
         $websitesList = $this->getWebsitesList();
         $isNewProduct = !$this->locator->getProduct()->getId();
         $tooltip = [
-            'link' => 'http://docs.magento.com/m2/ce/user_guide/configuration/scope.html',
+            'link' => 'https://docs.magento.com/m2/ce/user_guide/configuration/scope.html',
             'description' => __(
                 'If your Magento installation has multiple websites, ' .
                 'you can edit the scope to use the product on specific sites.'
@@ -175,11 +175,9 @@ class Websites extends AbstractModifier
         $label = __('Websites');
 
         $defaultWebsiteId = $this->websiteRepository->getDefault()->getId();
-        $isOnlyOneWebsiteAvailable = count($websitesList) === 1;
         foreach ($websitesList as $website) {
             $isChecked = in_array($website['id'], $websiteIds)
-                || ($defaultWebsiteId == $website['id'] && $isNewProduct)
-                || $isOnlyOneWebsiteAvailable;
+                || ($defaultWebsiteId == $website['id'] && $isNewProduct);
             $children[$website['id']] = [
                 'arguments' => [
                     'data' => [
@@ -188,6 +186,7 @@ class Websites extends AbstractModifier
                             'componentType' => Form\Field::NAME,
                             'formElement' => Form\Element\Checkbox::NAME,
                             'description' => __($website['name']),
+                            '__disableTmpl' => true,
                             'tooltip' => $tooltip,
                             'sortOrder' => $sortOrder,
                             'dataScope' => 'website_ids.' . $website['id'],
@@ -213,6 +212,30 @@ class Websites extends AbstractModifier
             }
         }
 
+        $children = $this->setDefaultWebsiteIdIfNoneAreSelected($children);
+        return $children;
+    }
+
+    /**
+     * Set default website id if none are selected
+     *
+     * @param array $children
+     * @return array
+     */
+    private function setDefaultWebsiteIdIfNoneAreSelected(array $children):array
+    {
+        $websitesList = $this->getWebsitesList();
+        $defaultSelectedWebsite = false;
+        foreach ($websitesList as $website) {
+            if ($children[$website['id']]['arguments']['data']['config']['value']) {
+                $defaultSelectedWebsite = true;
+                break;
+            }
+        }
+        if (count($websitesList) === 1 && !$defaultSelectedWebsite) {
+            $website = reset($websitesList);
+            $children[$website['id']]['arguments']['data']['config']['value'] = (string)$website['id'];
+        }
         return $children;
     }
 
@@ -355,18 +378,21 @@ class Websites extends AbstractModifier
             $websiteOption = [
                 'value' => '0.' . $website['id'],
                 'label' => __($website['name']),
+                '__disableTmpl' => true,
             ];
             $groupOptions = [];
             foreach ($website['groups'] as $group) {
                 $groupOption = [
                     'value' => '0.' . $website['id'] . '.' . $group['id'],
                     'label' => __($group['name']),
+                    '__disableTmpl' => true,
                 ];
                 $storeViewOptions = [];
                 foreach ($group['stores'] as $storeView) {
                     $storeViewOptions[] = [
                         'value' => $storeView['id'],
                         'label' => __($storeView['name']),
+                        '__disableTmpl' => true,
                     ];
                 }
                 if (!empty($storeViewOptions)) {

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\Braintree\Model\Multishipping;
 
 use Magento\Braintree\Gateway\Command\GetPaymentNonceCommand;
+use Magento\Braintree\Gateway\Config\Config;
 use Magento\Braintree\Model\Ui\ConfigProvider;
 use Magento\Braintree\Observer\DataAssignObserver;
 use Magento\Braintree\Model\Ui\PayPal\ConfigProvider as PaypalConfigProvider;
@@ -23,6 +24,8 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
  * Order payments processing for multishipping checkout flow.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @deprecated Starting from Magento 2.3.6 Braintree payment method core integration is deprecated
+ * in favor of official payment integration available on the marketplace
  */
 class PlaceOrder implements PlaceOrderInterface
 {
@@ -117,6 +120,10 @@ class PlaceOrder implements PlaceOrderInterface
         $orderPayment->setAdditionalInformation(
             PaymentTokenInterface::CUSTOMER_ID,
             $customerId
+        );
+        $orderPayment->setAdditionalInformation(
+            'is_multishipping',
+            1
         );
     }
 

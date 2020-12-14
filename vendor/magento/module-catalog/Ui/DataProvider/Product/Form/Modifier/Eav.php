@@ -18,6 +18,7 @@ use Magento\Catalog\Ui\DataProvider\CatalogEavValidationRules;
 use Magento\Eav\Api\Data\AttributeGroupInterface;
 use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Model\Config;
+use Magento\Eav\Model\Entity\Attribute\Source\SpecificSourceInterface;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Group\CollectionFactory as GroupCollectionFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
@@ -39,13 +40,14 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
 
 /**
- * Class Eav
+ * Class Eav data provider for product editing form
  *
  * @api
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveClassLength)
  * @since 101.0.0
  */
 class Eav extends AbstractModifier
@@ -660,6 +662,7 @@ class Eav extends AbstractModifier
      * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @api
      * @since 101.0.0
      */
@@ -667,61 +670,71 @@ class Eav extends AbstractModifier
     {
         $configPath = ltrim(static::META_CONFIG_PATH, ArrayManager::DEFAULT_PATH_DELIMITER);
         $attributeCode = $attribute->getAttributeCode();
-        $meta = $this->arrayManager->set($configPath, [], [
-            'dataType' => $attribute->getFrontendInput(),
-            'formElement' => $this->getFormElementsMapValue($attribute->getFrontendInput()),
-            'visible' => $attribute->getIsVisible(),
-            'required' => $attribute->getIsRequired(),
-            'notice' => $attribute->getNote() === null ? null : __($attribute->getNote()),
-            'default' => (!$this->isProductExists()) ? $this->getAttributeDefaultValue($attribute) : null,
-            'label' => __($attribute->getDefaultFrontendLabel()),
-            'code' => $attributeCode,
-            'source' => $groupCode,
-            'scopeLabel' => $this->getScopeLabel($attribute),
-            'globalScope' => $this->isScopeGlobal($attribute),
-            'sortOrder' => $sortOrder * self::SORT_ORDER_MULTIPLIER,
-        ]);
+        $meta = $this->arrayManager->set(
+            $configPath,
+            [],
+            [
+                'dataType' => $attribute->getFrontendInput(),
+                'formElement' => $this->getFormElementsMapValue($attribute->getFrontendInput()),
+                'visible' => $attribute->getIsVisible(),
+                'required' => $attribute->getIsRequired(),
+                'notice' => $attribute->getNote() === null ? null : __($attribute->getNote()),
+                'default' => (!$this->isProductExists()) ? $this->getAttributeDefaultValue($attribute) : null,
+                'label' => __($attribute->getDefaultFrontendLabel()),
+                'code' => $attributeCode,
+                'source' => $groupCode,
+                'scopeLabel' => $this->getScopeLabel($attribute),
+                'globalScope' => $this->isScopeGlobal($attribute),
+                'sortOrder' => $sortOrder * self::SORT_ORDER_MULTIPLIER,
+                '__disableTmpl' => ['label' => true, 'code' => true]
+            ]
+        );
+        $product = $this->locator->getProduct();
 
         // TODO: Refactor to $attribute->getOptions() when MAGETWO-48289 is done
         $attributeModel = $this->getAttributeModel($attribute);
         if ($attributeModel->usesSource()) {
-            $options = $attributeModel->getSource()->getAllOptions(true, true);
+            $source = $attributeModel->getSource();
+            if ($source instanceof SpecificSourceInterface) {
+                $options = $source->getOptionsFor($product);
+            } else {
+                $options = $source->getAllOptions(true, true);
+            }
             foreach ($options as &$option) {
                 $option['__disableTmpl'] = true;
             }
-            $meta = $this->arrayManager->merge($configPath, $meta, [
-                'options' => $this->convertOptionsValueToString($options),
-            ]);
+            $meta = $this->arrayManager->merge(
+                $configPath,
+                $meta,
+                ['options' => $this->convertOptionsValueToString($options)]
+            );
         }
 
         if ($this->canDisplayUseDefault($attribute)) {
-            $meta = $this->arrayManager->merge($configPath, $meta, [
-                'service' => [
-                    'template' => 'ui/form/element/helper/service',
+            $meta = $this->arrayManager->merge(
+                $configPath,
+                $meta,
+                [
+                    'service' => [
+                        'template' => 'ui/form/element/helper/service',
+                    ]
                 ]
-            ]);
+            );
         }
 
         if (!$this->arrayManager->exists($configPath . '/componentType', $meta)) {
-            $meta = $this->arrayManager->merge($configPath, $meta, [
-                'componentType' => Field::NAME,
-            ]);
+            $meta = $this->arrayManager->merge($configPath, $meta, ['componentType' => Field::NAME]);
         }
 
-        $product = $this->locator->getProduct();
         if (in_array($attributeCode, $this->attributesToDisable)
             || $product->isLockedAttribute($attributeCode)) {
-            $meta = $this->arrayManager->merge($configPath, $meta, [
-                'disabled' => true,
-            ]);
+            $meta = $this->arrayManager->merge($configPath, $meta, ['disabled' => true]);
         }
 
         // TODO: getAttributeModel() should not be used when MAGETWO-48284 is complete
         $childData = $this->arrayManager->get($configPath, $meta, []);
-        if (($rules = $this->catalogEavValidationRules->build($this->getAttributeModel($attribute), $childData))) {
-            $meta = $this->arrayManager->merge($configPath, $meta, [
-                'validation' => $rules,
-            ]);
+        if ($rules = $this->catalogEavValidationRules->build($this->getAttributeModel($attribute), $childData)) {
+            $meta = $this->arrayManager->merge($configPath, $meta, ['validation' => $rules]);
         }
 
         $meta = $this->addUseDefaultValueCheckbox($attribute, $meta);
@@ -776,7 +789,9 @@ class Eav extends AbstractModifier
                 \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                 $this->storeManager->getStore()
             );
-            $attribute->setDefaultValue($defaultValue);
+            if ($defaultValue !== null) {
+                $attribute->setDefaultValue($defaultValue);
+            }
         }
         return $attribute->getDefaultValue();
     }
@@ -789,11 +804,14 @@ class Eav extends AbstractModifier
      */
     private function convertOptionsValueToString(array $options) : array
     {
-        array_walk($options, function (&$value) {
-            if (isset($value['value']) && is_scalar($value['value'])) {
-                $value['value'] = (string)$value['value'];
+        array_walk(
+            $options,
+            function (&$value) {
+                if (isset($value['value']) && is_scalar($value['value'])) {
+                    $value['value'] = (string)$value['value'];
+                }
             }
-        });
+        );
 
         return $options;
     }
@@ -842,6 +860,7 @@ class Eav extends AbstractModifier
                 'breakLine' => false,
                 'label' => $attribute->getDefaultFrontendLabel(),
                 'required' => $attribute->getIsRequired(),
+                '__disableTmpl' => ['label' => true]
             ]
         );
 
@@ -850,7 +869,9 @@ class Eav extends AbstractModifier
                 'arguments/data/config',
                 $containerMeta,
                 [
-                    'component' => 'Magento_Ui/js/form/components/group'
+                    'component' => 'Magento_Ui/js/form/components/group',
+                    'label' => false,
+                    'required' => false,
                 ]
             );
         }
@@ -1040,6 +1061,10 @@ class Eav extends AbstractModifier
      */
     private function getAttributeModel($attribute)
     {
+        // The statement below solves performance issue related to loading same attribute options on different models
+        if ($attribute instanceof EavAttribute) {
+            return $attribute;
+        }
         $attributeId = $attribute->getAttributeId();
 
         if (!array_key_exists($attributeId, $this->attributesCache)) {

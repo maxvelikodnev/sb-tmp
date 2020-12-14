@@ -355,6 +355,7 @@ class ListProduct extends AbstractProduct implements IdentityInterface
         }
 
         foreach ($this->_getProductCollection() as $item) {
+            // phpcs:ignore Magento2.Performance.ForeachArrayMerge
             $identities = array_merge($identities, $item->getIdentities());
         }
 
@@ -369,11 +370,11 @@ class ListProduct extends AbstractProduct implements IdentityInterface
      */
     public function getAddToCartPostParams(Product $product)
     {
-        $url = $this->getAddToCartUrl($product);
+        $url = $this->getAddToCartUrl($product, ['_escape' => false]);
         return [
             'action' => $url,
             'data' => [
-                'product' => $product->getEntityId(),
+                'product' => (int) $product->getEntityId(),
                 ActionInterface::PARAM_NAME_URL_ENCODED => $this->urlHelper->getEncodedUrl($url),
             ]
         ];
