@@ -126,7 +126,7 @@
 ############################################
 ## Enable rewrites
 
-    Options +SymLinksIfOwnerMatch
+    Options +FollowSymLinks
     RewriteEngine on
 
 ############################################
@@ -230,8 +230,4 @@ ErrorDocument 403 /errors/404.php
     ############################################
     ## Prevent clickjacking
     Header set X-Frame-Options SAMEORIGIN
-</IfModule>
-<IfModule Litespeed>
-AddHandler application/x-httpd-php72 .php
-php_value session.save_path /home/silverbubble/tmp
 </IfModule>
