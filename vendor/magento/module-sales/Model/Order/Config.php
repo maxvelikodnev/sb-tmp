@@ -52,7 +52,7 @@ class Config
      */
     protected $maskStatusesMapping = [
         \Magento\Framework\App\Area::AREA_FRONTEND => [
-            \Magento\Sales\Model\Order::STATUS_FRAUD => \Magento\Sales\Model\Order::STATE_PROCESSING,
+            \Magento\Sales\Model\Order::STATUS_FRAUD => \Magento\Sales\Model\Order::STATUS_FRAUD,
             \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW => \Magento\Sales\Model\Order::STATE_PROCESSING
         ]
     ];
@@ -182,7 +182,7 @@ class Config
     /**
      * State label getter
      *
-     * @param   string $state
+     * @param string $state
      * @return \Magento\Framework\Phrase|string
      */
     public function getStateLabel($state)
@@ -214,7 +214,7 @@ class Config
     {
         $states = [];
         foreach ($this->_getCollection() as $item) {
-            if ($item->getState()) {
+            if ($item->getState() && $item->getIsDefault()) {
                 $states[$item->getState()] = __($item->getData('label'));
             }
         }

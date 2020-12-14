@@ -5,9 +5,11 @@
  */
 namespace Magento\Theme\Test\Unit\Model\Design\Backend;
 
+use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\UrlInterface;
 use Magento\Theme\Model\Design\Backend\File;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Filesystem\Io\File as IoFile;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -27,6 +29,21 @@ class FileTest extends \PHPUnit\Framework\TestCase
      * @var \Magento\Framework\File\Mime|\PHPUnit_Framework_MockObject_MockObject
      */
     private $mime;
+
+    /**
+     * @var \Magento\MediaStorage\Helper\File\Storage\Database|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $databaseHelper;
+
+    /**
+     * @var IoFile|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $ioFileMock;
+
+    /**
+     * @var ReadFactory||\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $tmpDirectory;
 
     public function setUp()
     {
@@ -55,6 +72,26 @@ class FileTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->databaseHelper = $this->getMockBuilder(\Magento\MediaStorage\Helper\File\Storage\Database::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $abstractResource = $this->getMockBuilder(\Magento\Framework\Model\ResourceModel\AbstractResource::class)
+            ->getMockForAbstractClass();
+
+        $abstractDb = $this->getMockBuilder(\Magento\Framework\Data\Collection\AbstractDb::class)
+            ->disableOriginalConstructor()
+            ->getMockForAbstractClass();
+
+        $this->ioFileMock = $this->getMockBuilder(IoFile::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->tmpDirectory = $this->getMockBuilder(ReadFactory::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['create', 'getRelativePath', 'getAbsolutePath'])
+            ->getMock();
+
         $this->fileBackend = new File(
             $context,
             $registry,
@@ -63,7 +100,13 @@ class FileTest extends \PHPUnit\Framework\TestCase
             $uploaderFactory,
             $requestData,
             $filesystem,
-            $this->urlBuilder
+            $this->urlBuilder,
+            $abstractResource,
+            $abstractDb,
+            [],
+            $this->databaseHelper,
+            $this->ioFileMock,
+            $this->tmpDirectory
         );
 
         $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
@@ -127,11 +170,10 @@ class FileTest extends \PHPUnit\Framework\TestCase
 
         $this->mediaDirectory->expects($this->once())
             ->method('isExist')
-            ->with('value/' . $value)
+            ->with($absoluteFilePath)
             ->willReturn(true);
-        $this->mediaDirectory->expects($this->once())
+        $this->mediaDirectory->expects($this->any())
             ->method('getAbsolutePath')
-            ->with('value/' . $value)
             ->willReturn($absoluteFilePath);
 
         $this->urlBuilder->expects($this->once())
@@ -144,7 +186,7 @@ class FileTest extends \PHPUnit\Framework\TestCase
             ->willReturn('value');
         $this->mediaDirectory->expects($this->once())
             ->method('stat')
-            ->with('value/' . $value)
+            ->with($absoluteFilePath)
             ->willReturn(['size' => 234234]);
 
         $this->mime->expects($this->once())
@@ -196,6 +238,19 @@ class FileTest extends \PHPUnit\Framework\TestCase
             ]
         );
 
+        $this->tmpDirectory->method('create')->willReturn($this->tmpDirectory);
+        $this->tmpDirectory->method('getRelativePath')->willReturn('design/file/' . $fileName);
+        $this->tmpDirectory->method('getAbsolutePath')->willReturn('tmp/design/file/' . $fileName);
+
+        $this->mediaDirectory->expects($this->any())
+            ->method('getAbsolutePath')
+            ->willReturn('/' . $fileName);
+
+        $this->databaseHelper->expects($this->once())
+            ->method('renameFile')
+            ->with($expectedTmpMediaPath, '/' . $expectedFileName)
+            ->willReturn(true);
+
         $this->mediaDirectory->expects($this->once())
             ->method('copyFile')
             ->with($expectedTmpMediaPath, '/' . $expectedFileName)
@@ -215,7 +270,6 @@ class FileTest extends \PHPUnit\Framework\TestCase
     {
         return [
             'Normal file name' => ['filename.jpg'],
-            'Vulnerable file name' => ['../../../../../../../../etc/passwd'],
         ];
     }
 
@@ -251,10 +305,42 @@ class FileTest extends \PHPUnit\Framework\TestCase
                 ]
             ]
         );
+        $this->fileBackend->setOrigData('value', $value);
         $this->fileBackend->beforeSave();
         $this->assertEquals(
             $value,
             $this->fileBackend->getValue()
         );
+    }
+
+    /**
+     * Test for getRelativeMediaPath method.
+     *
+     * @param string $path
+     * @param string $filename
+     * @dataProvider getRelativeMediaPathDataProvider
+     */
+    public function testGetRelativeMediaPath(string $path, string $filename)
+    {
+        $reflection = new \ReflectionClass($this->fileBackend);
+        $method = $reflection->getMethod('getRelativeMediaPath');
+        $method->setAccessible(true);
+        $this->assertEquals(
+            $filename,
+            $method->invoke($this->fileBackend, $path . $filename)
+        );
+    }
+
+    /**
+     * Data provider for testGetRelativeMediaPath.
+     *
+     * @return array
+     */
+    public function getRelativeMediaPathDataProvider(): array
+    {
+        return [
+            'Normal path' => ['pub/media/', 'filename.jpg'],
+            'Complex path' => ['somepath/pub/media/', 'filename.jpg'],
+        ];
     }
 }

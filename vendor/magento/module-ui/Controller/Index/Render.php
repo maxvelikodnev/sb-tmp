@@ -92,7 +92,7 @@ class Render extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         if ($this->_request->getParam('namespace') === null) {
-            $this->_redirect('admin/noroute');
+            $this->_redirect('noroute');
 
             return;
         }
@@ -105,6 +105,8 @@ class Render extends \Magento\Framework\App\Action\Action
 
                 $contentType = $this->contentTypeResolver->resolve($component->getContext());
                 $this->getResponse()->setHeader('Content-Type', $contentType, true);
+
+                return;
             } else {
                 /** @var \Magento\Framework\Controller\Result\Json $resultJson */
                 $resultJson = $this->resultJsonFactory->create();
@@ -113,10 +115,12 @@ class Render extends \Magento\Framework\App\Action\Action
                     \Zend\Http\AbstractMessage::VERSION_11,
                     'Forbidden'
                 );
-                return $resultJson->setData([
-                    'error' => $this->escaper->escapeHtml('Forbidden'),
-                    'errorcode' => 403
-                ]);
+                return $resultJson->setData(
+                    [
+                        'error' => $this->escaper->escapeHtml('Forbidden'),
+                        'errorcode' => 403
+                    ]
+                );
             }
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $this->logger->critical($e);
