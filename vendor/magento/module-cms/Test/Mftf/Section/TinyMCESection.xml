@@ -11,7 +11,7 @@
     <section name="TinyMCESection">
         <element name="checkIfContentTabOpen" type="button" selector="//span[text()='Content']/parent::strong/parent::*[@data-state-collapsible='closed']"/>
         <element name="CheckIfTabExpand" type="button" selector="//div[@data-state-collapsible='closed']//span[text()='Content']"/>
-        <element name="TinyMCE4" type="text" selector=".mce-branding-powered-by" />
+        <element name="TinyMCE4" type="text" selector=".mce-branding" />
         <element name="InsertWidgetBtn" type="button" selector=".action-add-widget"/>
         <element name="InsertWidgetIcon" type="button" selector="div[aria-label='Insert Widget']"/>
         <element name="InsertVariableBtn" type="button" selector=".scalable.add-variable.plugin"/>
@@ -40,10 +40,12 @@
         <element name="BrowseUploadImage" type="file" selector=".fileupload" />
         <element name="image" type="text" selector="//small[text()='{{var1}}']" parameterized="true"/>
         <element name="imageOrImageCopy" type="text" selector="//div[contains(@class,'media-gallery-modal')]//img[contains(@alt, '{{arg1}}.{{arg2}}')]|//img[contains(@alt,'{{arg1}}_') and contains(@alt,'.{{arg2}}')]" parameterized="true"/>
+        <element name="lastImageOrImageCopy" type="text" selector="(//div[contains(@class,'media-gallery-modal')]//img[contains(@alt, '{{arg1}}.{{arg2}}')]|//img[contains(@alt,'{{arg1}}_') and contains(@alt,'.{{arg2}}')])[last()]" parameterized="true"/>
         <element name="imageSelected" type="text" selector="//small[text()='{{var1}}']/parent::*[@class='filecnt selected']" parameterized="true"/>
         <element name="ImageSource" type="input" selector=".mce-combobox.mce-abs-layout-item.mce-last.mce-has-open" />
         <element name="ImageDescription" type="input" selector=".mce-textbox.mce-abs-layout-item.mce-last" />
-        <element name="ImageDescriptionTinyMCE3" type="input" selector="#alt" />
+        <element name="ImageDescriptionTinyMCE3" type="input" selector="#alt" deprecated="New element was introduced. Please use 'ImageDescriptionTinyMCE4'"/>
+        <element name="ImageDescriptionTinyMCE4" type="input" selector="#alt" />
         <element name="Height" type="input" selector=".mce-textbox.mce-abs-layout-item.mce-first" />
         <element name="UploadImage" type="file" selector=".fileupload" />
         <element name="OkBtn" type="button" selector="//span[text()='Ok']"/>
@@ -109,6 +111,8 @@
         <element name="PageSize" type="input" selector="input[name='parameters[page_size]']"/>
         <element name="ProductAttribute" type="multiselect" selector="select[name='parameters[show_attributes][]']" />
         <element name="ButtonToShow" type="multiselect" selector="select[name='parameters[show_buttons][]']"/>
+        <element name="InputAnchorCustomText" type="input" selector="input[name='parameters[anchor_text]']"/>
+        <element name="InputAnchorCustomTitle" type="input" selector="input[name='parameters[title]']"/>
         <!--Compare on Storefront-->
         <element name="ProductName" type="text" selector=".product.name.product-item-name" />
         <element name="CompareBtn" type="button" selector=".action.tocompare"/>

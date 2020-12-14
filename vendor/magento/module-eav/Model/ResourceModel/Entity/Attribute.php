@@ -11,7 +11,9 @@ use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
 use Magento\Eav\Model\Entity\Attribute as EntityAttribute;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\DB\Select;
+use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
 /**
  * EAV attribute resource model
@@ -20,7 +22,7 @@ use Magento\Framework\Model\AbstractModel;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @since 100.0.2
  */
-class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+class Attribute extends AbstractDb
 {
     /**
      * Eav Entity attributes cache
@@ -99,12 +101,13 @@ class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     public function loadByCode(AbstractModel $object, $entityTypeId, $code)
     {
-        $bind = [':entity_type_id' => $entityTypeId];
+        $bind = [':entity_type_id' => (int) $entityTypeId];
         $select = $this->_getLoadSelect('attribute_code', $code, $object)->where('entity_type_id = :entity_type_id');
         $data = $this->getConnection()->fetchRow($select, $bind);
 
         if ($data) {
             $object->setData($data);
+            $object->setOrigData('entity_type_id', $object->getEntityTypeId());
             $this->_afterLoad($object);
             return true;
         }
@@ -187,6 +190,24 @@ class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         }
 
         return parent::_beforeSave($object);
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @param AbstractModel $attribute
+     * @return AbstractDb
+     * @throws CouldNotDeleteException
+     * @since 102.0.2
+     */
+    protected function _beforeDelete(AbstractModel $attribute)
+    {
+        /** @var $attribute \Magento\Eav\Api\Data\AttributeInterface */
+        if ($attribute->getId() && !$attribute->getIsUserDefined()) {
+            throw new CouldNotDeleteException(__("The system attribute can't be deleted."));
+        }
+
+        return parent::_beforeDelete($attribute);
     }
 
     /**
@@ -277,7 +298,7 @@ class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         if ($additionalTable) {
             $connection = $this->getConnection();
             $data = $this->_prepareDataForTable($object, $this->getTable($additionalTable));
-            $bind = [':attribute_id' => $object->getId()];
+            $bind = [':attribute_id' => (int) $object->getId()];
             $select = $connection->select()->from(
                 $this->getTable($additionalTable),
                 ['attribute_id']
@@ -457,6 +478,7 @@ class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         if (!empty($option['delete'][$optionId])) {
             if ($intOptionId) {
                 $connection->delete($table, ['option_id = ?' => $intOptionId]);
+                $this->clearSelectedOptionInEntities($object, $intOptionId);
             }
             return false;
         }
@@ -473,6 +495,41 @@ class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         }
 
         return $intOptionId;
+    }
+
+    /**
+     * Clear selected option in entities
+     *
+     * @param EntityAttribute|AbstractModel $object
+     * @param int $optionId
+     * @return void
+     */
+    private function clearSelectedOptionInEntities(AbstractModel $object, int $optionId)
+    {
+        $backendTable = $object->getBackendTable();
+        $attributeId = $object->getAttributeId();
+        if (!$backendTable || !$attributeId) {
+            return;
+        }
+
+        $connection = $this->getConnection();
+        $where = $connection->quoteInto('attribute_id = ?', $attributeId);
+        $update = [];
+
+        if ($object->getBackendType() === 'varchar') {
+            $where.= ' AND ' . $connection->prepareSqlCondition('value', ['finset' => $optionId]);
+            $concat = $connection->getConcatSql(["','", 'value', "','"]);
+            $expr = $connection->quoteInto(
+                "TRIM(BOTH ',' FROM REPLACE($concat,',?,',','))",
+                $optionId
+            );
+            $update['value'] = new \Zend_Db_Expr($expr);
+        } else {
+            $where.= $connection->quoteInto(' AND value = ?', $optionId);
+            $update['value'] = null;
+        }
+
+        $connection->update($backendTable, $update, $where);
     }
 
     /**

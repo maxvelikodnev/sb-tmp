@@ -3,6 +3,7 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magento\Elasticsearch6\Model\Client;
 
 use Magento\Framework\Exception\LocalizedException;
@@ -10,6 +11,8 @@ use Magento\AdvancedSearch\Model\Client\ClientInterface;
 
 /**
  * Elasticsearch client
+ *
+ * @deprecated in favor of Elasticsearch 7.
  */
 class Elasticsearch implements ClientInterface
 {
@@ -41,8 +44,10 @@ class Elasticsearch implements ClientInterface
         $options = [],
         $elasticsearchClient = null
     ) {
-        if (empty($options['hostname']) || ((!empty($options['enableAuth']) &&
-                    ($options['enableAuth'] == 1)) && (empty($options['username']) || empty($options['password'])))) {
+        if (empty($options['hostname'])
+            || ((!empty($options['enableAuth']) && ($options['enableAuth'] == 1))
+                && (empty($options['username']) || empty($options['password'])))
+        ) {
             throw new LocalizedException(
                 __('The search failed because of a search engine misconfiguration.')
             );
@@ -103,21 +108,28 @@ class Elasticsearch implements ClientInterface
      */
     private function buildConfig($options = [])
     {
-        $host = preg_replace('/http[s]?:\/\//i', '', $options['hostname']);
+        $hostname = preg_replace('/http[s]?:\/\//i', '', $options['hostname']);
         // @codingStandardsIgnoreStart
         $protocol = parse_url($options['hostname'], PHP_URL_SCHEME);
         // @codingStandardsIgnoreEnd
         if (!$protocol) {
             $protocol = 'http';
         }
-        if (!empty($options['port'])) {
-            $host .= ':' . $options['port'];
-        }
-        if (!empty($options['enableAuth']) && ($options['enableAuth'] == 1)) {
-            $host = sprintf('%s://%s:%s@%s', $protocol, $options['username'], $options['password'], $host);
+
+        $authString = '';
+        if (!empty($options['enableAuth']) && (int)$options['enableAuth'] === 1) {
+            $authString = "{$options['username']}:{$options['password']}@";
         }
 
+        $portString = '';
+        if (!empty($options['port'])) {
+            $portString = ':' . $options['port'];
+        }
+
+        $host = $protocol . '://' . $authString . $hostname . $portString;
+
         $options['hosts'] = [$host];
+
         return $options;
     }
 
@@ -141,10 +153,12 @@ class Elasticsearch implements ClientInterface
      */
     public function createIndex($index, $settings)
     {
-        $this->getClient()->indices()->create([
-            'index' => $index,
-            'body' => $settings,
-        ]);
+        $this->getClient()->indices()->create(
+            [
+                'index' => $index,
+                'body' => $settings,
+            ]
+        );
     }
 
     /**
@@ -249,7 +263,7 @@ class Elasticsearch implements ClientInterface
                 $entityType => [
                     'properties' => [
                         '_search' => [
-                            'type' => 'text'
+                            'type' => 'text',
                         ],
                     ],
                     'dynamic_templates' => [
@@ -258,7 +272,7 @@ class Elasticsearch implements ClientInterface
                                 'match' => 'price_*',
                                 'match_mapping_type' => 'string',
                                 'mapping' => [
-                                    'type' => 'float',
+                                    'type' => 'double',
                                     'store' => true,
                                 ],
                             ],
@@ -269,7 +283,7 @@ class Elasticsearch implements ClientInterface
                                 'match_mapping_type' => 'string',
                                 'mapping' => [
                                     'type' => 'integer',
-                                    'index' => false,
+                                    'index' => true,
                                 ],
                             ],
                         ],
@@ -279,8 +293,16 @@ class Elasticsearch implements ClientInterface
                                 'match_mapping_type' => 'string',
                                 'mapping' => [
                                     'type' => 'text',
-                                    'index' => false,
-                                    'copy_to' => '_search'
+                                    'index' => true,
+                                    'copy_to' => '_search',
+                                ],
+                            ],
+                        ],
+                        [
+                            'integer_mapping' => [
+                                'match_mapping_type' => 'long',
+                                'mapping' => [
+                                    'type' => 'integer',
                                 ],
                             ],
                         ],
@@ -305,10 +327,12 @@ class Elasticsearch implements ClientInterface
      */
     public function deleteMapping($index, $entityType)
     {
-        $this->getClient()->indices()->deleteMapping([
-            'index' => $index,
-            'type' => $entityType,
-        ]);
+        $this->getClient()->indices()->deleteMapping(
+            [
+                'index' => $index,
+                'type' => $entityType,
+            ]
+        );
     }
 
     /**
