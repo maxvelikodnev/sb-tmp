@@ -85,6 +85,10 @@
 //  _____________________________________________
 
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__m) {
+    .filter-current .action.remove:before{
+        font-size: 16px!important;
+        left: 0;     
+    }
     .navigation,
     .breadcrumbs,
     .page-header .header.panel,
@@ -113,6 +117,10 @@
 //  _____________________________________________
 
 .media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {
+    .filter-current .action.remove:before{
+        font-size: 12px;
+        left: 0;     
+    }
     .navigation,
     .breadcrumbs,
     .page-header .header.panel,
