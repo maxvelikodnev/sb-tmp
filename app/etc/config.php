@@ -241,7 +241,7 @@ return [
         'Amazon_Login' => 0,
         'Amazon_Payment' => 0,
         'Dotdigitalgroup_Email' => 0,
-        'Dotdigitalgroup_Chat' => 1,
+        'Dotdigitalgroup_Chat' => 0,
         'Ebizmarts_SagePaySuite' => 1,
         'Fooman_EmailAttachments' => 1,
         'Fooman_PdfCore' => 1,
