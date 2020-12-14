@@ -17,7 +17,7 @@
         "fooman/pdfcustomiser-m2": "^8.2",
         "justbetter/magento2-image-optimizer": "^1.2",
         "magento/data-migration-tool": "2.3.1",
-        "magento/product-community-edition": "2.3.2",
+        "magento/product-community-edition": "2.3.6",
         "magepal/magento2-cataloglazyload": "^1.6",
         "mageplaza/magento-2-google-analytics": "^1.0",
         "mageplaza/magento-2-product-slider": "^2.0",
